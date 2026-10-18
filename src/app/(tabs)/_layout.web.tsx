@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
 
-import { useColors } from '@/design-system';
+import { fonts, useColors } from '@/design-system';
 
 /**
  * Web (dev preview only): the native-tabs web fallback renders a top bar that overlaps content,
@@ -16,6 +16,7 @@ export default function TabsLayoutWeb() {
         tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.textSecondary,
         tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border },
+        tabBarLabelStyle: { fontFamily: fonts.semibold },
       }}>
       <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: ({ color, size }) => <Ionicons name="images-outline" color={color as string} size={size} /> }} />
       <Tabs.Screen name="community" options={{ title: '커뮤니티', tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" color={color as string} size={size} /> }} />

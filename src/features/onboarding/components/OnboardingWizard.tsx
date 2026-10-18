@@ -5,8 +5,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, View, useWindowDimensions } 
 
 import type { UserPreference } from '@/domain/models';
 import {
-  AppText, BottomBar, Card, FilterChip, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, SelectablePhotoCard, StepHeader,
-  contentMaxWidth, spacing, tapFeedback, useColors, type IconName,
+  AppText, BottomBar, BrandLockup, Card, FilterChip, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, SelectablePhotoCard, StepHeader,
+  contentMaxWidth, spacing, tapFeedback, useColors, type IconName, type TintName,
 } from '@/design-system';
 import { useAppState } from '@/hooks/app-state';
 
@@ -25,11 +25,11 @@ const STEP_NAMES: Record<WizardStepId, string> = {
   privacy: '개인정보',
 };
 
-const PRIVACY_POINTS: { icon: IconName; text: string }[] = [
-  { icon: 'images-outline', text: '직접 고른 사진만 불러오고, 사진 보관함 전체를 훑지 않아요.' },
-  { icon: 'phone-portrait-outline', text: '분석은 기기 안에서 이뤄지고 원본 사진은 수정·삭제하지 않아요.' },
-  { icon: 'trash-outline', text: '취향과 분석 기록은 기기에만 저장되고 설정에서 언제든 지울 수 있어요.' },
-  { icon: 'people-outline', text: '커뮤니티 공개는 별도 화면에서 사진마다 따로 동의를 받아요.' },
+const PRIVACY_POINTS: { icon: IconName; tint: TintName; text: string }[] = [
+  { icon: 'images-outline', tint: 'cyan', text: '직접 고른 사진만 불러오고, 사진 보관함 전체를 훑지 않아요.' },
+  { icon: 'phone-portrait-outline', tint: 'violet', text: '분석은 기기 안에서 이뤄지고 원본 사진은 수정·삭제하지 않아요.' },
+  { icon: 'trash-outline', tint: 'pink', text: '취향과 분석 기록은 기기에만 저장되고 설정에서 언제든 지울 수 있어요.' },
+  { icon: 'people-outline', tint: 'mint', text: '커뮤니티 공개는 별도 화면에서 사진마다 따로 동의를 받아요.' },
 ];
 
 /** Values of one wizard step, used to discard a step's unsaved edits on "skip". */
@@ -156,6 +156,7 @@ function Wizard({ mode }: { mode: Mode }) {
         {stepId === 'styles' ? (
           <View style={[styles.column, { gap: spacing.md }]}>
             <View style={{ gap: spacing.xxs }}>
+              {mode === 'first-run' ? <BrandLockup size={22} style={{ marginBottom: spacing.xs }} /> : null}
               <AppText variant="title">어떤 사진 분위기가 마음에 드나요?</AppText>
               <AppText variant="body" tone="secondary">
                 마음에 드는 사진을 골라 주세요. 고른 스타일을 바탕으로 사진 추천 순서를 정해요. 나중에 언제든 바꿀 수 있어요.
@@ -230,7 +231,9 @@ function Wizard({ mode }: { mode: Mode }) {
               <View style={{ gap: spacing.md }}>
                 {PRIVACY_POINTS.map((p) => (
                   <View key={p.icon} style={styles.point}>
-                    <Ionicons name={p.icon} size={20} color={c.accent} style={{ marginTop: 2 }} />
+                    <View style={[styles.pointIcon, { backgroundColor: c.tints[p.tint].soft }]}>
+                      <Ionicons name={p.icon} size={18} color={c.tints[p.tint].fg} />
+                    </View>
                     <AppText variant="body" style={{ flex: 1 }}>{p.text}</AppText>
                   </View>
                 ))}
@@ -292,7 +295,8 @@ const styles = StyleSheet.create({
   tabs: { gap: spacing.xs, paddingRight: spacing.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.sm, rowGap: spacing.lg },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  point: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  point: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+  pointIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   // Wraps under large text so the reason for a disabled "계속하기" is never cut off.
   summaryRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: spacing.xs },
 });

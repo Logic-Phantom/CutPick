@@ -24,7 +24,7 @@ export const ANALYSIS_CONFIG = {
   resolutionSaturationMp: 8,
   /**
    * Luma-signature distance (0..255) at or below which two photos are "near duplicates".
-   * Calibrated on assets/samples: duplicates ≤ 2.2, unrelated ≥ 10.0 (docs/ANALYSIS_ALGORITHM.md).
+   * Calibrated on assets/samples: duplicates ≤ 2.4, unrelated ≥ 30.3 (docs/ANALYSIS_ALGORITHM.md).
    */
   duplicateSignatureThreshold: 5,
   /** Mean color distance (0..441) above which near-hash photos are NOT grouped (e.g. different dishes). */

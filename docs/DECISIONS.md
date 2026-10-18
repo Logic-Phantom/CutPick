@@ -38,3 +38,8 @@
 | D-032 | 예시 사진은 **Wikimedia Commons의 CC0·퍼블릭 도메인·CC BY**만 사용, 600×750 썸네일로 앱에 번들. CC BY-SA·NC·ND·출처 불명·초상권/상표 제한 표시 파일 제외. Unsplash·Pexels·Hugging Face·Cloudflare는 사용하지 않음 | 상업 앱 번들 재배포가 명확한 라이선스만. 오프라인 동작·외부 요청 없음. CC BY 저작자 표시는 앱 "설정 → 이미지 출처"와 docs/IMAGE_ASSET_ATTRIBUTIONS.md |
 | D-033 | 취향 초기화 시 `personalizationEnabled` 유지 | 기존 구현은 초기화가 기본값(true)으로 되돌려 꺼 둔 개인화를 다시 켤 수 있었음 → 수정 |
 | D-034 | 추천 이유 "취향" 문구는 사용자 목표가 있을 때만. 사용자가 고른 취향 없이 프리셋만 맞으면 "'프리셋' 기준에 가까워요"로 표시 | 기존 문구는 취향을 고르지 않아도 "고른 취향"이라고 표시했음 |
+| D-035 | 개인 테스트용 Android APK는 **로컬 빌드**(JDK 17 + Android 명령줄 도구, `expo prebuild` → `gradlew assembleRelease`), 템플릿 기본 디버그 서명. 전역 `JAVA_HOME`(JDK 8)은 건드리지 않고 빌드 프로세스에만 지정. `package.json` 스크립트는 Expo Go 흐름 유지 | 사용자 선택(EAS 계정 로그인 불필요). 디버그 서명 APK는 배포 금지 — 스토어 배포는 EAS Build/업로드 키로 별도 |
+| D-036 | 표시 이름 **CutPick**(앱 이름·홈 헤더·런치 화면·권한 안내·약관). 아이콘·스플래시·파비콘·적응형 아이콘은 소유자 제공 원본(`assets/brand/icon-source.webp`)에서 `scripts/build-app-icons.py`로 생성 → D-022 대체 | 사용자 요청. 한 원본에서 재현 가능하게 생성(iOS는 꽉 찬 정사각, Android는 배경+전경 분리·안전 영역 안) |
+| D-037 | 글꼴 **Pretendard**(UI) + **Bricolage Grotesque ExtraBold**(워드마크), 둘 다 SIL OFL 1.1. 런타임 `useFonts`(Expo Go에서도 동작). 색은 아이콘 팔레트를 워드마크·주 CTA 그라데이션·`tints` 장식에만 사용 | 상업적 무료 + 한글 완전 지원. 사진 색 왜곡을 막으려 배경은 중성 유지. 그라데이션 위 흰 글자 대비 4.7:1 이상 |
+| D-038 | 샘플 모드 사진을 합성 이미지에서 **Wikimedia Commons 실사진 18장**(원본 14장, D-032 기준)으로 교체 → D-023 대체. 중복·흐림·과노출 예시는 실사진을 가공해 유지(`scripts/build-sample-photos.py`) | 사용자 요청. 통합 테스트의 그룹(1·2·3 / 4·5 / 9·17)과 임계값은 그대로 |
+| D-039 | 콜드 스타트 **애니메이션 런치 화면**(`LaunchOverlay`, Reanimated): 네이티브 스플래시는 글꼴 로드까지만, 이후 최소 1.7초 브랜드 인트로 → 앱 준비 시 페이드아웃. Reduce Motion이면 페이드만 | Expo Go는 커스텀 스플래시 대신 앱 아이콘만 보여 주므로 JS 화면이 실제 첫인상 |

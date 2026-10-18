@@ -5,7 +5,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { toUserMessage } from '@/domain/errors';
 import type { SourceContext } from '@/domain/models';
 import { IMPORT_LIMITS } from '@/domain/recommendation-policy';
-import { AppSwitch, AppText, BottomBar, Card, FilterChip, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
+import { AppSwitch, AppText, BottomBar, Card, FilterChip, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, fonts, radius, spacing, useColors } from '@/design-system';
 import type { NormalizeResult } from '@/features/photo-import/asset-normalizer';
 import { pickPhotos } from '@/features/photo-import/photo-picker-service';
 import { loadSamplePhotos } from '@/features/photo-import/sample-photos';
@@ -56,7 +56,7 @@ export default function NewProjectScreen() {
       const purpose = getPurpose(purposeId);
       const project = await createProject(
         {
-          title: sample ? '샘플 체험 (합성 이미지)' : title.trim() || `${CONTEXT_OPTIONS.find((o) => o.id === context)?.label} ${new Date().toLocaleDateString('ko-KR')}`,
+          title: sample ? '샘플 체험 (여행 사진)' : title.trim() || `${CONTEXT_OPTIONS.find((o) => o.id === context)?.label} ${new Date().toLocaleDateString('ko-KR')}`,
           sourceContext: sample ? 'travel' : context,
           selectedPlatforms: [purpose.platform],
           targetPhotoCount: purpose.defaultCount,
@@ -138,7 +138,7 @@ export default function NewProjectScreen() {
         <View style={{ gap: spacing.xs }}>
           <AppText variant="secondary" tone="secondary">사진 없이 둘러보고 싶다면</AppText>
           <SecondaryButton label="샘플 사진으로 체험하기" icon="flask-outline" onPress={() => create(true)} loading={busy === 'sample'} disabled={!!busy && busy !== 'sample'} testID="new-sample" />
-          <AppText variant="caption" tone="tertiary">샘플은 앱에 포함된 합성 이미지 18장이에요. 결과는 샘플로 표시돼요.</AppText>
+          <AppText variant="caption" tone="tertiary">샘플은 앱에 포함된 무료 라이선스 사진 18장이에요(일부는 흔들림·과노출 예시로 가공). 결과는 샘플로 표시돼요.</AppText>
         </View>
 
         {error ? <InlineMessage tone="error" message={error} /> : null}
@@ -155,7 +155,7 @@ export default function NewProjectScreen() {
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.md, fontSize: 16 },
+  input: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.md, fontSize: 16, fontFamily: fonts.regular },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

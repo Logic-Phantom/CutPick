@@ -86,7 +86,7 @@ export async function saveToLibrary(files: ExportedFile[]): Promise<number> {
     const msg = e instanceof Error ? e.message : '';
     throw new AppError('share-unavailable', /Expo Go/i.test(msg) ? EXPO_GO_SAVE_MESSAGE : undefined, e);
   }
-  if (!perm.granted) throw new AppError('permission-denied', '사진 저장 권한이 필요해요. 기기 설정 > 컷픽 > 사진에서 "추가만 허용" 이상으로 바꿔 주세요.');
+  if (!perm.granted) throw new AppError('permission-denied', '사진 저장 권한이 필요해요. 기기 설정 > CutPick > 사진에서 "추가만 허용" 이상으로 바꿔 주세요.');
   let saved = 0;
   for (const f of files) {
     try {

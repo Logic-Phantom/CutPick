@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, StyleSheet, TextInput, View, useWindowDime
 
 import type { CutpickProject, PhotoAsset } from '@/domain/models';
 import {
-  AppText, BottomBar, BottomSheet, Card, DangerButton, ErrorState, GhostButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, SecondaryButton, radius, spacing, useColors,
+  AppText, BottomBar, BottomSheet, Card, DangerButton, ErrorState, GhostButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, SecondaryButton, fonts, radius, spacing, useColors,
 } from '@/design-system';
 import { needsAnalysis } from '@/features/image-analysis/analysis-runner';
 import { CONTEXT_LABELS } from '@/features/project-library/contexts';
@@ -74,7 +74,7 @@ export default function ProjectScreen() {
         removeClippedSubviews
         ListHeaderComponent={
           <View style={{ gap: spacing.md, marginBottom: spacing.sm }}>
-            {project.isSample ? <InlineMessage tone="warning" message="샘플(합성 이미지) 프로젝트예요." /> : null}
+            {project.isSample ? <InlineMessage tone="warning" message="샘플(무료 라이선스 사진) 프로젝트예요." /> : null}
             <Card>
               <View style={{ gap: spacing.xs }}>
                 {renaming ? (
@@ -146,5 +146,5 @@ export default function ProjectScreen() {
 }
 
 const styles = StyleSheet.create({
-  input: { flex: 1, minHeight: 44, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.sm, fontSize: 16 },
+  input: { flex: 1, minHeight: 44, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.sm, fontSize: 16, fontFamily: fonts.regular },
 });

@@ -1,7 +1,7 @@
-import { Text, type TextProps, type TextStyle } from 'react-native';
+import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 
 import { useColors } from '../theme';
-import { typography } from '../tokens';
+import { fontForWeight, typography } from '../tokens';
 
 export type TextVariant = keyof typeof typography;
 export type TextTone = 'primary' | 'secondary' | 'tertiary' | 'accent' | 'error' | 'success' | 'warning' | 'onAccent';
@@ -25,5 +25,8 @@ export function AppText({ variant = 'body', tone = 'primary', align, style, ...r
     onAccent: c.textOnAccent,
   }[tone];
   const role = variant === 'screenTitle' || variant === 'sectionTitle' ? 'header' : undefined;
-  return <Text accessibilityRole={role} maxFontSizeMultiplier={2} style={[typography[variant] as TextStyle, { color, textAlign: align }, style]} {...rest} />;
+  // Each Pretendard weight is its own family: turn an inline fontWeight into that family.
+  const weight = (StyleSheet.flatten(style) as TextStyle | undefined)?.fontWeight;
+  const weightStyle: TextStyle | null = weight != null ? { fontFamily: fontForWeight(weight), fontWeight: 'normal' } : null;
+  return <Text accessibilityRole={role} maxFontSizeMultiplier={2} style={[typography[variant] as TextStyle, { color, textAlign: align }, style, weightStyle]} {...rest} />;
 }

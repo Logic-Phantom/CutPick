@@ -1,4 +1,4 @@
-# 컷픽 (Cutpick)
+# CutPick (컷픽)
 
 여행·카페·음식·OOTD·일상 사진 중 **사용자가 직접 고른 사진만 기기 안에서 분석**해 Instagram 캐러셀/단일 게시물/스토리, TikTok 사진 게시물, 카카오톡 프로필·배경·채팅 공유용 후보를 추천하는 iOS/Android 앱(React Native + Expo). 선택한 베스트샷은 댓글 없이 **하트로만 공감**하는 컷픽 커뮤니티에 공개할 수 있다.
 
@@ -26,10 +26,32 @@ npm install
 ```bash
 npx expo start
 ```
-Expo Go로 QR 코드를 스캔한다. 웹 미리보기(UI 확인용, 출시 대상 아님):
+Expo Go로 QR 코드를 스캔한다. 폰을 PC와 같은 Wi-Fi에 두고 LAN 모드로 띄우면 USB 없이 바로 확인할 수 있다(Windows PowerShell은 `npx.cmd` 사용):
+```bash
+npx.cmd expo start --lan --go
+```
+`app.json`(이름·아이콘·스플래시)을 바꾼 뒤에는 서버를 끄고 `--clear`를 붙여 다시 시작한다. 웹 미리보기(UI 확인용, 출시 대상 아님):
 ```bash
 npm run web
 ```
+
+### 폰에 독립 실행 APK 설치 (Android, 로컬 빌드)
+PC 없이 폰에서 계속 쓰며 테스트할 때. Expo Go와 달리 사진 앱 저장도 동작한다. **서명은 Expo 템플릿 기본 디버그 키** — 개인 테스트용이며 스토어 배포용이 아니다(배포는 EAS Build + 업로드 키).
+1. 준비(한 번만): JDK 17(`winget install Microsoft.OpenJDK.17`), Android 명령줄 도구를 `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest`에 풀고 `sdkmanager --licenses`로 약관 동의. 전역 `JAVA_HOME`은 바꾸지 않고 빌드할 때만 지정한다.
+2. 네이티브 프로젝트 생성(`android/`는 CNG 산출물이라 git 무시, 손으로 고치지 않음):
+```bash
+npx expo prebuild -p android --no-install
+```
+   prebuild가 `package.json`의 `android`/`ios` 스크립트를 `expo run:*`으로 바꾸면 되돌린다(이 저장소는 Expo Go 흐름을 기본으로 유지).
+3. 빌드(Git Bash, 첫 빌드는 Gradle·SDK 플랫폼·NDK를 받아 오래 걸림):
+```bash
+cd android && JAVA_HOME="/c/Program Files/Microsoft/jdk-17.0.20.101-hotspot" ANDROID_HOME="$LOCALAPPDATA/Android/Sdk" ./gradlew.bat assembleRelease
+```
+4. 설치(USB 디버깅 허용된 폰):
+```bash
+adb install -r android/app/build/outputs/apk/release/app-release.apk
+```
+   앱 표시 이름 "CutPick", 패키지 `app.cutpick.mobile`. Expo Go 안의 CutPick과는 저장 데이터가 따로다.
 
 ## 커뮤니티(선택) 설정
 1. Supabase Free 프로젝트 생성 → `supabase/migrations/20261018000000_community_init.sql` 적용(`supabase db push` 또는 SQL 편집기).
@@ -65,7 +87,7 @@ npm run bench
 | docs/TREND_RESEARCH.md | 프리셋 검수 절차 |
 | docs/PRIVACY.md, UGC_SAFETY.md | 데이터 흐름, 커뮤니티 안전 |
 | docs/MODEL_AND_LIBRARY_LICENSES.md, THIRD_PARTY_NOTICES.md | 라이선스 |
-| docs/IMAGE_ASSET_ATTRIBUTIONS.md | 취향 설정 예시 사진 16장의 출처·작가·라이선스·수정 내역 |
+| docs/IMAGE_ASSET_ATTRIBUTIONS.md | 취향 설정 예시 사진 16장 + 샘플 체험 사진 18장의 출처·작가·라이선스·수정 내역 |
 | docs/COSTS_AND_DISTRIBUTION.md | 무료 한도, 스토어 비용, 빌드 |
 | docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md | 디자인 토큰, 흐름, QA 결과(스크린샷: docs/screenshots) |
 | docs/TESTING.md, ROADMAP.md | 테스트 범위·결과, 다음 단계 |
@@ -91,7 +113,7 @@ npm run bench
 | React Native + Expo iOS/Android 프로젝트 | ✅ |
 | 사용자가 고른 사진만 처리, 전체 라이브러리 자동 스캔 없음 | ✅ (코드) |
 | 30장 기본 분석 흐름이 **실제 기기**에서 동작 | 🟡 Android 실기기에서 실사진 9장·샘플 18장 동작 확인, 30장은 미실행 |
-| 유사 사진 그룹화가 실제 입력 사진으로 검증 | 🟡 합성 샘플 이미지로 검증(통합 테스트), 실사진 미검증 |
+| 유사 사진 그룹화가 실제 입력 사진으로 검증 | 🟡 Commons 실사진 샘플(+연사·흐림·밝기 가공본)로 검증(통합 테스트), 사용자 실사진 묶음은 미검증 |
 | 품질 신호와 추천 점수 구분 | ✅ |
 | Instagram/TikTok/카카오톡 목적별 결과 구성 | ✅ |
 | 프리셋에 출처·검토일·상태 | ✅ (출처 없음 = hypothesis로 명시) |
@@ -151,16 +173,13 @@ npm test
 
 ### 3) 우선순위별 다음 작업
 0. **실기기 테스트 방법 (Android, 이 PC에서 검증된 절차)**
-   - 폰: 개발자 옵션 → USB 디버깅 켜고 PC 허용. Expo Go는 **SDK 58용(58.x)** 필요 — Play 스토어판이 57이면 https://github.com/expo/expo-go-releases 의 Expo-Go-58.x.apk 설치(db install -r)
-   - PC: winget install Google.PlatformTools(adb) → 
-pm run web 또는 
-px expo start로 Metro(8081) 실행 → db reverse tcp:8081 tcp:8081 → db shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent
-   - 자동 조작·캡처: scripts/android-device.ps1 (shot <이름>, 	ap <텍스트>, 	ext, ack, swipeup, 	op). 캡처는 .device/(git 무시)에 저장. **사용자 실사진이 보이는 화면은 캡처하지 말고 	ext로만 확인**
+   - 폰: 개발자 옵션 → USB 디버깅 켜고 PC 허용. Expo Go는 **SDK 58용(58.x)** 필요 — Play 스토어판이 57이면 https://github.com/expo/expo-go-releases 의 Expo-Go-58.x.apk 설치(`adb install -r`)
+   - PC: `winget install Google.PlatformTools`(adb) → `npm run web` 또는 `npx expo start`로 Metro(8081) 실행 → `adb reverse tcp:8081 tcp:8081` → `adb shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent`
+   - Wi-Fi(USB 없이): PC와 폰을 같은 Wi-Fi에 두고 `npx.cmd expo start --lan --go` → 터미널의 QR을 Expo Go로 스캔(`exp://<PC IP>:8081`). PowerShell은 실행 정책 때문에 `npx` 대신 `npx.cmd`. `--tunnel`은 `npx expo login` 후에만 동작
+   - 자동 조작·캡처: `scripts/android-device.ps1` (`shot <이름>`, `tap <텍스트>`, `text`, `back`, `swipeup`, `top`). 캡처는 `.device/`(git 무시)에 저장. **사용자 실사진이 보이는 화면은 캡처하지 말고 `text`로만 확인**
    - Expo Go에서는 Android 사진 앱 저장이 막혀 있음(D-026) → 저장 검증은 개발 빌드 필요
 1. **실기기 검증 계속 (Phase 2·3 마무리)** — 2026-10-18에 Android 기본 흐름은 확인함(docs/TESTING.md). 남은 것:
-   - **개발 빌드**로 사진 앱 저장 검증: Android Studio+JDK 17 설치 후 
-px expo run:android, 또는 
-px eas-cli@latest build --profile development --platform android(Expo 계정 필요)
+   - **개발 빌드**로 사진 앱 저장 검증: Android Studio+JDK 17 설치 후 `npx expo run:android`, 또는 `npx eas-cli@latest build --profile development --platform android`(Expo 계정 필요)
    - 실사진 30/100/300장 선택 → 분석 화면 하단 "사진당 약 N ms" 기록 + 프로파일러로 피크 메모리 → `docs/DEVICE_BENCHMARKS.md` 표 채우기 → 필요 시 `IMPORT_LIMITS` 조정
    - 권한 거부/제한 접근(iOS "선택한 사진만"), HEIC·세로 EXIF 회전 사진, 한글·긴 파일명
    - 사진 앱 저장 순서·파일명, 한 장씩 공유 시트(Instagram/TikTok/카카오톡 각각)
@@ -172,7 +191,7 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
    - `supabase/tests/rls_test.sql` 실행(로컬 `supabase start` 또는 일회용 프로젝트) → 결과를 `docs/TESTING.md`에 기록
    - `.env.local`에 URL·publishable key·지원 이메일 → 이메일 OTP 로그인, 프로필, 게시(검토 대기→대시보드 승인), 하트, 신고, 차단, 게시물·계정 삭제 후 스토리지 잔존 확인
    - Supabase 대시보드 Auth 설정에서 이메일 OTP 템플릿에 6자리 코드가 포함되는지 확인
-3. **출시 준비 (Phase 5)** — 지원 이메일(`EXPO_PUBLIC_SUPPORT_EMAIL`), 처리방침·약관 법률 검토, 자체 앱 아이콘·스플래시(현재 Expo 템플릿 이미지), 앱 내 오픈소스 라이선스 화면, 연령 정책(Apple 1.2.1(a)), 상표 조사, `npx license-checker` 등 의존성 감사, Android targetSdk 36 확인, EAS Build 설정
+3. **출시 준비 (Phase 5)** — 지원 이메일(`EXPO_PUBLIC_SUPPORT_EMAIL`), 처리방침·약관 법률 검토, ~~자체 앱 아이콘·스플래시~~(2026-10-18 CutPick 아이콘 적용 — 원본 제작 경위만 확인), 앱 내 오픈소스 라이선스 화면, 연령 정책(Apple 1.2.1(a)), 상표 조사, `npx license-checker` 등 의존성 감사, Android targetSdk 36 확인, EAS Build 설정
 4. **UX 잔여 과제** — 표시용 Tag 컴포넌트(비활성 칩 대체), 웹 가로 사진 4:5 내보내기 해상도 이상 원인 확인, 드래그 정렬(버튼 대체 수단 유지)
 5. **보류** — 온디바이스 ML(라이선스·성능 게이트 통과 시, 개발 빌드 필요), 색 보정 프리셋, 캐러셀 게시, 수익화
 
@@ -191,7 +210,12 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
 | 로컬 DB 스키마 | `src/infrastructure/database/db.ts` (마이그레이션 배열에 추가) |
 | 커뮤니티 백엔드 | `src/features/community/supabase-community-repository.ts`, `supabase/migrations/` |
 | 화면 | `src/app/**` |
-| 디자인 토큰 | `src/design-system/tokens.ts` |
+| 디자인 토큰(색·그라데이션·tints·글꼴) | `src/design-system/tokens.ts` (+ `docs/DESIGN_SYSTEM.md`) |
+| 로고·워드마크 | `src/design-system/components/Brand.tsx` |
+| 런치(로딩) 화면 | `src/features/launch/LaunchOverlay.tsx`, 글꼴 로드·스플래시 처리는 `src/app/_layout.tsx` |
+| 앱 아이콘·스플래시·파비콘 다시 만들기 | 원본 `assets/brand/icon-source.webp` → `python scripts/build-app-icons.py` |
+| 샘플 체험 사진 | `scripts/sample-photos.json`(목록·가공법) → `python scripts/build-sample-photos.py <원본 폴더>`, 출처 `src/features/photo-import/sample-credits.ts` |
+| 글꼴 파일 | `assets/fonts/`(Pretendard), 워드마크 `@expo-google-fonts/bricolage-grotesque` |
 
 ## 작업 내역 (Work Log)
 
@@ -201,7 +225,7 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
 **구현**
 - 디자인 시스템(`src/design-system`): 색(라이트/다크)·간격·radius·타이포 토큰, Button 4종·IconButton·FilterChip·PhotoThumbnail/SelectionBadge·ProgressPanel·Empty/Error/InlineMessage·BottomSheet·BottomBar·AppSwitch. 모든 화면에서 사용.
 - 온보딩 7단계 + 개인정보 요약(건너뛰기, 단계별 저장, 설정에서 수정·초기화), 스키마 버전·마이그레이션.
-- 프로젝트: 생성(OS 다중 선택, 최대 300장, 영상·미지원 형식 제외, 촬영시각만 선택적으로 읽음), 이름 변경, 삭제(파생 파일 포함, 원본 유지), 사진 상세·수동 장면 태그·프로젝트에서 빼기, 합성 샘플 모드.
+- 프로젝트: 생성(OS 다중 선택, 최대 300장, 영상·미지원 형식 제외, 촬영시각만 선택적으로 읽음), 이름 변경, 삭제(파생 파일 포함, 원본 유지), 사진 상세·수동 장면 태그·프로젝트에서 빼기, 샘플 모드(무료 라이선스 실사진 18장).
 - 분석: expo-image-manipulator → 128px JPEG → jpeg-js RGBA → 선명도·노출·대비·해상도·색 통계 + 16×16 휘도 서명, 동시성 2 큐, 진행·취소·재개·실패 재시도, 분석 버전 변경 시 자동 재분석, 앱 측정 사진당 처리시간 표시.
 - 추천: 품질+취향+로컬 학습+크롭 적합+중복 보정 점수, MMR식 다양성 선택, 캐러셀 순서(시간순/유사 회피/수동 유지), 단일 목적 후보 3장, 근거 기반 이유, 고정·제외·순서·그룹 대표·되돌리기·초기화, 목적별 저장.
 - 내보내기: 비율 크롭(앞/가운데/뒤), ASCII 순번 파일명, 사진 앱 저장(SDK58 `Asset.create`, 쓰기 전용 권한), 파일별 OS 공유, 캡션 템플릿·복사.
@@ -210,7 +234,7 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
 
 **핵심 결정**: Expo Go 모듈만으로 픽셀 분석(D-003), ML 모델 미탑재(D-004), dHash → 휘도 서명 교체(D-008, 샘플에서 dHash는 중복 쌍 해밍 18–31로 분리 실패), 프리셋은 순위만 조정·전부 가설(D-011), 새 게시물 운영자 승인 기본(D-018). 전체: docs/DECISIONS.md.
 
-**주요 파일**: `src/app/**`(19개 화면), `src/features/**`, `src/design-system/**`, `src/domain/**`, `src/infrastructure/**`, `supabase/migrations/20261018000000_community_init.sql`, `supabase/tests/rls_test.sql`, `scripts/generate-sample-photos.mjs`, `assets/samples/*.jpg`, `tests/**`, `docs/**`, `app.json`, `metro.config.js`, `eslint.config.js`, `jest.bench.config.js`, `.env.example`.
+**주요 파일**: `src/app/**`(19개 화면), `src/features/**`, `src/design-system/**`, `src/domain/**`, `src/infrastructure/**`, `supabase/migrations/20261018000000_community_init.sql`, `supabase/tests/rls_test.sql`, `scripts/build-sample-photos.py`, `scripts/sample-photos.json`, `scripts/build-app-icons.py`, `assets/samples/*.jpg`, `assets/fonts/*`, `assets/brand/*`, `tests/**`, `docs/**`, `app.json`, `metro.config.js`, `eslint.config.js`, `jest.bench.config.js`, `.env.example`.
 
 **실행한 명령과 결과**
 - `npx jest` → 5 suites / **59 tests 통과**.
@@ -233,19 +257,16 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
 **미해결 위험·다음 단계**: 실기기 검증, Supabase 실검증, 지원 이메일·법률 검토·자체 아이콘·연령 정책(UGC 출시 전 필수), 중복 임계값 실사진 재보정. 상세: docs/ROADMAP.md.
 
 ### 2026-10-18 — GitHub 업로드 및 이어가기 문서화
-- 원격 저장소 https://github.com/Logic-Phantom/CutPick (빈 저장소)에 origin 연결, 지금까지의 작업(eat/cutpick-mvp 브랜치의 커밋 포함)을 main 브랜치로 푸시.
+- 원격 저장소 https://github.com/Logic-Phantom/CutPick (빈 저장소)에 origin 연결, 지금까지의 작업(`feat/cutpick-mvp` 브랜치의 커밋 포함)을 main 브랜치로 푸시.
 - README에 **마스터 프롬프트 기준 진행 현황**(Phase 0~6, 13장 완료 기준, 21장 보안·테스트 기준)과 **다음 작업 이어가기**(환경 복원, SDK 58 주의점, 우선순위 작업, 파일 지도) 섹션 추가.
 - 코드 변경 없음. 테스트 재실행 결과는 직전 항목과 동일(59개 통과) — 이번 항목에서 새로 검증한 기능 없음.
 
 ### 2026-10-18 — Android 실기기(Galaxy Z Flip5) 검증과 수정
-- 환경: 사용자 승인 후 winget install Google.PlatformTools(adb 1.0.41). 폰 SM-F731N / Android 16, USB 디버깅. Play 스토어 Expo Go 57.0.9는 SDK 58 비호환 → 사용자 승인 후 Expo 공식 릴리스 Expo-Go-58.0.4.apk(215.5MB, SHA256 BD3D3679…B3A6)를 db install -r로 설치. db reverse tcp:8081로 USB 연결 실행.
+- 환경: 사용자 승인 후 winget install Google.PlatformTools(adb 1.0.41). 폰 SM-F731N / Android 16, USB 디버깅. Play 스토어 Expo Go 57.0.9는 SDK 58 비호환 → 사용자 승인 후 Expo 공식 릴리스 Expo-Go-58.0.4.apk(215.5MB, SHA256 BD3D3679…B3A6)를 `adb install -r`로 설치. `adb reverse tcp:8081`로 USB 연결 실행.
 - 프라이버시: 사용자 실사진이 보이는 화면은 캡처하지 않고 UI 텍스트 덤프로만 확인. 처음 실수로 찍힌 개인 화면 캡처 1장은 즉시 삭제. 문서 스크린샷(12~14)은 합성 샘플 화면만.
 - 확인 결과: 앱 실행·다크 모드·네이티브 탭 ✅, 실사진 9장 선택·분석 9/9·유사 그룹 2개 ✅, 샘플 18장 분석 사진당 약 60ms ✅, 실사진 추천·이유 ✅, 9:16 내보내기 파일 크기·순번 ✅, OS 공유 시트 열림 ✅, 내보내기 사본 EXIF 블록 없음 ✅(원본에 GPS가 없어 GPS 실제 제거는 미확인), 사진 앱 저장 ❌(Expo Go가 미디어 라이브러리 권한 거부).
-- 수정: (1) 크롭 손실 60% 초과 사진 추가 감점(D-027) — 실기기에서 63% 잘리는 가로 사진이 스토리 2번째로 추천되던 문제, 수정 후 세로 사진으로 바뀜을 재확인 (2) Expo Go(Android)에서 사진 앱 저장 버튼 비활성 + 안내, 원인 오류를 개발 모드 로그에 남김(D-026, isRunningInExpoGo() 사용 — Constants.executionEnvironment는 Expo Go 58에서 are로 보고됨) (3) 내보내기·업로드 사본 GPS 런타임 가드 jpeg-metadata.ts(D-028) (4) adb 조작 스크립트 scripts/android-device.ps1 추가.
-- 명령·결과: 
-px jest 6 suites / **64 tests 통과**(신규: 9:16 크롭 통합 테스트, JPEG 메타데이터 4개), 
-px tsc --noEmit 오류 0, 
-px eslint . 오류 0.
+- 수정: (1) 크롭 손실 60% 초과 사진 추가 감점(D-027) — 실기기에서 63% 잘리는 가로 사진이 스토리 2번째로 추천되던 문제, 수정 후 세로 사진으로 바뀜을 재확인 (2) Expo Go(Android)에서 사진 앱 저장 버튼 비활성 + 안내, 원인 오류를 개발 모드 로그에 남김(D-026, `isRunningInExpoGo()` 사용 — `Constants.executionEnvironment`는 Expo Go 58에서 `bare`로 보고됨) (3) 내보내기·업로드 사본 GPS 런타임 가드 `jpeg-metadata.ts`(D-028) (4) adb 조작 스크립트 `scripts/android-device.ps1` 추가.
+- 명령·결과: `npx jest` 6 suites / **64 tests 통과**(신규: 9:16 크롭 통합 테스트, JPEG 메타데이터 4개), `npx tsc --noEmit` 오류 0, `npx eslint .` 오류 0.
 - 미검증으로 남은 것: 실사진 30/100/300장 시간·메모리, 사진 앱 저장(개발 빌드), GPS 있는 원본, 세로/HEIC 회전 정확성, 플립 커버 화면, iOS 전체, Supabase 실연동.
 
 ### 2026-10-18 — 이미지 기반 취향 온보딩 + UI 정리
@@ -276,3 +297,16 @@ px eslint . 오류 0.
 - 개발/정식 빌드에서 비행기 모드로 예시 사진 표시(번들 포함) 확인.
 - 데이터 없는 첫 실행을 실기기에서 확인(테스트용 기기 또는 사용자 데이터 백업 후).
 - 출시 전 예시 사진 라이선스 법률 검토(특히 `mood-film-vintage.jpg` 배경 간판), 앱 내 오픈소스/이미지 고지 화면 점검.
+
+### 2026-10-18 — CutPick 브랜드 리프레시 (아이콘·글꼴·컬러·실사진 샘플·런치 화면)
+사용자 요청: 이름을 영문 CutPick으로 노출, 상업적 무료 글꼴, 알록달록한 컬러, 제공한 아이콘을 앱 아이콘으로 전부 적용, 샘플 사진을 상업적 무료 실사진으로 교체, 트렌디한 로딩 화면.
+- **이름**: `app.json` `name` = "CutPick"(웹 manifest 이름·테마색 포함). 홈 헤더는 로고+워드마크(`BrandLockup`), 설정 하단 워드마크, 권한 안내·약관·커뮤니티 동의 문구의 "컷픽" → "CutPick"(D-036).
+- **아이콘**: 사용자 제공 원본을 `assets/brand/icon-source.webp`로 보관, `scripts/build-app-icons.py`(Pillow)가 `icon.png`(1024 꽉 찬 정사각, 모서리는 배경색을 부드럽게 연장), Android 적응형 배경/전경(안전 영역 66% 안)/흑백 테마 아이콘, `splash-icon.png`, `favicon.png`, 앱 내 `logo.png`를 생성. iOS는 템플릿 `assets/expo.icon` 대신 `icon.png` 사용. 쓰지 않던 Expo 템플릿 이미지 17개 삭제. 스플래시·적응형 아이콘 배경색 `#0B1024`.
+- **글꼴**(D-037): Pretendard 1.3.9(Regular·Medium·SemiBold·Bold, `assets/fonts/`, 약 6.3MB) + Bricolage Grotesque ExtraBold(워드마크, `@expo-google-fonts/bricolage-grotesque`). 둘 다 SIL OFL 1.1 — 고지 `THIRD_PARTY_NOTICES.md`. `useFonts`로 런타임 로드(Expo Go 동작), 굵기별 family라 `AppText`가 인라인 `fontWeight`를 family로 바꿈. 헤더·탭·입력창에도 적용.
+- **컬러**: 아이콘 팔레트로 토큰 교체 — 배경 `#F7F6FB`/다크 `#0B1024`, accent 보라 `#5B3FF5`/`#9D8CFF`, 주 CTA·진행 바 그라데이션(파랑→보라→자홍, 흰 글자 4.7:1 이상), 장식용 `tints` 6색, 글자별 색 워드마크. 홈 기능 알약 3개·그라데이션 아이콘, 개인정보 단계 아이콘 색 원. 상세 `docs/DESIGN_SYSTEM.md`.
+- **런치 화면**(D-039): `LaunchOverlay`(Reanimated) — 네이비 배경의 은은한 오로라 빛, 뷰파인더 모서리 4개가 로고 주위로 초점 맞추듯 모임, 반짝이, "CutPick" 글자별 등장, 문구 "고민은 줄이고, 베스트 컷만 픽", 하단 로딩 빔 → 앱 준비 후 페이드아웃(최소 1.7초). Reduce Motion이면 페이드만. 네이티브 스플래시는 글꼴 로드까지만 유지. 새 패키지 `expo-linear-gradient`.
+- **샘플 사진**(D-038): 합성 이미지 18장 → Wikimedia Commons 실사진(원본 14장: CC0 7, CC BY 2.0 6, CC BY 3.0 1, Commons API로 라이선스·Restrictions 확인). 02·03·05·07·17은 연사·흐림·밝기·과노출 예시로 가공해 중복 정리·흐림 판정 시연 유지. `scripts/build-sample-photos.py` + `scripts/sample-photos.json`(구 `generate-sample-photos.mjs` 삭제), EXIF·ICC 없음, 총 약 2.5MB. 출처는 앱 "설정 → 이미지 출처"(`sample-credits.ts`)와 `docs/IMAGE_ASSET_ATTRIBUTIONS.md`. UI 표시 "샘플(합성 이미지)" → "샘플(무료 라이선스 사진)". 통합 테스트의 중복 그룹(1·2·3 / 4·5 / 9·17)과 임계값 5는 그대로(가공 쌍 거리 0.6–2.4, 무관 사진 최소 30.3).
+- **문서 정리**: README의 PowerShell 백틱 이스케이프로 깨져 있던 코드 표기(`` `adb `` → 벨 문자 등) 복구, Wi-Fi(LAN) 폰 연결 방법 추가.
+- **명령·결과**: `npx jest` 9 suites / **96 tests 통과**(신규 `tests/unit/sample-assets.test.ts`), `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx expo-doctor` 20/20 통과.
+- **웹 미리보기**(브라우저 패널, 기기 아님): 375×812 라이트·다크에서 런치 화면 애니메이션, 온보딩 헤더 워드마크, 홈(로고·기능 알약·그라데이션 CTA), 이미지 출처 화면의 샘플 항목 확인. 탭 제목 "CutPick".
+- **미검증**: 실기기(Expo Go·APK)에서 런치 화면·글꼴·새 아이콘 표시(홈 화면 아이콘은 Expo Go가 아닌 빌드에서만 바뀜), iOS 전체, 샘플 프로젝트 분석 결과 화면(테스트로만 확인). 아이콘 원본의 제작 경위와 샘플 10번(접시 그림)·14번(벽 포스터 일부)은 출시 전 법률 검토 대상.

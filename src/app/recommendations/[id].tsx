@@ -70,7 +70,7 @@ export default function RecommendationsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScreenScroll withBottomBar>
-        {project.isSample ? <InlineMessage tone="warning" message="샘플(합성 이미지) 프로젝트예요. 분석은 실제로 실행됐지만 사진은 직접 찍은 사진이 아니에요." /> : null}
+        {project.isSample ? <InlineMessage tone="warning" message="샘플 프로젝트예요. 앱에 포함된 무료 라이선스 사진을 실제로 분석했어요(일부는 흔들림·과노출 예시로 가공)." /> : null}
         {analyzed < photos.length ? (
           <InlineMessage
             tone="info"

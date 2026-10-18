@@ -1,0 +1,40 @@
+{
+  "about": "Recipe for assets/samples/sample-XX.jpg, built by scripts/build-sample-photos.py from ~1280px Wikimedia Commons thumbnails (raw files are <key>.jpg in the raw dir, never committed). Credits shown in the app: src/features/photo-import/sample-credits.ts. crop: center cx/cy (0..1 of the source) and zoom (>1 = tighter); ops are the deliberate defects used by the analysis demo and tests (keep 1-2-3, 4-5 and 9-17 as the only near-duplicate groups).",
+  "quality": 80,
+  "sources": {
+    "sunset": { "title": "File:Lone Ranch Beach Oregon at sunset.jpg" },
+    "cafe": { "title": "File:Coffee @ IHATOBO - Shimokitazawa, 2008-09-20 16.07.25 (by Guwashi999).jpg" },
+    "neon": { "title": "File:Night lights in Loyola, California.jpg" },
+    "beach": { "title": "File:Papohaku Beach Molokai Hawaii (Maui County) Photo by Pat McNally - panoramio.jpg" },
+    "city": { "title": "File:Berliner Dom. (Explored) - Flickr - Oneterry AKA Terry Kearney.jpg" },
+    "park": { "title": "File:SK-10-17-23-Tupelotreeinhistoricarea.jpg" },
+    "pizza": { "title": "File:Overhead view of a variety of pizza pies. Above closeup. (49259889958).jpg" },
+    "fog": { "title": "File:Foggy pier in Fell's Point.jpg" },
+    "ocean": { "title": "File:View of the Atlantic Ocean from Wildwood New Jersey.jpg" },
+    "glacier": { "title": "File:Hoper Valley Glacier.jpg" },
+    "night": { "title": "File:Night Lights (218082587).jpeg" },
+    "flowers": { "title": "File:Field of Zinnia Magellan Pink Flowers 2.jpg" },
+    "bokeh": { "title": "File:Night Lights - Flickr - lemuelinchrist.jpg" },
+    "street": { "title": "File:1 a small street in corfou old town july 2025.jpg" }
+  },
+  "slots": [
+    { "n": 1, "source": "sunset", "size": [720, 900] },
+    { "n": 2, "source": "sunset", "size": [720, 900], "crop": { "cx": 0.505, "cy": 0.5, "zoom": 1.01 } },
+    { "n": 3, "source": "sunset", "size": [720, 900], "ops": [{ "blur": 5 }] },
+    { "n": 4, "source": "cafe", "size": [720, 900] },
+    { "n": 5, "source": "cafe", "size": [720, 900], "crop": { "cx": 0.5, "cy": 0.504, "zoom": 1.0 }, "ops": [{ "lift": 16 }] },
+    { "n": 6, "source": "neon", "size": [720, 900] },
+    { "n": 7, "source": "beach", "size": [720, 900], "ops": [{ "overexpose": [1.5, 60] }] },
+    { "n": 8, "source": "city", "size": [1080, 720], "crop": { "cx": 0.5, "cy": 0.44, "zoom": 1.08 }, "quality": 70 },
+    { "n": 9, "source": "park", "size": [1080, 720], "quality": 70 },
+    { "n": 10, "source": "pizza", "size": [800, 800] },
+    { "n": 11, "source": "fog", "size": [720, 900] },
+    { "n": 12, "source": "ocean", "size": [1080, 720] },
+    { "n": 13, "source": "glacier", "size": [1080, 720] },
+    { "n": 14, "source": "night", "size": [720, 900] },
+    { "n": 15, "source": "flowers", "size": [800, 800] },
+    { "n": 16, "source": "bokeh", "size": [720, 900] },
+    { "n": 17, "source": "park", "size": [1080, 720], "crop": { "cx": 0.506, "cy": 0.5, "zoom": 1.01 }, "quality": 70 },
+    { "n": 18, "source": "street", "size": [720, 900], "crop": { "cx": 0.6, "cy": 0.5, "zoom": 1.15 } }
+  ]
+}

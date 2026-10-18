@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
-  AppSwitch, AppText, BottomSheet, Card, DangerButton, Divider, InlineMessage, ListRow, Row, ScreenScroll, SecondaryButton, SectionHeader, radius, spacing, useColors, type IconName,
+  AppSwitch, AppText, BottomSheet, BrandWordmark, Card, DangerButton, Divider, InlineMessage, ListRow, Row, ScreenScroll, SecondaryButton, SectionHeader, radius, spacing, useColors, type IconName,
 } from '@/design-system';
 import { HEURISTIC_CAPABILITIES } from '@/features/image-analysis/heuristic-provider';
 import { CapabilityList } from '@/features/image-analysis/components/CapabilityList';
@@ -62,7 +62,7 @@ export default function SettingsScreen() {
       deleteAllAppFiles();
       await wipeAllLocalData();
       await reload();
-      setDone('이 기기의 컷픽 데이터를 모두 삭제했어요.');
+      setDone('이 기기의 CutPick 데이터를 모두 삭제했어요.');
       router.replace('/onboarding');
       return;
     } else if (what === 'taste') {
@@ -178,7 +178,10 @@ export default function SettingsScreen() {
       <Card>
         <CapabilityList caps={HEURISTIC_CAPABILITIES} />
       </Card>
-      <AppText variant="caption" tone="tertiary">컷픽 {Constants.expoConfig?.version ?? ''} · 오픈소스 라이선스: THIRD_PARTY_NOTICES.md</AppText>
+      <View style={styles.footer}>
+        <BrandWordmark size={18} />
+        <AppText variant="caption" tone="tertiary">{Constants.expoConfig?.version ?? ''} · 오픈소스 라이선스: THIRD_PARTY_NOTICES.md</AppText>
+      </View>
 
       <BottomSheet visible={confirm != null} title={confirm ? CONFIRM_TEXT[confirm].title : ''} onClose={() => setConfirm(null)}>
         <AppText variant="body">{confirm ? CONFIRM_TEXT[confirm].body : ''}</AppText>
@@ -193,4 +196,5 @@ const styles = StyleSheet.create({
   thumbs: { flexDirection: 'row', gap: spacing.xxs, flexWrap: 'wrap' },
   thumb: { width: THUMB, height: THUMB * 1.25, borderRadius: radius.photo, overflow: 'hidden' },
   more: { alignItems: 'center', justifyContent: 'center' },
+  footer: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs },
 });

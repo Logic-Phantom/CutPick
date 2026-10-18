@@ -13,9 +13,10 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "bench": "jest -c jest.bench.config.js --runInBand",
-    "generate:samples": "node scripts/generate-sample-photos.mjs"
+    "generate:samples": "python scripts/build-sample-photos.py"
   },
   "dependencies": {
+    "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
     "@expo/ui": "~58.0.20",
     "@expo/vector-icons": "^15.0.2",
     "@supabase/supabase-js": "^2.118.0",
@@ -31,6 +32,7 @@
     "expo-image": "~58.0.15",
     "expo-image-manipulator": "~58.0.14",
     "expo-image-picker": "~58.0.10",
+    "expo-linear-gradient": "~58.0.3",
     "expo-linking": "~58.0.13",
     "expo-media-library": "~58.0.10",
     "expo-router": "~58.0.23",

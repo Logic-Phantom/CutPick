@@ -1,6 +1,7 @@
 export * from './tokens';
 export * from './theme';
 export * from './components/AppText';
+export * from './components/Brand';
 export * from './components/AppSwitch';
 export * from './components/Buttons';
 export * from './components/FilterChip';

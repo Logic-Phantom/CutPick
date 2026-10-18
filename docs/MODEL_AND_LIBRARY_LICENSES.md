@@ -24,18 +24,23 @@ SF Symbols(iOS 탭 아이콘 이름)·Material Symbols(Android 탭 아이콘 이
 jest(MIT), jest-expo(MIT), typescript(Apache-2.0), @types/*(MIT), eslint(MIT), eslint-config-expo(MIT).
 
 ## 폰트
-커스텀 폰트 없음(시스템 폰트).
+| 폰트 | 버전 | 라이선스 | 출처 | 비고 |
+|---|---|---|---|---|
+| Pretendard (Regular·Medium·SemiBold·Bold) | 1.3.9 | **SIL OFL 1.1** | https://github.com/orioncactus/pretendard (jsDelivr `pretendard@1.3.9/dist/public/static`에서 받음) | UI 전체. `assets/fonts/`, 라이선스 전문 `assets/fonts/Pretendard-OFL.txt`. 4개 약 6.3MB |
+| Bricolage Grotesque ExtraBold | @expo-google-fonts 0.4.1 | **SIL OFL 1.1** | https://github.com/ateliertriay/bricolage | "CutPick" 워드마크 전용 |
+
+OFL은 상업적 이용·앱 번들 재배포 허용(폰트 단독 판매, 수정본의 예약 이름 사용만 금지). 고지: THIRD_PARTY_NOTICES.md.
 
 ## 이미지·에셋
 | 에셋 | 출처 | 상태 |
 |---|---|---|
-| `assets/samples/sample-*.jpg` | `scripts/generate-sample-photos.mjs`로 직접 생성한 합성 이미지 | 자체 제작, 인물·제3자 저작물 없음 |
+| `assets/samples/sample-*.jpg` (18장, 샘플 체험) | Wikimedia Commons 원본 14장 — CC0 1.0 7장, CC BY 2.0 6장, CC BY 3.0 1장. `scripts/build-sample-photos.py`로 크롭·축소, 5장(02·03·05·07·17)은 연사·흐림·밝기·과노출 예시로 가공 | D-032와 같은 기준. CC BY 표시는 앱 "설정 → 이미지 출처"(`src/features/photo-import/sample-credits.ts`)와 `docs/IMAGE_ASSET_ATTRIBUTIONS.md` |
 | `assets/onboarding/styles/*.jpg` (16장, 취향 설정 예시) | Wikimedia Commons — CC0 1.0 6장, CC BY 2.0 7장, CC BY 4.0 3장 | 상업 이용·재배포·수정 허용 라이선스만(D-032). CC BY는 저작자·라이선스·원본·수정 사실을 앱 "설정 → 이미지 출처"와 `docs/IMAGE_ASSET_ATTRIBUTIONS.md`에 표시. 파일별 기록·남은 확인 사항은 그 문서 |
-| 앱 아이콘·스플래시·파비콘 (`assets/images/*`, `assets/expo.icon`) | Expo 기본 템플릿(MIT 저장소) | **임시**. Expo 로고 형상이 포함돼 있어 출시 전 자체 아이콘으로 교체 필요 |
+| 앱 아이콘·스플래시·파비콘·로고 (`assets/images/{icon,android-icon-*,splash-icon,favicon,logo}.png`) | 프로젝트 소유자가 제공한 CutPick 아이콘(`assets/brand/icon-source.webp`)에서 `scripts/build-app-icons.py`로 생성 | 자체 에셋. Expo 템플릿 아이콘·`assets/expo.icon`은 삭제. 아이콘 원본의 제작 경위(직접 제작/생성 도구 약관)는 출시 전 소유자가 확인 |
 | 프리셋 이름·설명 | 직접 작성한 일반 스타일 명칭 | 상용 필터 팩·브랜드 명칭 미사용 |
 
 ## GPL/AGPL·비상업 라이선스
 런타임 의존성에서 발견되지 않음(주요 패키지 수동 확인 기준). 전체 트리 자동 감사(`npx license-checker` 등)는 **미실행** — 출시 전 실행 권장.
 
 ## 상표
-앱 이름 "컷픽/Cutpick", 패키지 ID `app.cutpick.mobile`의 상표·혼동 가능성은 조사하지 않았다. 출시 전 확인 필요(사용 가능성을 보장하지 않음).
+앱 이름 "CutPick/컷픽", 패키지 ID `app.cutpick.mobile`의 상표·혼동 가능성은 조사하지 않았다. 출시 전 확인 필요(사용 가능성을 보장하지 않음).

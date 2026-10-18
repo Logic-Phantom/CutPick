@@ -7,7 +7,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View, useWindowDi
 import { logError, toUserMessage } from '@/domain/errors';
 import type { CutpickProject, PhotoAsset, RecommendationSet } from '@/domain/models';
 import {
-  AppText, BottomBar, Card, EmptyState, FilterChip, GhostButton, IconButton, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, SectionHeader, radius, spacing, successFeedback, useColors,
+  AppText, BottomBar, Card, EmptyState, FilterChip, GhostButton, IconButton, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, SectionHeader, fonts, radius, spacing, successFeedback, useColors,
 } from '@/design-system';
 import { buildCaption } from '@/features/captions/caption-templates';
 import { exportPhotos, IS_EXPO_GO_ANDROID, IS_WEB, saveToLibrary, shareFile, type ExportedFile } from '@/features/export-share/export-service';
@@ -135,7 +135,7 @@ export default function ExportScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScreenScroll withBottomBar>
-        {project.isSample ? <InlineMessage tone="warning" message="샘플(합성 이미지) 프로젝트예요." /> : null}
+        {project.isSample ? <InlineMessage tone="warning" message="샘플(무료 라이선스 사진) 프로젝트예요." /> : null}
         <View>
           <SectionHeader title={`${purpose.label} · ${ordered.length}장`} subtitle={`${aspect.label} · 게시 순서대로 미리보기`} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.md }}>
@@ -226,7 +226,7 @@ export default function ExportScreen() {
         ) : null}
 
         <View style={{ gap: spacing.xs }}>
-          <SectionHeader title="컷픽 커뮤니티" subtitle="선택한 사진 한 장을 하트 공감 피드에 공개할 수 있어요. 별도 동의 화면이 나와요." />
+          <SectionHeader title="CutPick 커뮤니티" subtitle="선택한 사진 한 장을 하트 공감 피드에 공개할 수 있어요. 별도 동의 화면이 나와요." />
           <GhostButton compact icon="heart-outline" label="첫 번째 사진 공개하기" onPress={() => ordered[0] && router.push({ pathname: '/community/publish', params: { photoId: ordered[0].id } })} />
         </View>
       </ScreenScroll>
@@ -241,7 +241,7 @@ export default function ExportScreen() {
 const styles = StyleSheet.create({
   cropFrame: { borderRadius: radius.photo, overflow: 'hidden' },
   num: { position: 'absolute', top: 6, left: 6, minWidth: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  caption: { minHeight: 110, borderWidth: 1, borderRadius: radius.button, padding: spacing.sm, fontSize: 16, textAlignVertical: 'top' },
+  caption: { minHeight: 110, borderWidth: 1, borderRadius: radius.button, padding: spacing.sm, fontSize: 16, fontFamily: fonts.regular, textAlignVertical: 'top' },
   fileRow: { padding: spacing.xs, borderWidth: 1, borderRadius: radius.button },
   fileThumb: { width: 48, height: 48, borderRadius: radius.photo },
 });

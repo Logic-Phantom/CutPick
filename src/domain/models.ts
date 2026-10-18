@@ -71,7 +71,7 @@ export interface CutpickProject {
   selectedPlatforms: PlatformId[];
   targetPhotoCount: number;
   stylePresetId: string;
-  /** True for projects built from the bundled synthetic sample images. */
+  /** True for projects built from the bundled sample photos (assets/samples). */
   isSample: boolean;
   photoCount?: number;
   coverUri?: string | null;

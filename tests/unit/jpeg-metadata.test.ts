@@ -34,7 +34,7 @@ describe('jpeg metadata scan', () => {
     expect(scanJpegMetadata(jpegWithExif([0x010f, 0x0112]))).toEqual({ isJpeg: true, hasExif: true, hasGps: false });
   });
 
-  it('bundled samples (jpeg-js encoded) carry no EXIF', () => {
+  it('bundled samples (re-encoded without metadata) carry no EXIF', () => {
     const bytes = new Uint8Array(readFileSync(join(__dirname, '..', '..', 'assets', 'samples', 'sample-01.jpg')));
     expect(scanJpegMetadata(bytes)).toEqual({ isJpeg: true, hasExif: false, hasGps: false });
   });

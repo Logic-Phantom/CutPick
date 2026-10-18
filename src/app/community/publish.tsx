@@ -13,7 +13,7 @@ import { publishPhoto } from '@/features/community/post-service';
 import { getPhoto } from '@/features/project-library/project-repository';
 
 const CONSENTS = [
-  { id: 'public', text: '이 사진은 컷픽 커뮤니티의 다른 사용자에게 공개돼요.' },
+  { id: 'public', text: '이 사진은 CutPick 커뮤니티의 다른 사용자에게 공개돼요.' },
   { id: 'copy', text: '공개된 사진은 다른 사람이 저장하거나 캡처할 수 있고, 삭제해도 완전히 회수되지 않을 수 있어요.' },
   { id: 'rights', text: '내가 찍었거나 올릴 권리가 있는 사진이며, 사진 속 다른 사람의 동의를 받았어요.' },
   { id: 'rules', text: '노출·혐오·타인 개인정보가 담긴 사진은 올리지 않아요. 위반 시 숨김·계정 제한될 수 있어요.' },

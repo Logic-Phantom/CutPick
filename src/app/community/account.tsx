@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
-import { AppText, BottomSheet, Card, DangerButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
+import { AppText, BottomSheet, Card, DangerButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, fonts, radius, spacing, useColors } from '@/design-system';
 import type { CommunityProfile } from '@/features/community/community-repository';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
 import { validateHandle } from '@/features/community/moderation-policy';
@@ -124,5 +124,5 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.md, fontSize: 16 },
+  input: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.md, fontSize: 16, fontFamily: fonts.regular },
 });

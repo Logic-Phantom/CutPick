@@ -1,11 +1,11 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 
-import { useColors } from '@/design-system';
+import { fonts, useColors } from '@/design-system';
 
 export default function TabsLayout() {
   const c = useColors();
   return (
-    <NativeTabs backgroundColor={c.surface} tintColor={c.accent} labelStyle={{ selected: { color: c.accent } }}>
+    <NativeTabs backgroundColor={c.surface} tintColor={c.accent} labelStyle={{ default: { fontFamily: fonts.medium }, selected: { color: c.accent, fontFamily: fonts.semibold } }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'photo.on.rectangle', selected: 'photo.fill.on.rectangle.fill' }} md="photo_library" />
