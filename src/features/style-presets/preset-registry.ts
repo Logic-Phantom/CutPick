@@ -19,8 +19,18 @@ export function isPresetStale(p: StylePreset, now = new Date()): boolean {
   return (now.getTime() - reviewed) / 86_400_000 > PRESET_REVIEW_INTERVAL_DAYS;
 }
 
-export function suggestPresetForContext(context: string): string {
-  return activePresets().find((p) => p.relatedContexts.includes(context))?.id ?? DEFAULT_PRESET_ID;
+/** Mood preset suggested to people who picked "감성 프리셋" for contexts without a mood preset of their own. */
+export const MOOD_PRESET_ID = 'calm-film';
+
+/**
+ * Default preset for a new project. The retouch pick from onboarding steers it:
+ * 무보정 → the natural preset, 감성 프리셋 → a mood preset where the context would be natural anyway.
+ */
+export function suggestPresetForContext(context: string, retouch?: 'none' | 'light' | 'preset' | null): string {
+  if (retouch === 'none') return DEFAULT_PRESET_ID;
+  const byContext = activePresets().find((p) => p.relatedContexts.includes(context))?.id ?? DEFAULT_PRESET_ID;
+  if (retouch === 'preset' && byContext === DEFAULT_PRESET_ID && getPreset(MOOD_PRESET_ID).id === MOOD_PRESET_ID) return MOOD_PRESET_ID;
+  return byContext;
 }
 
 export interface PresetValidationIssue {

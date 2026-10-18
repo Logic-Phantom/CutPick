@@ -1,30 +1,29 @@
-# 디자인 시스템 — Photo-first, Colorful Brand (CutPick)
+# 디자인 시스템 — Photo-first, Editorial (CutPick)
 
-코드: `src/design-system/` (`tokens.ts`, `theme.ts`, `components/*`). **모든 화면이 이 토큰·컴포넌트만 사용**하며 화면에서 색·간격을 새로 정의하지 않는다(예외: 사진 위 배지의 반투명 검정 등 사진 가독성용 고정값과 런치 화면의 브랜드 고정색은 컴포넌트 내부에만 존재).
+코드: `src/design-system/` (`tokens.ts`, `theme.ts`, `components/*`). **모든 화면이 이 토큰·컴포넌트만 사용**하며 화면에서 색·간격을 새로 정의하지 않는다(예외: 사진 위 배지의 반투명 검정 등 사진 가독성용 고정값과 런치 화면 고정색 `launch`는 컴포넌트 내부에만 존재).
 
-## 방향 (2026-10-18 브랜드 리프레시)
-- 앱 표시 이름은 영문 **CutPick**(아이콘 아래·홈 헤더·설정·런치 화면). 원본 아이콘: `assets/brand/icon-source.webp`, 파생 파일은 `python scripts/build-app-icons.py`로 만든다.
-- 사진이 주인공: 화면 배경은 차가운 옅은 중성(`#F7F6FB`/다크 아이콘 네이비 `#0B1024`)이라 사진 색을 왜곡하지 않음.
-- 알록달록함은 **브랜드 자리에만**: 글자마다 색이 다른 워드마크, 주 CTA·진행 바의 그라데이션(`gradient`), 기능 알약·아이콘 배경의 `tints`(cyan/blue/violet/pink/mint/amber). 사진 위나 상태 색(성공·경고·오류)에는 쓰지 않음.
-- 아이콘은 Ionicons 하나로 통일, 아이콘 단독 버튼은 항상 접근성 라벨.
-- 레트로·필름 감성은 프리셋(추천 기준)에만 적용.
+## 방향 (2026-10-18 2차 리프레시 — "AI가 만든 것처럼 보이지 않게")
+- 사용자 피드백: 보라·자홍 그라데이션, 글자마다 다른 무지개 워드마크, 파스텔 알약, 오로라 빛·반짝이가 "AI가 만든 앱" 느낌. → 전부 제거(D-040).
+- 참고한 방향: 사진·패션 앱(VSCO, 29CM, Kream, Instagram)의 공통점 — **종이색 배경 + 잉크(흑백) UI + 사진이 색을 담당**. 특정 앱 화면을 복제하지 않고 원칙만 따름.
+- 주 CTA·선택 칩은 **단색 잉크**(라이트 #191919 / 다크 종이색 #F4F4F2), 그라데이션 없음.
+- 포인트 색은 **코랄 `point` 하나**: 사용자가 "픽"한 것(사진 카드 체크·테두리, 순번 배지, 진행 바, "이어서 하기" 표시)에만. 장식에 쓰지 않음.
+- 워드마크는 한 색(잉크) Bricolage Grotesque. 앱 안 헤더에는 아이콘 이미지를 붙이지 않고 워드마크만(아이콘은 런치 화면에서만).
+- 런치 화면: 무채색 다크 배경에 아이콘·워드마크·문구가 조용히 떠오르고 코랄 얇은 로딩 선만 움직임(최소 1.3초).
+- 아이콘은 Ionicons outline 위주로 통일, 아이콘 단독 버튼은 항상 접근성 라벨.
 
 ## 색상 토큰
 | 토큰 | 라이트 | 다크 | 용도 |
 |---|---|---|---|
-| background | #F7F6FB | #0B1024 | 화면 배경 |
-| surface / surfaceElevated / surfaceSunken | #FFF / #FFF / #EEEDF6 | #151A33 / #1D2342 / #070A18 | 카드, 시트, 입력 |
-| textPrimary / Secondary / Tertiary | #14152B / #55576E / #7E8096 | #F3F2FA / #B6B8CF / #8A8DA8 | 본문 계층 |
-| border / borderStrong | #E4E3EE / #C8C7D8 | #262C4A / #3A4166 | 구분선, 칩 테두리 |
-| accent / accentPressed / accentSoft | #5B3FF5 / #4A30DB / #ECE9FF | #9D8CFF / #8A78F5 / #252052 | 링크, 선택, 강조 글자 |
-| gradient | #3B5BFF → #7C3AED → #C026D3 | 같음 | 주 CTA 배경·진행 바. 흰 글자 대비 4.7:1 이상(모든 지점) |
-| textOnAccent | #FFFFFF | **#0B1024** | accent 단색 배경 위 글자 |
-| selected / selectedText | accent / #FFF | accent / #0B1024 | 선택 칩·순번 배지 |
-| selectedOverlay | rgba(91,63,245,.14) | rgba(157,140,255,.2) | 선택된 사진 카드 위 옅은 틴트 (테두리·체크와 함께만 사용) |
-| tints.{cyan,blue,violet,pink,mint,amber} | 진한 글자 + 옅은 배경 | 밝은 글자 + 어두운 배경 | 기능 알약·아이콘 원 등 장식. 글자 대비 4.5:1 이상 |
-| wordmark | 7색(C-u-t-P-i-c-k) | 7색(밝은 버전) | `BrandWordmark` 전용 |
-| success / warning / error (+Soft) | #1E7A4C / #8A5A00 / #B3261E | #5CC58F / #E8B54A / #FF8A80 | 상태 (강조색과 겹치지 않음) |
-| heart | #E5337A | #FF6BA8 | 하트만 |
+| background | #FAFAF8 | #111111 | 화면 배경(따뜻한 무채색) |
+| surface / surfaceElevated / surfaceSunken | #FFF / #FFF / #F1F1EE | #1B1B1B / #242424 / #0A0A0A | 카드, 시트, 입력 |
+| textPrimary / Secondary / Tertiary | #191919 / #5C5C59 / #878783 | #F4F4F2 / #ABABA7 / #82827E | 본문 계층 |
+| border / borderStrong | #E9E9E5 / #D3D3CE | #2A2A2A / #3D3D3B | 구분선, 칩 테두리 |
+| accent / accentPressed / accentSoft | #191919 / #000 / #F1F1EE | #F4F4F2 / #D9D9D5 / #262626 | 주 CTA 배경, 스위치, 정보 메시지 |
+| textOnAccent | #FFFFFF | #111111 | accent 위 글자(대비 15:1 이상) |
+| selected / selectedText | #191919 / #FFF | #F4F4F2 / #111 | 선택 칩 |
+| point / pointText / pointSoft / onPoint | #FF5A36 / #C23A14 / #FFEEE8 / #FFF | #FF6A45 / #FF9573 / #33201A / #FFF | "픽" 표시: 사진 카드 체크·테두리, 순번 배지, 진행 바. 그래픽 전용(3:1 이상), 글자는 pointText |
+| success / warning / error (+Soft) | #1F7A4D / #8A5A00 / #C0352B | #5CC58F / #E8B54A / #FF8A80 | 상태 |
+| heart | #F0384F | #FF5C70 | 하트만 |
 
 ## 간격·형태·타이포
 - 간격: 4/8/12/16/20/24/32 (`spacing.xxs…xxl`).
@@ -39,14 +38,14 @@
 ## 컴포넌트
 | 컴포넌트 | 상태 지원 |
 |---|---|
-| BrandWordmark / BrandMark / BrandLockup | "CutPick" 글자별 색 워드마크 / 앱 아이콘 로고 / 둘을 묶은 헤더용 조합 |
-| LaunchOverlay (`src/features/launch/`) | 콜드 스타트 런치 화면: 뷰파인더 모서리가 로고 주위로 초점을 맞추듯 모이고, 워드마크가 글자별로 올라오고, 앱 준비 후 페이드아웃(최소 1.7초). Reduce Motion이면 움직임 없이 페이드만. Expo Go는 네이티브 스플래시 대신 앱 아이콘을 보여 주므로 이 화면이 실제 첫 화면 |
-| PrimaryButton / SecondaryButton / DangerButton / GhostButton | loading, disabled, compact, 아이콘, a11y role/state. Primary는 `gradient` 배경 + 흰 글자 |
+| BrandWordmark / BrandMark / BrandLockup | 한 색 "CutPick" 워드마크 / 앱 아이콘(런치 화면 전용) / 헤더용(워드마크만) |
+| LaunchOverlay (`src/features/launch/`) | 콜드 스타트 런치 화면: 아이콘·워드마크·문구가 차례로 떠오르고 코랄 로딩 선, 앱 준비 후 페이드아웃(최소 1.3초). Reduce Motion이면 움직임 없이 페이드만 |
+| PrimaryButton / SecondaryButton / DangerButton / GhostButton | loading, disabled, compact, 아이콘, a11y role/state. Primary는 단색 `accent`(잉크) 배경 + `textOnAccent` |
 | IconButton | 라벨 필수, active, disabled, onPhoto/heart 톤 |
 | FilterChip | 선택 = 채움 + 체크 아이콘 + checked state, radio/checkbox 역할 |
 | SectionHeader, Card | — |
 | PhotoThumbnail + SelectionBadge | 순번/체크/고정/제외/그룹/실패/대기 배지(아이콘+숫자), selected 테두리, dimmed, 접근성 라벨에 상태 포함 |
-| SelectablePhotoCard | 4:5 사진 + 아래 이름·설명. 선택 = 3px 강조 테두리 + 채워진 체크 원 + 옅은 틴트 + 이름 강조색 + `checkbox` checked 상태(색만으로 구분하지 않음). 미선택은 흰 테두리 빈 원. 이미지 로드 실패 시 아이콘 자리표시 + 이름 유지 |
+| SelectablePhotoCard | 4:5 사진 + 아래 이름·설명. 선택 = 3px 코랄 테두리 + 채워진 코랄 체크 원 + `checkbox`/`radio` checked 상태(색만으로 구분하지 않음). 미선택은 흰 테두리 빈 원. 이미지 로드 실패 시 아이콘 자리표시 + 이름 유지 |
 | StepHeader | 이전 단계(해당 시만) · 단계 이름 + n/전체 · 건너뛰기 링크 · 진행 바(progressbar 역할, 실제 단계 수) |
 | ListRow / Divider | 설정·정보 목록 행(아이콘·라벨·값·chevron, 52pt) / 들여쓰기 가능한 hairline |
 | BottomBar `summary` | 버튼 위 한 줄 상태(예: "4개 선택 · 4개 더 고를 수 있어요"), polite live region |
@@ -57,8 +56,8 @@
 | AppSwitch | 토큰 색 적용한 네이티브 스위치 |
 
 ## 화면별 적용 (2026-10-18 리뉴얼)
-- **온보딩**: 1단계 = 사진 카드 2열 그리드(카테고리 칩: 전체/분위기/구도/색감·빛/장면), 하단 바에 선택 수 요약 + "넘기기"(이 단계만) + "계속하기". 나머지 단계는 질문(title) + 칩.
-- **홈**: 최근 프로젝트가 있으면 커버 사진이 큰 "이어서 하기" 카드(유일한 그림자) + "새 프로젝트 시작"(주 CTA), 없으면 히어로 카드 하나. 취향 미설정 시에만 사진 취향 고르기 안내.
+- **온보딩**: 1단계 = 사진 카드 2열 그리드(카테고리 칩: 전체/분위기/구도/색감·빛/장면), 하단 바에 선택 수 요약 + "넘기기"(이 단계만) + "계속하기". 음식 각도·인물 구도도 사진 카드 2열, 보정 정도는 같은 사진의 무보정/약한 보정/감성 프리셋 3장을 나란히 비교(단일 선택). 올릴 곳만 칩.
+- **홈**: 워드마크 + 한 줄 설명 + 테두리만 있는 기능 알약 3개. 최근 프로젝트가 있으면 커버 사진이 큰 "이어서 하기" 카드(유일한 그림자) + "새 프로젝트 시작"(주 CTA), 없으면 히어로 카드 하나. 취향 미설정 시에만 사진 취향 고르기 안내.
 - **분석**: 진행 패널 → (접힘) 분석 범위 → 사진 그리드. 분석 범위는 "무엇을 분석하나요?"로 펼침.
 - **추천**: 요약 카드에 "내 취향 반영 · …" 한 줄(탭하면 취향 수정). 실제 반영된 취향만 이유에 표시.
 - **설정**: 내 취향(고른 사진 썸네일 + 요약 + 수정/초기화) → 개인화(스위치·학습 기록) → 데이터 관리 → 커뮤니티 → 정보(처리방침·약관·이미지 출처) → 분석 범위.

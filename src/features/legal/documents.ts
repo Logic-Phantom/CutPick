@@ -1,4 +1,5 @@
 import { SUPPORT_EMAIL } from '@/features/community/moderation-policy';
+import { CHOICE_CARDS } from '@/features/onboarding/choice-cards';
 import { STYLE_CARDS, type ImageAttribution } from '@/features/onboarding/style-cards';
 import { SAMPLE_CREDITS } from '@/features/photo-import/sample-credits';
 
@@ -61,6 +62,11 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
         body: '취향 설정 화면의 예시 사진은 Wikimedia Commons에서 상업적 이용과 재배포가 허용된 라이선스(CC0·퍼블릭 도메인·CC BY)의 사진만 골라 앱에 함께 넣었어요. 모두 작게 줄이고 4:5로 잘랐어요. 사진 속 장소·사물·작가는 CutPick을 보증하지 않아요.',
       },
       ...STYLE_CARDS.map((card) => ({ heading: card.title, body: creditBody(card.credit) })),
+      {
+        heading: '음식 각도·인물 구도·보정 예시 사진',
+        body: '같은 기준(CC0·퍼블릭 도메인·CC BY)으로 고른 사진이에요. 인물 사진은 얼굴이 드러나지 않는 장면만 골랐어요. 보정 예시 3장은 한 장의 CC0 사진을 직접 세 가지로 보정한 것이에요.',
+      },
+      ...CHOICE_CARDS.map((card) => ({ heading: `${card.stepId === 'retouch' ? '보정' : card.stepId === 'preferredFoodAngles' ? '음식' : '인물'} · ${card.title}`, body: creditBody(card.credit) })),
       {
         heading: '샘플 체험 사진',
         body: '"샘플 사진으로 체험하기"의 18장도 Wikimedia Commons에서 같은 기준(CC0·퍼블릭 도메인·CC BY)으로 고른 사진이에요. 분석 기능을 보여 주려고 일부는 원본을 조금 어긋나게 자르거나, 흐리게 하거나, 밝기·노출을 올려 가공했어요.',

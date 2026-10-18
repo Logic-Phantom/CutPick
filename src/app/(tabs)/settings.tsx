@@ -10,6 +10,7 @@ import {
 import { HEURISTIC_CAPABILITIES } from '@/features/image-analysis/heuristic-provider';
 import { CapabilityList } from '@/features/image-analysis/components/CapabilityList';
 import { clearLearning, resetPreference } from '@/features/onboarding/local-preference-repository';
+import { pickedChoiceCards } from '@/features/onboarding/choice-cards';
 import { ONBOARDING_STEPS, selectedFor } from '@/features/onboarding/preference-schema';
 import { getStyleCard } from '@/features/onboarding/style-cards';
 import { describeLearned, emptyLearnedWeights } from '@/features/preferences/personalization';
@@ -43,7 +44,10 @@ export default function SettingsScreen() {
 
   useFocusEffect(useCallback(() => setBytes(derivedStorageBytes()), []));
 
-  const pickedCards = preference.styleCardIds.map(getStyleCard).filter((x): x is NonNullable<typeof x> => !!x);
+  const pickedCards = [
+    ...preference.styleCardIds.map(getStyleCard).filter((x): x is NonNullable<typeof x> => !!x).map((x) => ({ key: x.id, title: x.title, source: x.source })),
+    ...pickedChoiceCards(preference).map((x) => ({ key: `${x.stepId}-${x.optionId}`, title: x.title, source: x.source })),
+  ];
   const styleLabels = preference.styleTags.map((t) => STYLE_TAG_META[t].label);
   const chipLabels = ONBOARDING_STEPS.flatMap((s) => selectedFor(s, preference).map((v) => s.options.find((o) => o.id === v)?.label).filter(Boolean) as string[]);
   const tasteSummary = [...new Set([...styleLabels, ...chipLabels])];
@@ -96,7 +100,7 @@ export default function SettingsScreen() {
             {pickedCards.length ? (
               <View style={styles.thumbs} accessible accessibilityLabel={`고른 사진 취향 ${pickedCards.length}개: ${pickedCards.map((p) => p.title).join(', ')}`}>
                 {pickedCards.slice(0, MAX_THUMBS).map((p) => (
-                  <Image key={p.id} source={p.source} style={[styles.thumb, { backgroundColor: c.photoPlaceholder }]} contentFit="cover" />
+                  <Image key={p.key} source={p.source} style={[styles.thumb, { backgroundColor: c.photoPlaceholder }]} contentFit="cover" />
                 ))}
                 {pickedCards.length > MAX_THUMBS ? (
                   <View style={[styles.thumb, styles.more, { backgroundColor: c.surfaceSunken }]}>

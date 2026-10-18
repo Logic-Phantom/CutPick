@@ -1,7 +1,7 @@
-import type { LearnedWeights, PhotoAsset, PhotoQualityMetrics, SceneTag } from '@/domain/models';
-import { PERSONALIZATION, SCORE_WEIGHTS } from '@/domain/recommendation-policy';
+import type { LearnedWeights, PhotoAsset, PhotoQualityMetrics, SceneTag, SourceContext } from '@/domain/models';
+import { PERSONALIZATION, SCORE_WEIGHTS, TASTE } from '@/domain/recommendation-policy';
 import { cropRetention } from '@/features/platforms/crop';
-import { colorMatch, tasteBonus, type ColorTargets, type TasteProfile } from '@/features/preferences/taste-profile';
+import { colorMatch, cropLossWeight, shotDomainOf, tasteBonus, type ColorTargets, type ShotDomain, type ShotTaste, type TasteProfile } from '@/features/preferences/taste-profile';
 import type { StylePreset } from '@/features/style-presets/presets';
 
 export interface ScoreContext {
@@ -9,6 +9,10 @@ export interface ScoreContext {
   colorTargets: ColorTargets;
   /** Image-based taste (scene/orientation). Omitted = no taste beyond colorTargets. */
   taste?: TasteProfile | null;
+  /** Food-angle / person-framing / retouch picks. Omitted = no shot taste. */
+  shot?: ShotTaste | null;
+  /** Project kind, used to decide whether untagged photos count as food/person shots. */
+  context?: SourceContext | null;
   learned: LearnedWeights | null;
   personalizationEnabled: boolean;
   /** Target aspect ratio (w/h) or null for "keep original". */
@@ -33,6 +37,11 @@ export interface ScoreBreakdown {
   preferenceMatch: number | null;
   tasteScene?: SceneTag | null;
   tasteOrientation?: boolean;
+  /** Shot taste that applied to this photo (food/person), and which of its effects mattered. */
+  shotDomain?: ShotDomain | null;
+  /** -1/1 when the framing pick changed how much the crop loss cost; 0 otherwise. */
+  shotFraming?: -1 | 0 | 1;
+  shotOrientation?: boolean;
 }
 
 /** Pure technical quality (0..1), unaffected by taste. */
@@ -87,27 +96,36 @@ export function scorePhoto(photo: PhotoAsset, ctx: ScoreContext): ScoreBreakdown
   const isGroupMember = rep != null;
   const isGroupRepresentative = rep === photo.id;
   const retention = cropRetention(photo.width, photo.height, ctx.aspectRatio);
+  const shotDomain = ctx.shot ? shotDomainOf(photo, ctx.context) : null;
+  const shot = shotDomain ? ctx.shot![shotDomain] : null;
+  // Framing taste only matters when the crop actually loses something.
+  const shotFraming = shot && retention < 0.95 ? shot.framing : 0;
+  const lossWeight = cropLossWeight(shotFraming);
   const heavyLoss = Math.max(0, SCORE_WEIGHTS.heavyCropRetention - retention) / SCORE_WEIGHTS.heavyCropRetention;
-  const goalFit = SCORE_WEIGHTS.goalFitTotal * retention - SCORE_WEIGHTS.heavyCropPenalty * heavyLoss;
+  const goalFit = SCORE_WEIGHTS.goalFitTotal * (1 - lossWeight * (1 - retention)) - SCORE_WEIGHTS.heavyCropPenalty * heavyLoss * lossWeight;
+  const shotOrientation = !!shot?.orientation && photo.orientation === shot.orientation;
+  const shotBonus = shotOrientation ? TASTE.shotOrientationBonus : 0;
+  const shotInfo = { shotDomain, shotFraming, shotOrientation };
   const duplicate = isGroupMember ? (isGroupRepresentative ? SCORE_WEIGHTS.groupRepresentativeBonus : -SCORE_WEIGHTS.duplicatePenalty) : 0;
 
   if (!m) {
     // Unanalyzed photos can still be chosen manually but rank below analyzed ones.
     const total = goalFit + duplicate;
-    return { quality: 0, preference: 0, taste: 0, learned: 0, goalFit, duplicate, total, cropRetention: retention, isGroupRepresentative, isGroupMember, preferenceMatch: null, tasteScene: null, tasteOrientation: false };
+    return { quality: 0, preference: 0, taste: 0, learned: 0, goalFit, duplicate, total, cropRetention: retention, isGroupRepresentative, isGroupMember, preferenceMatch: null, tasteScene: null, tasteOrientation: false, ...shotInfo };
   }
 
   // Taste never feeds into `quality`: it is computed from the technical metrics alone.
-  const quality = SCORE_WEIGHTS.qualityTotal * ctx.preset.adjust.qualityWeight * technicalQuality(m, ctx.preset.adjust.exposureWeight);
+  const retouchBoost = ctx.shot?.retouch === 'none' ? 1 + TASTE.noRetouchQualityBoost : 1;
+  const quality = SCORE_WEIGHTS.qualityTotal * ctx.preset.adjust.qualityWeight * retouchBoost * technicalQuality(m, ctx.preset.adjust.exposureWeight);
   const match = preferenceMatch(m, effectiveTargets(ctx.preset, ctx.colorTargets));
   const preference = match == null ? 0 : SCORE_WEIGHTS.preferenceTotal * (match - 0.5) * 2;
   const bonus = ctx.taste ? tasteBonus(photo, ctx.taste) : { value: 0, scene: null, orientation: false };
   const learned = ctx.personalizationEnabled ? SCORE_WEIGHTS.learnedTotal * learnedAdjustment(m, photo.orientation, ctx.learned) : 0;
-  const total = quality + preference + bonus.value + learned + goalFit + duplicate;
+  const total = quality + preference + bonus.value + shotBonus + learned + goalFit + duplicate;
   return {
     quality,
     preference,
-    taste: bonus.value,
+    taste: bonus.value + shotBonus,
     learned,
     goalFit,
     duplicate,
@@ -118,5 +136,6 @@ export function scorePhoto(photo: PhotoAsset, ctx: ScoreContext): ScoreBreakdown
     preferenceMatch: match,
     tasteScene: bonus.scene,
     tasteOrientation: bonus.orientation,
+    ...shotInfo,
   };
 }

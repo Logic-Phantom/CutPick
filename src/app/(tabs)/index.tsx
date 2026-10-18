@@ -1,21 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import type { CutpickProject } from '@/domain/models';
-import { AppText, BrandLockup, Card, EmptyState, ErrorState, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SectionHeader, elevation, radius, spacing, useColors, type IconName, type TintName } from '@/design-system';
+import { AppText, BrandLockup, Card, EmptyState, ErrorState, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SectionHeader, elevation, radius, spacing, useColors, type IconName } from '@/design-system';
 import { listProjects } from '@/features/project-library/project-repository';
 import { CONTEXT_LABELS } from '@/features/project-library/contexts';
 import { useAppState } from '@/hooks/app-state';
 import { formatDate } from '@/utils/format';
 
-const FEATURE_PILLS: { label: string; icon: IconName; tint: TintName }[] = [
-  { label: '기기 안에서 분석', icon: 'lock-closed', tint: 'cyan' },
-  { label: '비슷한 컷 정리', icon: 'copy', tint: 'violet' },
-  { label: '올릴 순서 추천', icon: 'sparkles', tint: 'pink' },
+const FEATURES: { label: string; icon: IconName }[] = [
+  { label: '기기 안에서 분석', icon: 'lock-closed-outline' },
+  { label: '비슷한 컷 정리', icon: 'copy-outline' },
+  { label: '올릴 순서 추천', icon: 'list-outline' },
 ];
 
 function projectMeta(p: CutpickProject): string {
@@ -50,10 +49,10 @@ export default function HomeScreen() {
         <BrandLockup size={30} />
         <AppText variant="body" tone="secondary">고른 사진만 기기 안에서 분석해 올릴 사진을 추천해요.</AppText>
         <View style={styles.pills}>
-          {FEATURE_PILLS.map((p) => (
-            <View key={p.label} style={[styles.pill, { backgroundColor: c.tints[p.tint].soft }]}>
-              <Ionicons name={p.icon} size={14} color={c.tints[p.tint].fg} />
-              <AppText variant="caption" style={{ color: c.tints[p.tint].fg, fontWeight: '600' }}>{p.label}</AppText>
+          {FEATURES.map((p) => (
+            <View key={p.label} style={[styles.pill, { borderColor: c.border }]}>
+              <Ionicons name={p.icon} size={14} color={c.textSecondary} />
+              <AppText variant="caption" tone="secondary">{p.label}</AppText>
             </View>
           ))}
         </View>
@@ -78,7 +77,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.heroBody}>
               <View style={{ flex: 1, gap: 2 }}>
-                <AppText variant="caption" tone="accent">이어서 하기</AppText>
+                <AppText variant="caption" style={{ color: c.pointText }}>이어서 하기</AppText>
                 <AppText variant="sectionTitle" numberOfLines={2}>{latest.title}</AppText>
                 <AppText variant="secondary" tone="secondary" numberOfLines={2}>{projectMeta(latest)}</AppText>
                 {latest.isSample ? <AppText variant="caption" tone="warning">샘플(무료 라이선스 사진)</AppText> : null}
@@ -91,9 +90,9 @@ export default function HomeScreen() {
       ) : (
         <Card style={elevation.raised}>
           <View style={{ gap: spacing.md }}>
-            <LinearGradient colors={c.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ctaIcon}>
-              <Ionicons name="sparkles" size={24} color="#FFFFFF" />
-            </LinearGradient>
+            <View style={[styles.ctaIcon, { backgroundColor: c.surfaceSunken }]}>
+              <Ionicons name="images-outline" size={24} color={c.textPrimary} />
+            </View>
             <View style={{ gap: spacing.xxs }}>
               <AppText variant="title">사진 고르고 추천받기</AppText>
               <AppText variant="secondary" tone="secondary">여행·카페·OOTD처럼 묶음 단위로 사진을 고르면 올릴 순서까지 추천해요. 사진은 서버로 올라가지 않아요.</AppText>
@@ -155,7 +154,7 @@ const styles = StyleSheet.create({
   heroBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md },
   ctaIcon: { width: 48, height: 48, borderRadius: radius.button, alignItems: 'center', justifyContent: 'center' },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs, paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: radius.chip },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs, paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.chip, borderWidth: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, borderWidth: 1, minHeight: 72 },
   cover: { width: 56, height: 56, borderRadius: radius.photo, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
 });

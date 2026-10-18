@@ -10,6 +10,10 @@ export async function persistThumbnail(tempUri: string, _projectId: string, _pho
   return tempUri;
 }
 
+export async function persistSampleFile(cacheUri: string, _fileName: string): Promise<string> {
+  return cacheUri;
+}
+
 export function exportsDirectory(_projectId: string): null {
   return null;
 }

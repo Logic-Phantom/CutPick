@@ -1,14 +1,14 @@
 import type { PhotoAsset, RecommendationReason } from '@/domain/models';
 import type { AspectOption } from '@/features/platforms/platform-profiles';
 import { SCENE_LABELS } from '@/features/project-library/contexts';
-import { EMPTY_TASTE, STYLE_TAG_META, colorMatch, matchedColorTags, type TasteProfile } from '@/features/preferences/taste-profile';
+import { EMPTY_SHOT_TASTE, EMPTY_TASTE, STYLE_TAG_META, colorMatch, matchedColorTags, type ShotTaste, type TasteProfile } from '@/features/preferences/taste-profile';
 import type { StylePreset } from '@/features/style-presets/presets';
 
 import type { SelectionInfo } from './diversity-selector';
 import type { ScoreBreakdown } from './scoring';
 
 /** Most distinctive reason for a compact tile label (generic quality reasons come last). */
-const LABEL_PRIORITY = ['crop-loss', 'dup-fallback', 'group-rep', 'taste-match', 'taste-scene', 'taste-orientation', 'learned', 'diverse', 'crop-fit', 'preset-match', 'scene-mix', 'orientation-mix', 'soft', 'highlight-clip', 'shadow-clip', 'sharp-exposed', 'sharp', 'preset-tolerant', 'not-analyzed'];
+const LABEL_PRIORITY = ['crop-loss', 'dup-fallback', 'group-rep', 'taste-match', 'taste-scene', 'shot-framing', 'taste-orientation', 'shot-orientation', 'no-retouch', 'learned', 'diverse', 'crop-fit', 'preset-match', 'scene-mix', 'orientation-mix', 'soft', 'highlight-clip', 'shadow-clip', 'sharp-exposed', 'sharp', 'preset-tolerant', 'not-analyzed'];
 
 const MATCH_THRESHOLD = 0.75;
 
@@ -32,6 +32,7 @@ export function explain(
   preset: StylePreset,
   isCover: boolean,
   taste: TasteProfile = EMPTY_TASTE,
+  shot: ShotTaste = EMPTY_SHOT_TASTE,
 ): RecommendationReason[] {
   const r: RecommendationReason[] = [];
   const m = photo.qualityMetrics;
@@ -72,6 +73,19 @@ export function explain(
   if (score.tasteOrientation && taste.orientationSource) {
     const kind = taste.orientation === 'landscape' ? '가로' : '세로';
     r.push({ code: 'taste-orientation', text: `고른 '${STYLE_TAG_META[taste.orientationSource].label}' 취향에 맞는 ${kind} 사진이에요`, tone: 'info' });
+  }
+  const domainTaste = score.shotDomain ? shot[score.shotDomain] : null;
+  const subject = score.shotDomain === 'food' ? '음식' : '인물';
+  if (domainTaste && score.shotFraming === 1 && domainTaste.framingLabel) {
+    r.push({ code: 'shot-framing', text: `${subject} 사진은 '${domainTaste.framingLabel}' 취향이라 덜 잘리는 사진을 앞에 뒀어요`, tone: 'info' });
+  } else if (domainTaste && score.shotFraming === -1 && domainTaste.framingLabel) {
+    r.push({ code: 'shot-framing', text: `'${domainTaste.framingLabel}' 취향이라 가깝게 잘리는 크롭도 크게 감점하지 않았어요`, tone: 'info' });
+  }
+  if (domainTaste && score.shotOrientation && domainTaste.orientationLabel) {
+    r.push({ code: 'shot-orientation', text: `고른 ${subject} '${domainTaste.orientationLabel}' 구도에 맞는 ${domainTaste.orientation === 'landscape' ? '가로' : '세로'} 사진이에요`, tone: 'info' });
+  }
+  if (shot.retouch === 'none' && m.sharpnessScore >= 0.6 && m.exposureScore >= 0.6) {
+    r.push({ code: 'no-retouch', text: '무보정 취향이라 보정 없이도 선명하고 노출이 맞는 사진을 우선했어요', tone: 'positive' });
   }
   if (score.learned > 0.05) r.push({ code: 'learned', text: '이전에 유지한 사진들과 색·밝기 경향이 비슷해요', tone: 'positive' });
 

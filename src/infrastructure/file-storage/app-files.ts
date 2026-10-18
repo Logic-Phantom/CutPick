@@ -20,6 +20,17 @@ export async function persistThumbnail(tempUri: string, projectId: string, photo
   return target.uri;
 }
 
+/**
+ * Copies a bundled sample image into persistent app storage and returns its file URI.
+ * The expo-asset cache copy can be purged by the OS, but sample photos must stay readable
+ * for re-analysis and export.
+ */
+export async function persistSampleFile(cacheUri: string, fileName: string): Promise<string> {
+  const target = new File(dir('samples'), fileName);
+  if (!target.exists) await new File(cacheUri).copy(target);
+  return target.uri;
+}
+
 export function exportsDirectory(projectId: string): Directory {
   return dir('exports', projectId);
 }

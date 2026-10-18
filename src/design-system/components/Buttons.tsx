@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps, ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
@@ -25,10 +24,10 @@ function ButtonBase({ label, onPress, icon, disabled, loading, style, accessibil
   const c = useColors();
   const inactive = disabled || loading;
   const primary = kind === 'primary';
-  const bg = primary ? 'transparent' : kind === 'danger' ? c.errorSoft : kind === 'ghost' ? 'transparent' : c.surface;
-  const bgPressed = primary ? 'transparent' : c.surfaceSunken;
-  // The primary CTA sits on the brand gradient; white keeps ≥ 4.5:1 on every stop in both modes.
-  const fg = primary ? '#FFFFFF' : kind === 'danger' ? c.error : c.textPrimary;
+  const bg = primary ? c.accent : kind === 'danger' ? c.errorSoft : kind === 'ghost' ? 'transparent' : c.surface;
+  const bgPressed = primary ? c.accentPressed : c.surfaceSunken;
+  // Solid ink CTA (paper-white in dark mode); its text color is always ≥ 15:1.
+  const fg = primary ? c.textOnAccent : kind === 'danger' ? c.error : c.textPrimary;
   return (
     <Pressable
       testID={testID}
@@ -41,11 +40,9 @@ function ButtonBase({ label, onPress, icon, disabled, loading, style, accessibil
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: pressed ? bgPressed : bg, borderColor: kind === 'secondary' ? c.borderStrong : 'transparent', opacity: inactive ? 0.5 : primary && pressed ? 0.86 : 1 },
-        primary && styles.primaryClip,
+        { backgroundColor: pressed ? bgPressed : bg, borderColor: kind === 'secondary' ? c.borderStrong : 'transparent', opacity: inactive ? 0.4 : 1 },
         style,
       ]}>
-      {primary ? <LinearGradient colors={c.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} /> : null}
       {loading ? (
         <ActivityIndicator color={fg} />
       ) : (
@@ -123,7 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   compact: { minHeight: touchTarget, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  primaryClip: { overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   icon: { minWidth: touchTarget, minHeight: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: touchTarget / 2 },
 });

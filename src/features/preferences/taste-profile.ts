@@ -1,4 +1,4 @@
-import type { Orientation, PhotoAsset, PhotoQualityMetrics, SceneTag, StyleTag, UserPreference } from '@/domain/models';
+import type { Orientation, PhotoAsset, PhotoQualityMetrics, SceneTag, SourceContext, StyleTag, UserPreference } from '@/domain/models';
 import { TASTE } from '@/domain/recommendation-policy';
 
 /**
@@ -76,11 +76,15 @@ export function tagColorTargets(tag: StyleTag): Partial<ColorTargets> {
   return TASTE.tagColorTargets[tag] ?? {};
 }
 
-/** Averages color targets from the text color-mood chips and the color-bearing style tags. */
-export function colorTargetsFrom(pref: Pick<UserPreference, 'preferredColorMood'> & Partial<Pick<UserPreference, 'styleTags'>>): ColorTargets {
+/**
+ * Averages color targets from the text color-mood chips, the color-bearing style tags and the
+ * 약한 보정 retouch pick (a lightly lifted brightness).
+ */
+export function colorTargetsFrom(pref: Pick<UserPreference, 'preferredColorMood'> & Partial<Pick<UserPreference, 'styleTags' | 'preferredFilterStrength'>>): ColorTargets {
   const parts: Partial<ColorTargets>[] = [];
   for (const m of pref.preferredColorMood) if (MOOD_TARGETS[m]) parts.push(MOOD_TARGETS[m]);
   for (const t of pref.styleTags ?? []) if (STYLE_TAG_META[t]?.color) parts.push(tagColorTargets(t));
+  if (pref.preferredFilterStrength === 'light') parts.push({ luma: TASTE.lightRetouchLuma });
   return averageTargets(parts);
 }
 
@@ -100,7 +104,7 @@ export interface TasteProfile {
 
 export const EMPTY_TASTE: TasteProfile = { colorTargets: NO_COLOR_TARGETS, colorTags: [], scenes: [], orientation: null, sceneSource: {}, orientationSource: null };
 
-export function tasteProfileFrom(pref: Pick<UserPreference, 'preferredColorMood'> & Partial<Pick<UserPreference, 'styleTags'>>): TasteProfile {
+export function tasteProfileFrom(pref: Pick<UserPreference, 'preferredColorMood'> & Partial<Pick<UserPreference, 'styleTags' | 'preferredFilterStrength'>>): TasteProfile {
   const tags = (pref.styleTags ?? []).filter(isStyleTag);
   const sceneSource: Partial<Record<SceneTag, StyleTag>> = {};
   const orientations = new Map<Exclude<Orientation, 'square'>, StyleTag>();
@@ -131,6 +135,106 @@ export function tasteBonus(photo: Pick<PhotoAsset, 'sceneTags' | 'orientation'>,
   const scene = taste.scenes.find((s) => photo.sceneTags.includes(s)) ?? null;
   const orientation = taste.orientation != null && photo.orientation === taste.orientation;
   return { value: (scene ? TASTE.sceneMatchBonus : 0) + (orientation ? TASTE.orientationBonus : 0), scene, orientation };
+}
+
+/**
+ * Shot taste: the food-angle and person-framing pictures picked in onboarding. Angles themselves
+ * are not detected (no classifier) — only what they imply for ranking is used: how much crop loss
+ * matters and which orientation fits. It applies to food/person photos only.
+ */
+export type ShotDomain = 'food' | 'person';
+type Framing = -1 | 0 | 1;
+type ShotOrientation = Exclude<Orientation, 'square'>;
+
+interface ShotOptionMeta {
+  label: string;
+  /** 1 = keep the whole frame, -1 = tight framing is fine. */
+  framing?: Exclude<Framing, 0>;
+  orientation?: ShotOrientation;
+}
+
+/** Keyed by the option ids stored in preferredFoodAngles / preferredPortraitAndOOTDAngles. */
+export const SHOT_OPTION_META: Record<ShotDomain, Record<string, ShotOptionMeta>> = {
+  food: {
+    top: { label: '탑뷰' },
+    front: { label: '정면', orientation: 'portrait' },
+    '45': { label: '45도', orientation: 'portrait' },
+    detail: { label: '근접 디테일', framing: -1 },
+    table: { label: '테이블 전체', framing: 1, orientation: 'landscape' },
+  },
+  person: {
+    full: { label: '전신', framing: 1, orientation: 'portrait' },
+    half: { label: '반신', framing: -1, orientation: 'portrait' },
+    close: { label: '클로즈업', framing: -1, orientation: 'portrait' },
+    low: { label: '로우 앵글', orientation: 'portrait' },
+    mirror: { label: '거울샷', orientation: 'portrait' },
+    snap: { label: '자연스러운 스냅' },
+    environment: { label: '배경을 살린 구도', framing: 1, orientation: 'landscape' },
+  },
+};
+
+export interface ShotDomainTaste {
+  framing: Framing;
+  orientation: ShotOrientation | null;
+  /** Label of the pick behind each effect, for reasons. */
+  framingLabel: string | null;
+  orientationLabel: string | null;
+}
+
+export type RetouchTaste = NonNullable<UserPreference['preferredFilterStrength']>;
+
+export interface ShotTaste {
+  food: ShotDomainTaste | null;
+  person: ShotDomainTaste | null;
+  retouch: RetouchTaste | null;
+}
+
+export const EMPTY_SHOT_TASTE: ShotTaste = { food: null, person: null, retouch: null };
+
+function domainTaste(domain: ShotDomain, ids: string[]): ShotDomainTaste | null {
+  const picks = ids.map((id) => SHOT_OPTION_META[domain][id]).filter((m): m is ShotOptionMeta => !!m);
+  if (!picks.length) return null;
+  // Conflicting picks (e.g. 전신 + 클로즈업) cancel out instead of guessing.
+  const framings = new Set(picks.map((p) => p.framing).filter((f) => f != null));
+  const orientations = new Set(picks.map((p) => p.orientation).filter((o) => o != null));
+  const framing: Framing = framings.size === 1 ? [...framings][0]! : 0;
+  const orientation = orientations.size === 1 ? [...orientations][0]! : null;
+  return {
+    framing,
+    orientation,
+    framingLabel: framing ? picks.find((p) => p.framing === framing)!.label : null,
+    orientationLabel: orientation ? picks.find((p) => p.orientation === orientation)!.label : null,
+  };
+}
+
+export function shotTasteFrom(pref: Partial<Pick<UserPreference, 'preferredFoodAngles' | 'preferredPortraitAndOOTDAngles' | 'preferredFilterStrength'>>): ShotTaste {
+  return {
+    food: domainTaste('food', pref.preferredFoodAngles ?? []),
+    person: domainTaste('person', pref.preferredPortraitAndOOTDAngles ?? []),
+    retouch: pref.preferredFilterStrength ?? null,
+  };
+}
+
+const DOMAIN_CONTEXTS: Record<ShotDomain, SourceContext[]> = { food: ['food', 'cafe'], person: ['ootd', 'profile'] };
+
+/**
+ * Which shot taste applies to a photo: an explicit user scene tag wins, otherwise the project kind.
+ * Photos with neither are left alone.
+ */
+export function shotDomainOf(photo: Pick<PhotoAsset, 'sceneTags'>, context: SourceContext | null | undefined): ShotDomain | null {
+  if (photo.sceneTags.includes('food')) return 'food';
+  if (photo.sceneTags.includes('person')) return 'person';
+  if (photo.sceneTags.length) return null;
+  if (context && DOMAIN_CONTEXTS.food.includes(context)) return 'food';
+  if (context && DOMAIN_CONTEXTS.person.includes(context)) return 'person';
+  return null;
+}
+
+/** Multiplier on how much crop loss costs for this photo (1 = neutral). */
+export function cropLossWeight(framing: Framing): number {
+  if (framing > 0) return TASTE.shotKeepWholeLossWeight;
+  if (framing < 0) return TASTE.shotTightLossWeight;
+  return 1;
 }
 
 function similarity(value: number, target: number, range: number): number {

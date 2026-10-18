@@ -35,18 +35,18 @@
       "favicon": "./assets/images/favicon.png",
       "name": "CutPick",
       "shortName": "CutPick",
-      "themeColor": "#0B1024",
-      "backgroundColor": "#0B1024"
+      "themeColor": "#111111",
+      "backgroundColor": "#111111"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B1024",
+          "backgroundColor": "#111111",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 140,
-          "dark": { "backgroundColor": "#0B1024", "image": "./assets/images/splash-icon.png" }
+          "dark": { "backgroundColor": "#111111", "image": "./assets/images/splash-icon.png" }
         }
       ],
       [

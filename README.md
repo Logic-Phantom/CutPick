@@ -53,6 +53,19 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
 ```
    앱 표시 이름 "CutPick", 패키지 `app.cutpick.mobile`. Expo Go 안의 CutPick과는 저장 데이터가 따로다.
 
+**macOS(Apple Silicon)에서 같은 절차** (2026-10-18 검증, sudo·Homebrew 없이 사용자 폴더에 설치):
+- Node 24 LTS → `~/.local/node`, Temurin JDK 17 → `~/Library/Java/JavaVirtualMachines`, Android 명령줄 도구 → `~/Library/Android/sdk/cmdline-tools/latest`, platform-tools(adb) → `~/Library/Android/sdk/platform-tools`. `~/.zshrc`에 Node·`ANDROID_HOME`·adb PATH 추가. 전역 `JAVA_HOME`(JDK 11)은 그대로 두고 빌드 때만 17 지정.
+- `sdkmanager --licenses` 동의 후, 플랫폼·빌드 도구·NDK는 Gradle이 첫 빌드 때 자동으로 받는다.
+```bash
+npm ci && npx expo prebuild -p android --no-install && git checkout package.json
+```
+```bash
+cd android && JAVA_HOME=$(/usr/libexec/java_home -v 17) ./gradlew assembleRelease
+```
+```bash
+adb install -r android/app/build/outputs/apk/release/app-release.apk
+```
+
 ## 커뮤니티(선택) 설정
 1. Supabase Free 프로젝트 생성 → `supabase/migrations/20261018000000_community_init.sql` 적용(`supabase db push` 또는 SQL 편집기).
 2. `.env.example`을 `.env.local`로 복사해 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL` 입력. **service_role 키는 절대 넣지 않는다.**
@@ -193,6 +206,7 @@ npm test
    - Supabase 대시보드 Auth 설정에서 이메일 OTP 템플릿에 6자리 코드가 포함되는지 확인
 3. **출시 준비 (Phase 5)** — 지원 이메일(`EXPO_PUBLIC_SUPPORT_EMAIL`), 처리방침·약관 법률 검토, ~~자체 앱 아이콘·스플래시~~(2026-10-18 CutPick 아이콘 적용 — 원본 제작 경위만 확인), 앱 내 오픈소스 라이선스 화면, 연령 정책(Apple 1.2.1(a)), 상표 조사, `npx license-checker` 등 의존성 감사, Android targetSdk 36 확인, EAS Build 설정
 4. **UX 잔여 과제** — 표시용 Tag 컴포넌트(비활성 칩 대체), 웹 가로 사진 4:5 내보내기 해상도 이상 원인 확인, 드래그 정렬(버튼 대체 수단 유지)
+4-1. **취향 예시 사진 재선정 (사용자 피드백 2026-10-18, 최우선 UX 과제)** — 각 질문의 카드는 **그 질문의 대상이 그대로 보이는 사진**이어야 한다. 음식 각도 질문이면 5장 모두 같은 종류의 "음식"(접시에 담긴 요리)이 정면·멀리서(테이블 전체)·위에서(탑뷰)·45도·근접으로 찍힌 사진이어야 하고, 커피잔·생크림 머그처럼 음식인지 애매하거나 질문과 관계없어 보이는 사진은 안 된다. 인물·OOTD 구도도 마찬가지로 "사람이 그 구도로 찍힌 사진"이 한눈에 보여야 한다(현재 거울샷은 휴대폰 대신 카메라, 로우 앵글은 작은 실루엣이라 약함). 가능하면 각 단계 안에서 같은 피사체·비슷한 톤으로 각도만 다르게 해 비교가 쉽게. 라이선스 기준은 D-032 그대로(Commons CC0/CC BY, 얼굴 식별 불가), 파일·id는 `src/features/onboarding/choice-cards.ts`의 optionId를 유지하고 사진만 교체 → `docs/IMAGE_ASSET_ATTRIBUTIONS.md`·`tests/unit/choice-assets.test.ts` 함께 갱신. 기존 사진 취향 1단계(16장)도 같은 기준으로 다시 점검.
 5. **보류** — 온디바이스 ML(라이선스·성능 게이트 통과 시, 개발 빌드 필요), 색 보정 프리셋, 캐러셀 게시, 수익화
 
 ### 4) 주요 파일 지도
@@ -310,3 +324,19 @@ npm test
 - **명령·결과**: `npx jest` 9 suites / **96 tests 통과**(신규 `tests/unit/sample-assets.test.ts`), `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx expo-doctor` 20/20 통과.
 - **웹 미리보기**(브라우저 패널, 기기 아님): 375×812 라이트·다크에서 런치 화면 애니메이션, 온보딩 헤더 워드마크, 홈(로고·기능 알약·그라데이션 CTA), 이미지 출처 화면의 샘플 항목 확인. 탭 제목 "CutPick".
 - **미검증**: 실기기(Expo Go·APK)에서 런치 화면·글꼴·새 아이콘 표시(홈 화면 아이콘은 Expo Go가 아닌 빌드에서만 바뀜), iOS 전체, 샘플 프로젝트 분석 결과 화면(테스트로만 확인). 아이콘 원본의 제작 경위와 샘플 10번(접시 그림)·14번(벽 포스터 일부)은 출시 전 법률 검토 대상.
+
+### 2026-10-18 — macOS 개발 환경 구성 및 Android 독립 APK 설치
+- 환경: macOS 15.6(arm64)에 Node·adb·Android SDK가 없고 JDK 11만 있었음 → 사용자 승인 후 공식 배포판을 사용자 폴더에 설치(Node 24.22.0 nodejs.org SHA256 확인, Temurin JDK 17.0.20.1 SHA256 확인, Android cmdline-tools 15641748·platform-tools). Android SDK 라이선스는 사용자 동의 후 수락. `.claude/launch.json`의 Windows 경로(`npx.cmd`)를 `npx`로 변경.
+- 명령·결과: `npm ci` 성공, `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx jest` 9 suites / **96 tests 통과**. `npx expo prebuild -p android --no-install`(스크립트 변경은 되돌림) → `./gradlew assembleRelease` **BUILD SUCCESSFUL**(첫 빌드 8분 43초, APK 약 119MB, Expo 템플릿 디버그 키 서명).
+- 기기: Galaxy Z Flip5(SM-F731N, Android 16)에 `adb install -r` 성공, 실행 후 크래시 없음·온보딩 화면 텍스트 확인(캡처 없음). 독립 앱이라 Expo Go와 데이터가 따로이며 사진 앱 저장 등 Expo Go 제약 기능은 이 빌드에서 **아직 미검증**.
+
+### 2026-10-18 — 샘플 분석 실패 수정, 음식·인물·보정 사진 선택, 컬러 2차 리프레시
+사용자 요청: 음식 각도·인물 구도·보정도 사진으로 비교해 고르고 추천에 활용, 보라색 위주의 "AI가 만든 것 같은" 디자인 탈피, 샘플 사진 분석 실패 수정.
+- **샘플 분석 실패(D-041)**: 독립 APK에서 샘플 18장 모두 `decode-failed`(logcat 재현). 원인은 릴리스 빌드에서 번들 이미지가 drawable 리소스 이름으로 잡혀 이미지 조작기가 읽을 수 없던 것(Expo Go·개발 모드는 Metro URL이라 재현 안 됨). 샘플을 불러올 때 파일로 복사해 `문서/cutpick/samples/`에 보관하고, 이미 만든 샘플 프로젝트는 분석 시작 시 경로를 고쳐 실패분을 다시 분석. `sample-photos.ts`, `app-files(.web).ts`, `analysis-runner.ts`, `project-repository.ts`.
+- **사진으로 고르는 온보딩(D-042)**: 음식 각도 5장·인물/OOTD 구도 7장을 사진 카드 2열로, 보정 정도는 같은 사진의 무보정/약한 보정/감성 프리셋 3장을 나란히 비교(단일 선택). 이미지 15장(원본 13장, CC BY 2.0 12·CC0 3)은 Commons API로 라이선스·Restrictions 확인, 인물은 얼굴이 드러나지 않는 장면만 — `src/features/onboarding/choice-cards.ts`, `assets/onboarding/{food,portrait,retouch}/`, `docs/IMAGE_ASSET_ATTRIBUTIONS.md`, 앱 "이미지 출처". 옵션 id는 기존 칩과 같아 예전 답변이 그대로 이어짐. 설정 "내 취향"에 고른 사진 썸네일 표시. 올릴 곳 단계와 "세부 취향" 칩은 칩으로 유지(플랫폼 로고 상표 문제, 사진으로 표현하기 어려운 항목).
+- **추천 활용**(`taste-profile.ts` `shotTasteFrom`, `scoring.ts`, `explanations.ts`, `RECOMMENDATION_VERSION` 3): 음식/인물 사진(직접 붙인 장면 태그 우선, 없으면 음식·카페/OOTD·프사 프로젝트)에서 테이블 전체·전신·배경 살린 구도 → 크롭 손실 가중 ×1.6, 근접·반신·클로즈업 → ×0.5, 각도에 맞는 가로·세로 +0.05. 무보정 → 기술 품질 ×1.1 + 기본 프리셋 '자연스러운 일상', 약한 보정 → 밝기 목표 145, 감성 프리셋 → (자연스러운 일상이 기본인 맥락에서) '차분한 필름'. 상충 선택은 상쇄, 실제 영향이 있을 때만 이유 표시. 각도 자체는 자동 판별하지 않음.
+- **컬러 2차 리프레시(D-040)**: 보라 그라데이션 CTA·무지개 워드마크·파스텔 알약·오로라/반짝이 런치 화면 제거 → 종이색 배경(#FAFAF8/다크 #111111) + 잉크 단색 CTA + 코랄 포인트(#FF5A36, 사진 선택 체크·테두리·순번·진행 바 전용), 한 색 워드마크, 헤더에 아이콘 이미지 없음, 조용한 런치 화면, 네이티브 스플래시 배경 #111111. `docs/DESIGN_SYSTEM.md` 갱신. 앱 아이콘(사용자 제공)은 그대로.
+- **실기기**: 수정본 APK 재빌드(4분 5초)·`adb install -r` 성공, 실행 중 크래시 없음, 설치 후 logcat에 `decode-failed` 없음. 단 사용자가 폰을 쓰는 중이라 **샘플 프로젝트 분석 완료를 실기기에서 직접 확인하지는 못함**(다음 세션에서 샘플 분석 → 18/18 완료 확인 필요). 새 런치 화면·컬러도 실기기 화면 확인 전.
+- **환경**: `.claude/launch.json`의 웹 미리보기 실행 경로를 이 맥의 Node(`/Users/lim/.local/node/bin/node node_modules/expo/bin/cli`)로 변경 — Windows에서는 `npx.cmd`로 되돌려야 함.
+- **사용자 피드백(다음 작업)**: 취향 예시 사진은 질문 대상이 그대로 보이게 다시 골라야 함 → 아래 "우선순위별 다음 작업" 4-1.
+- **명령·결과**: `npx jest` 11 suites / **116 tests 통과**(신규 `shot-taste.test.ts` 11개, `choice-assets.test.ts` 9개), `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0. 웹 미리보기(375×812 라이트·다크): 온보딩 사진 카드 선택·코랄 선택 표시, 음식/인물/보정 카드 단계, 저장 후 설정 썸네일, 홈 확인.

@@ -2,8 +2,11 @@
  * All numeric weights/thresholds for analysis and recommendation live here.
  * These are tunable starting points, not objective aesthetic truths.
  */
-/** 2: image-based taste (style cards) joins the preference match and adds scene/orientation bonuses. */
-export const RECOMMENDATION_VERSION = 2;
+/**
+ * 2: image-based taste (style cards) joins the preference match and adds scene/orientation bonuses.
+ * 3: shot taste (food angle, person framing, retouch strength) adjusts crop-loss weight, orientation and quality weight.
+ */
+export const RECOMMENDATION_VERSION = 3;
 /** Bump when analysis output changes; photos analyzed with an older version are re-queued. */
 export const ANALYSIS_VERSION = 2;
 
@@ -103,6 +106,20 @@ export const TASTE = {
   orientationBonus: 0.06,
   /** Per-tag color similarity (0..1) needed before a reason names that tag. */
   reasonMinMatch: 0.75,
+  /**
+   * Shot taste (food angle / person framing picked in onboarding), applied only to food or person
+   * photos (user scene tag, or a food/cafe/OOTD/profile project).
+   * Crop-loss weight: "keep the whole frame" picks (테이블 전체·전신·배경 살린 구도) make crop loss
+   * count more, "tight framing" picks (근접 디테일·반신·클로즈업) count less.
+   */
+  shotKeepWholeLossWeight: 1.6,
+  shotTightLossWeight: 0.5,
+  /** Bonus when the photo orientation matches the picked angles (e.g. 전신 → 세로). */
+  shotOrientationBonus: 0.05,
+  /** 무보정 preference: technical quality counts a little more (a photo must work without edits). */
+  noRetouchQualityBoost: 0.1,
+  /** 약한 보정 preference: lightly lifted brightness, same scale as meanLuma. */
+  lightRetouchLuma: 145,
 } as const;
 
 /** Learning rate for local personalization; each event moves a weight by at most this amount. */

@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useColors } from '../theme';
@@ -34,7 +33,7 @@ export function StepHeader({ title, step, total, onBack, onSkip, skipLabel = 'ê±
         </View>
       </View>
       <View style={[styles.track, { backgroundColor: c.surfaceSunken }]} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: total, now: step }}>
-        <LinearGradient colors={c.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ width: `${(step / total) * 100}%`, height: '100%', borderRadius: 2 }} />
+        <View style={{ width: `${(step / total) * 100}%`, height: '100%', borderRadius: 2, backgroundColor: c.point }} />
       </View>
     </View>
   );
@@ -70,6 +69,6 @@ const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'center', minHeight: touchTarget },
   side: { width: 88, justifyContent: 'center' },
   center: { flex: 1, alignItems: 'center' },
-  track: { height: 4, borderRadius: 2, overflow: 'hidden' },
+  track: { height: 3, borderRadius: 2, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: touchTarget + 8, paddingHorizontal: spacing.md },
 });

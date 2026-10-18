@@ -6,10 +6,11 @@ import { ActivityIndicator, ScrollView, StyleSheet, View, useWindowDimensions } 
 import type { UserPreference } from '@/domain/models';
 import {
   AppText, BottomBar, BrandLockup, Card, FilterChip, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, SelectablePhotoCard, StepHeader,
-  contentMaxWidth, spacing, tapFeedback, useColors, type IconName, type TintName,
+  contentMaxWidth, spacing, tapFeedback, useColors, type IconName,
 } from '@/design-system';
 import { useAppState } from '@/hooks/app-state';
 
+import { choiceCardsFor, type ChoiceCard } from '../choice-cards';
 import { VISUAL_STEP_CHIPS, WIZARD_STEPS, patchFor, selectedFor, stepById, styleCardsPatch, type OnboardingStep, type WizardStepId } from '../preference-schema';
 import { STYLE_CATEGORIES, STYLE_SELECTION_LIMITS, cardsInCategory, selectedCountByCategory, styleSelectionStatus, toggleStyleCard, type StyleCategoryId } from '../style-cards';
 
@@ -25,11 +26,11 @@ const STEP_NAMES: Record<WizardStepId, string> = {
   privacy: '개인정보',
 };
 
-const PRIVACY_POINTS: { icon: IconName; tint: TintName; text: string }[] = [
-  { icon: 'images-outline', tint: 'cyan', text: '직접 고른 사진만 불러오고, 사진 보관함 전체를 훑지 않아요.' },
-  { icon: 'phone-portrait-outline', tint: 'violet', text: '분석은 기기 안에서 이뤄지고 원본 사진은 수정·삭제하지 않아요.' },
-  { icon: 'trash-outline', tint: 'pink', text: '취향과 분석 기록은 기기에만 저장되고 설정에서 언제든 지울 수 있어요.' },
-  { icon: 'people-outline', tint: 'mint', text: '커뮤니티 공개는 별도 화면에서 사진마다 따로 동의를 받아요.' },
+const PRIVACY_POINTS: { icon: IconName; text: string }[] = [
+  { icon: 'images-outline', text: '직접 고른 사진만 불러오고, 사진 보관함 전체를 훑지 않아요.' },
+  { icon: 'phone-portrait-outline', text: '분석은 기기 안에서 이뤄지고 원본 사진은 수정·삭제하지 않아요.' },
+  { icon: 'trash-outline', text: '취향과 분석 기록은 기기에만 저장되고 설정에서 언제든 지울 수 있어요.' },
+  { icon: 'people-outline', text: '커뮤니티 공개는 별도 화면에서 사진마다 따로 동의를 받아요.' },
 ];
 
 /** Values of one wizard step, used to discard a step's unsaved edits on "skip". */
@@ -42,7 +43,8 @@ function stepSnapshot(id: WizardStepId, pref: UserPreference): Partial<UserPrefe
 
 /**
  * Taste wizard. Step 1 picks reference photos (2-column cards, category filter, 3–8 picks);
- * the remaining steps are short chip questions. Every step can be skipped, progress is saved after
+ * food angle, person framing and retouch strength are also picked from photos (see ../choice-cards),
+ * the upload-destination step stays a short chip question. Every step can be skipped, progress is saved after
  * each step, and the same component serves first run and Settings → 취향 수정.
  */
 export function OnboardingWizard({ mode }: { mode: Mode }) {
@@ -231,8 +233,8 @@ function Wizard({ mode }: { mode: Mode }) {
               <View style={{ gap: spacing.md }}>
                 {PRIVACY_POINTS.map((p) => (
                   <View key={p.icon} style={styles.point}>
-                    <View style={[styles.pointIcon, { backgroundColor: c.tints[p.tint].soft }]}>
-                      <Ionicons name={p.icon} size={18} color={c.tints[p.tint].fg} />
+                    <View style={[styles.pointIcon, { backgroundColor: c.surfaceSunken }]}>
+                      <Ionicons name={p.icon} size={18} color={c.textPrimary} />
                     </View>
                     <AppText variant="body" style={{ flex: 1 }}>{p.text}</AppText>
                   </View>
@@ -241,6 +243,8 @@ function Wizard({ mode }: { mode: Mode }) {
             </Card>
             <InlineMessage tone="info" message="현재 버전은 흐림·노출·대비·해상도·색 통계와 비슷한 사진 묶기를 분석해요. 얼굴·표정·눈 감김은 분석하지 않아요." />
           </View>
+        ) : choiceCardsFor(stepId).length ? (
+          <CardStep step={stepById(stepId)} cards={choiceCardsFor(stepId)} values={selectedFor(stepById(stepId), draft)} onToggle={(id) => toggleChip(stepById(stepId), id)} gridWidth={gridWidth} />
         ) : (
           <ChipStep step={stepById(stepId)} values={selectedFor(stepById(stepId), draft)} onToggle={(id) => toggleChip(stepById(stepId), id)} />
         )}
@@ -269,6 +273,41 @@ function Wizard({ mode }: { mode: Mode }) {
           testID="onboarding-next"
         />
       </BottomBar>
+    </View>
+  );
+}
+
+/**
+ * Photo-card version of a question: each option is a reference photo. Up to three options sit side
+ * by side (the retouch step shows one photo edited three ways), more use the 2-column grid.
+ */
+function CardStep({ step, cards, values, onToggle, gridWidth }: { step: OnboardingStep; cards: ChoiceCard[]; values: string[]; onToggle: (id: string) => void; gridWidth: number }) {
+  const columns = cards.length <= 3 ? 3 : 2;
+  const gap = columns === 3 ? spacing.xs : spacing.sm;
+  const cardWidth = Math.floor((gridWidth - gap * (columns - 1)) / columns);
+  return (
+    <View style={[styles.column, { gap: spacing.md }]}>
+      <View style={{ gap: spacing.xxs }}>
+        <AppText variant="title">{step.title}</AppText>
+        <AppText variant="body" tone="secondary">{step.subtitle}</AppText>
+      </View>
+      <View style={[styles.grid, { columnGap: gap }]} accessibilityRole={step.multi ? undefined : 'radiogroup'} accessibilityLabel={step.title}>
+        {cards.map((card) => (
+          <SelectablePhotoCard
+            key={card.optionId}
+            source={card.source}
+            title={card.title}
+            description={card.description}
+            aspect={columns === 3 ? 3 / 4.4 : 4 / 5}
+            selected={values.includes(card.optionId)}
+            onPress={() => onToggle(card.optionId)}
+            width={cardWidth}
+            role={step.multi ? 'checkbox' : 'radio'}
+            testID={`card-${step.id}-${card.optionId}`}
+          />
+        ))}
+      </View>
+      <AppText variant="caption" tone="tertiary">{step.multi ? '여러 개 선택 가능 · 선택하지 않아도 돼요' : '하나만 선택 · 선택하지 않아도 돼요'}</AppText>
     </View>
   );
 }

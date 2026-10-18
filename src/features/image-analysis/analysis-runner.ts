@@ -1,7 +1,8 @@
 import { AppError, logError } from '@/domain/errors';
 import type { PhotoAsset } from '@/domain/models';
 import { ANALYSIS_CONFIG, ANALYSIS_VERSION } from '@/domain/recommendation-policy';
-import { listPhotos, saveAnalysisResult, saveDuplicateGroups, setPhotoStatus, touchProject } from '@/features/project-library/project-repository';
+import { isEmbeddedResourceName, materializeEmbeddedImage } from '@/features/photo-import/sample-photos';
+import { listPhotos, saveAnalysisResult, saveDuplicateGroups, setPhotoLocalUri, setPhotoStatus, touchProject } from '@/features/project-library/project-repository';
 import { technicalQuality } from '@/features/recommendations/scoring';
 
 import { CancelToken, runQueue } from './analysis-queue';
@@ -83,6 +84,18 @@ export async function startAnalysis(projectId: string, opts: { retryFailed?: boo
     emit(projectId, { ...state });
   };
   update({});
+
+  // Sample photos imported by older Android release builds stored a drawable resource name
+  // instead of a file URI; repair them and retry the ones that failed because of it.
+  const broken = (await listPhotos(projectId)).filter((p) => isEmbeddedResourceName(p.localUri));
+  for (const p of broken) {
+    try {
+      await setPhotoLocalUri(p.id, await materializeEmbeddedImage(p.localUri));
+      if (p.analysisStatus === 'failed') await saveAnalysisResult(p.id, { status: 'pending' });
+    } catch (e) {
+      logError('analysis', e);
+    }
+  }
 
   // Photos left in 'processing' by a killed app are retried.
   await setPhotoStatus(projectId, opts.retryFailed ? ['processing', 'failed'] : ['processing'], 'pending');

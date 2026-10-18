@@ -60,7 +60,7 @@ export default function NewProjectScreen() {
           sourceContext: sample ? 'travel' : context,
           selectedPlatforms: [purpose.platform],
           targetPhotoCount: purpose.defaultCount,
-          stylePresetId: suggestPresetForContext(sample ? 'travel' : context),
+          stylePresetId: suggestPresetForContext(sample ? 'travel' : context, preference.preferredFilterStrength),
           isSample: sample,
         },
         photos,

@@ -1,17 +1,10 @@
 /**
- * CutPick design tokens — "Photo-first, colorful brand".
- * Quiet cool-neutral surfaces that don't tint photos; the colorful brand palette (taken from the
- * app icon) lives in the wordmark, the primary CTA gradient and small accents only.
+ * CutPick design tokens — "Photo-first, editorial".
+ * Warm-neutral paper and ink so the photos carry the color (the way photo/fashion apps such as
+ * VSCO, 29CM or Kream do). Solid ink CTAs, no gradients, no rainbow accents. A single coral
+ * "pick" color marks what the user picked (photo checks, progress) and nothing else.
  * Rules: docs/DESIGN_SYSTEM.md. Screens must not define their own colors/spacings.
  */
-
-/** A decorative hue with a readable foreground and a soft background tint for the current mode. */
-export interface TintToken {
-  fg: string;
-  soft: string;
-}
-
-export type TintName = 'cyan' | 'blue' | 'violet' | 'pink' | 'mint' | 'amber';
 
 export interface ColorTokens {
   background: string;
@@ -40,101 +33,89 @@ export interface ColorTokens {
   heart: string;
   scrim: string;
   photoPlaceholder: string;
-  /** Primary CTA / progress gradient (left → right). White text stays ≥ 4.5:1 on every stop. */
-  gradient: readonly [string, string, ...string[]];
-  /** Per-letter colors of the "CutPick" wordmark (C-u-t-P-i-c-k). */
-  wordmark: readonly string[];
-  tints: Record<TintName, TintToken>;
+  /**
+   * Coral "pick" mark: check badges on picked photos, the progress fill, the "이어서 하기" cue.
+   * Graphic use only (≥ 3:1 against its surroundings) — use `pointText` for text.
+   */
+  point: string;
+  pointText: string;
+  pointSoft: string;
+  /** Icon/text drawn on top of `point`. */
+  onPoint: string;
 }
 
-/** Brand hues from the app icon (decorative only — use `tints` for text on surfaces). */
-export const brand = {
-  navy: '#0B1024',
-  cyan: '#4FD8FF',
-  blue: '#3B5BFF',
-  violet: '#8B5CF6',
-  pink: '#FF5FC8',
-  mint: '#3EE6A5',
-  amber: '#FFC54A',
+/** Launch screen colors (always dark, matches the native splash background). */
+export const launch = {
+  background: '#111111',
+  text: '#F4F4F2',
+  muted: '#9A9A96',
+  point: '#FF6A45',
 } as const;
 
-const ctaGradient = ['#3B5BFF', '#7C3AED', '#C026D3'] as const;
-
 export const lightColors: ColorTokens = {
-  background: '#F7F6FB',
+  background: '#FAFAF8',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
-  surfaceSunken: '#EEEDF6',
-  textPrimary: '#14152B',
-  textSecondary: '#55576E',
-  textTertiary: '#7E8096',
+  surfaceSunken: '#F1F1EE',
+  textPrimary: '#191919',
+  textSecondary: '#5C5C59',
+  textTertiary: '#878783',
   textOnAccent: '#FFFFFF',
-  border: '#E4E3EE',
-  borderStrong: '#C8C7D8',
-  accent: '#5B3FF5',
-  accentPressed: '#4A30DB',
-  accentSoft: '#ECE9FF',
-  selected: '#5B3FF5',
+  border: '#E9E9E5',
+  borderStrong: '#D3D3CE',
+  // The accent is ink: solid black CTAs and selected chips (white text 17:1).
+  accent: '#191919',
+  accentPressed: '#000000',
+  accentSoft: '#F1F1EE',
+  selected: '#191919',
   selectedText: '#FFFFFF',
-  selectedOverlay: 'rgba(91,63,245,0.14)',
-  success: '#1E7A4C',
-  successSoft: '#E1F2E8',
+  selectedOverlay: 'rgba(255,255,255,0.12)',
+  success: '#1F7A4D',
+  successSoft: '#E5F3EA',
   warning: '#8A5A00',
-  warningSoft: '#FBF0D9',
-  error: '#B3261E',
-  errorSoft: '#FBE4E2',
-  heart: '#E5337A',
-  scrim: 'rgba(11,16,36,0.55)',
-  photoPlaceholder: '#E7E6F0',
-  gradient: ctaGradient,
-  wordmark: ['#1E9BEA', '#3B6BFF', '#5B4BFF', '#7C3AED', '#A030E0', '#C42BC0', '#E0338F'],
-  tints: {
-    cyan: { fg: '#0377A8', soft: '#E0F5FF' },
-    blue: { fg: '#2F4FE0', soft: '#E6EBFF' },
-    violet: { fg: '#6D28D9', soft: '#F0E9FF' },
-    pink: { fg: '#C2185B', soft: '#FFE6F3' },
-    mint: { fg: '#047857', soft: '#DDF8EC' },
-    amber: { fg: '#9A5B00', soft: '#FFF2D6' },
-  },
+  warningSoft: '#FBF1DC',
+  error: '#C0352B',
+  errorSoft: '#FCE8E6',
+  heart: '#F0384F',
+  scrim: 'rgba(0,0,0,0.5)',
+  photoPlaceholder: '#ECECE8',
+  point: '#FF5A36',
+  pointText: '#C23A14',
+  pointSoft: '#FFEEE8',
+  onPoint: '#FFFFFF',
 };
 
 export const darkColors: ColorTokens = {
-  background: '#0B1024',
-  surface: '#151A33',
-  surfaceElevated: '#1D2342',
-  surfaceSunken: '#070A18',
-  textPrimary: '#F3F2FA',
-  textSecondary: '#B6B8CF',
-  textTertiary: '#8A8DA8',
-  // Dark text on the light-violet dark-mode accent keeps contrast above 6:1 (white would be ~2.6:1).
-  textOnAccent: '#0B1024',
-  border: '#262C4A',
-  borderStrong: '#3A4166',
-  accent: '#9D8CFF',
-  accentPressed: '#8A78F5',
-  accentSoft: '#252052',
-  selected: '#9D8CFF',
-  selectedText: '#0B1024',
-  selectedOverlay: 'rgba(157,140,255,0.2)',
+  background: '#111111',
+  surface: '#1B1B1B',
+  surfaceElevated: '#242424',
+  surfaceSunken: '#0A0A0A',
+  textPrimary: '#F4F4F2',
+  textSecondary: '#ABABA7',
+  textTertiary: '#82827E',
+  // Dark-mode CTAs are paper-white with ink text (16:1).
+  textOnAccent: '#111111',
+  border: '#2A2A2A',
+  borderStrong: '#3D3D3B',
+  accent: '#F4F4F2',
+  accentPressed: '#D9D9D5',
+  accentSoft: '#262626',
+  selected: '#F4F4F2',
+  selectedText: '#111111',
+  selectedOverlay: 'rgba(0,0,0,0.18)',
   success: '#5CC58F',
-  successSoft: '#13301F',
+  successSoft: '#13291C',
   warning: '#E8B54A',
-  warningSoft: '#33270C',
+  warningSoft: '#2E240E',
   error: '#FF8A80',
-  errorSoft: '#3A1513',
-  heart: '#FF6BA8',
-  scrim: 'rgba(3,5,14,0.65)',
-  photoPlaceholder: '#232947',
-  gradient: ctaGradient,
-  wordmark: ['#4FD8FF', '#5FA8FF', '#7F86FF', '#9D74FF', '#C064FF', '#E85FE0', '#FF6FB5'],
-  tints: {
-    cyan: { fg: '#7DD3FC', soft: '#0E2A3D' },
-    blue: { fg: '#93A8FF', soft: '#18224A' },
-    violet: { fg: '#C4B5FD', soft: '#241A4A' },
-    pink: { fg: '#F9A8D4', soft: '#3A1630' },
-    mint: { fg: '#6EE7B7', soft: '#0D2E25' },
-    amber: { fg: '#FCD34D', soft: '#33270C' },
-  },
+  errorSoft: '#3A1715',
+  heart: '#FF5C70',
+  scrim: 'rgba(0,0,0,0.65)',
+  photoPlaceholder: '#262626',
+  point: '#FF6A45',
+  pointText: '#FF9573',
+  pointSoft: '#33201A',
+  onPoint: '#FFFFFF',
 };
 
 export const spacing = {

@@ -116,13 +116,14 @@ export function useRecommendationEditor(projectId: string) {
       targetCount: target,
       presetId,
       preference,
+      context: project?.sourceContext ?? null,
       learned,
       pinnedIds: edit.pinned,
       excludedIds: edit.excluded,
       groupRepresentatives: edit.groupReps,
       previousOrder: edit.order,
     });
-  }, [photos, purposeId, aspectId, target, presetId, preference, learned, edit]);
+  }, [photos, purposeId, aspectId, target, presetId, preference, project?.sourceContext, learned, edit]);
 
   // Persist every change.
   useEffect(() => {

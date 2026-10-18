@@ -180,6 +180,11 @@ export async function saveAnalysisResult(photoId: string, r: { thumbnailUri?: st
   );
 }
 
+export async function setPhotoLocalUri(photoId: string, localUri: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('UPDATE photos SET local_uri = ? WHERE id = ?', localUri, photoId);
+}
+
 export async function setPhotoStatus(projectId: string, from: AnalysisStatus[], to: AnalysisStatus): Promise<void> {
   const db = await getDb();
   const placeholders = from.map(() => '?').join(',');

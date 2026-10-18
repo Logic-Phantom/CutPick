@@ -48,7 +48,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'preferredFoodAngles',
     title: '음식은 어떤 각도가 좋아요?',
-    subtitle: '현재 버전은 각도를 자동 판별하지 않아요. 캡션·프리셋 제안에 참고해요.',
+    subtitle: '마음에 드는 사진을 골라 주세요. 각도를 자동으로 알아내진 않지만, 음식 사진을 얼마나 잘라도 되는지와 가로·세로 선호에 반영해요.',
     multi: true,
     options: [
       { id: 'top', label: '탑뷰' },
@@ -60,8 +60,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'preferredPortraitAndOOTDAngles',
-    title: '인물·OOTD 구도는요?',
-    subtitle: '얼굴 위주 추천을 강제하지 않아요. 얼굴 인식 기능은 없어요.',
+    title: '인물·OOTD는 어떤 구도가 좋아요?',
+    subtitle: '얼굴은 인식하지 않아요. 인물 사진을 얼마나 잘라도 되는지와 가로·세로 선호에 반영해요.',
     multi: true,
     options: [
       { id: 'full', label: '전신' },
@@ -105,7 +105,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'retouch',
     title: '보정은 어느 정도가 좋아요?',
-    subtitle: '현재 버전은 색 보정을 적용하지 않아요. 피부·체형 보정 기능은 넣지 않아요.',
+    subtitle: '같은 사진을 세 가지로 보정했어요. 사진에 직접 보정을 입히진 않고, 추천 기준과 새 프로젝트의 기본 프리셋을 정할 때 써요. 피부·체형 보정은 하지 않아요.',
     multi: false,
     options: [
       { id: 'none', label: '무보정' },
