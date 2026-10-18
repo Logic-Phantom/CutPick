@@ -77,6 +77,23 @@ describe('bundled sample images', () => {
     expect(m('7').exposureScore).toBeLessThan(m('1').exposureScore);
   });
 
+  it('a 9:16 story set avoids heavy landscape crops when portrait photos are available', () => {
+    const grouped = photos.map((p) => ({ ...p, duplicateGroupId: groups.find((x) => x.memberIds.includes(p.id))?.id ?? null }));
+    const out = recommend({
+      photos: grouped,
+      purposeId: 'instagram-story',
+      targetCount: 3,
+      presetId: 'travel-photodump',
+      preference: defaultPreference(),
+      learned: null,
+      pinnedIds: [],
+      excludedIds: [],
+      groupRepresentatives: {},
+    });
+    const chosen = out.orderedIds.map((id) => photos.find((p) => p.id === id)!);
+    expect(chosen.every((p) => p.orientation !== 'landscape')).toBe(true);
+  });
+
   it('a 6-photo carousel contains at most one photo per duplicate group', () => {
     const grouped = photos.map((p) => {
       const g = groups.find((x) => x.memberIds.includes(p.id));

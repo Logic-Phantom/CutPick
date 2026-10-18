@@ -53,5 +53,8 @@ export function toUserMessage(err: unknown): string {
 export function logError(scope: string, err: unknown): void {
   const code = err instanceof AppError ? err.code : 'unknown';
   const name = err instanceof Error ? err.name : typeof err;
-  console.warn(`[cutpick:${scope}] ${code} (${name})`);
+  // Release builds log only the category. Dev builds add the raw message for debugging.
+  const cause = err instanceof AppError ? err.cause : err;
+  const detail = __DEV__ && cause instanceof Error ? `: ${cause.message}` : '';
+  console.warn(`[cutpick:${scope}] ${code} (${name})${detail}`);
 }

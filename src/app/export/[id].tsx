@@ -4,13 +4,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 
-import { toUserMessage } from '@/domain/errors';
+import { logError, toUserMessage } from '@/domain/errors';
 import type { CutpickProject, PhotoAsset, RecommendationSet } from '@/domain/models';
 import {
   AppText, BottomBar, Card, EmptyState, FilterChip, GhostButton, IconButton, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, SectionHeader, radius, spacing, successFeedback, useColors,
 } from '@/design-system';
 import { buildCaption } from '@/features/captions/caption-templates';
-import { exportPhotos, IS_WEB, saveToLibrary, shareFile, type ExportedFile } from '@/features/export-share/export-service';
+import { exportPhotos, IS_EXPO_GO_ANDROID, IS_WEB, saveToLibrary, shareFile, type ExportedFile } from '@/features/export-share/export-service';
 import { centerCropRect, shiftCrop } from '@/features/platforms/crop';
 import { getAspect, getPurpose } from '@/features/platforms/platform-profiles';
 import { getProject, latestRecommendationSet, listPhotos, saveRecommendationSet } from '@/features/project-library/project-repository';
@@ -86,6 +86,7 @@ export default function ExportScreen() {
       setFiles(out);
       return out;
     } catch (e) {
+      logError('export', e);
       setMsg({ tone: 'error', text: `${toUserMessage(e)} 원본 사진은 프로젝트에 그대로 있어요.` });
       return null;
     } finally {
@@ -103,6 +104,7 @@ export default function ExportScreen() {
       successFeedback();
       setMsg({ tone: n === out.length ? 'success' : 'warning', text: n === out.length ? `${n}장을 순서대로 사진 앱에 저장했어요. 파일 이름에 순번이 붙어 있어요.` : `${out.length}장 중 ${n}장만 저장됐어요. 다시 시도해 주세요.` });
     } catch (e) {
+      logError('save-library', e);
       setMsg({ tone: 'error', text: `${toUserMessage(e)} 아래에서 한 장씩 공유할 수도 있어요.` });
     } finally {
       setBusy(null);
@@ -114,6 +116,7 @@ export default function ExportScreen() {
     try {
       await shareFile(f);
     } catch (e) {
+      logError('share', e);
       setMsg({ tone: 'error', text: toUserMessage(e) });
     } finally {
       setBusy(null);
@@ -204,6 +207,7 @@ export default function ExportScreen() {
         {busy === 'export' && progress ? <AppText variant="secondary" tone="secondary">내보내는 중 {progress[0]}/{progress[1]}</AppText> : null}
         {msg ? <InlineMessage tone={msg.tone} message={msg.text} /> : null}
         {IS_WEB ? <InlineMessage tone="warning" message="웹 미리보기에서는 사진 앱 저장과 공유 시트를 지원하지 않아요. iOS/Android 앱에서 사용해 주세요." /> : null}
+        {IS_EXPO_GO_ANDROID ? <InlineMessage tone="info" message="Expo Go(Android) 테스트 환경에서는 사진 앱 저장이 막혀 있어요. '파일 만들기' 후 아래 '한 장씩 공유'를 이용해 주세요. 정식 앱에서는 저장할 수 있어요." /> : null}
 
         {files ? (
           <View style={{ gap: spacing.xs }}>
@@ -228,7 +232,7 @@ export default function ExportScreen() {
       </ScreenScroll>
       <BottomBar>
         <SecondaryButton label={files ? '다시 만들기' : '파일 만들기'} onPress={doExport} loading={busy === 'export'} disabled={!!busy && busy !== 'export'} compact style={{ flex: 1 }} />
-        <PrimaryButton label="순번대로 사진 앱에 저장" icon="download-outline" onPress={doSave} loading={busy === 'save'} disabled={(!!busy && busy !== 'save') || IS_WEB} style={{ flex: 1.6 }} testID="export-save" />
+        <PrimaryButton label="순번대로 사진 앱에 저장" icon="download-outline" onPress={doSave} loading={busy === 'save'} disabled={(!!busy && busy !== 'save') || IS_WEB || IS_EXPO_GO_ANDROID} style={{ flex: 1.6 }} testID="export-save" />
       </BottomBar>
     </View>
   );

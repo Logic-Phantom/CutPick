@@ -28,3 +28,7 @@
 | D-022 | 앱 아이콘·스플래시 이미지는 Expo 템플릿 기본 이미지 임시 사용 | 출시 전 자체 제작 필요(MODEL_AND_LIBRARY_LICENSES 참고) |
 | D-023 | 샘플 모드 = `scripts/generate-sample-photos.mjs`로 직접 생성한 합성 이미지 18장. 프로젝트에 `isSample` 표시, UI에 "샘플(합성 이미지)" 경고 | 저작권·초상권 없는 테스트 데이터. 분석 자체는 실제 실행 |
 | D-024 | REA(Reverse Engineer Anything) 미사용 | 설치돼 있지 않고 이번 범위에서 필요성이 없음. 필수 완료 조건 아님 |
+| D-025 | 실기기 테스트는 USB + adb(Google platform-tools, winget) + Expo Go 58.0.4. Play 스토어 Expo Go가 57이라 Expo 공식 GitHub 릴리스 APK를 사용자 승인 후 설치 | SDK 58 호환 Expo Go가 스토어에 아직 없음. 사용자 사진은 텍스트 덤프로만 확인하고 화면 캡처는 합성 샘플 화면에서만 함 |
+| D-026 | Expo Go(Android)에서는 사진 앱 저장 버튼 비활성 + 안내, 한 장씩 공유로 대체. 감지는 `isRunningInExpoGo()` | 실기기에서 `requestPermissionsAsync`가 "Expo Go can no longer provide full access to the media library"로 거부됨. `Constants.executionEnvironment`는 Expo Go 58에서도 `bare`로 보고돼 사용 불가 |
+| D-027 | 크롭 보존율 60% 미만이면 추가 감점(최대 0.45) | 실기기에서 9:16 스토리 2번째 자리에 63%가 잘리는 가로 사진이 추천됨 → 수정 후 세로 사진 선택 확인 |
+| D-028 | 내보내기·업로드 사본 GPS 런타임 가드 | 재인코딩에만 의존하지 않고 결과를 직접 검사 |

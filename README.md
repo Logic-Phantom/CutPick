@@ -78,8 +78,8 @@ npm run bench
 |---|---|---|
 | 0 환경/실현 가능성 조사 | ✅ | Node·Expo SDK 58 확인, 공식 문서로 API 확인, 픽셀 접근 방식 결정(D-003), 플랫폼 규격·무료 한도·스토어 비용 조사, DECISIONS/ARCHITECTURE/COSTS/LICENSES 작성. REA 미사용(선택 사항) |
 | 1 온보딩·로컬 기반 앱 | ✅ | 디자인 시스템, 홈, 사진 선택, 프로젝트 CRUD, SQLite·파일 저장, 취향 온보딩(저장·수정·초기화), 샘플 모드 |
-| 2 로컬 사진 분석·추천 | 🟡 | 픽셀 품질 지표, 유사 사진 그룹, 추천 점수·이유, 대표 후보 3장, 수동 편집 완료. **실기기 30/100/300장 측정 미실행** |
-| 3 SNS 내보내기 | 🟡 | 크롭·순번 파일·사진 앱 저장·OS 공유·캡션 구현. **iOS/Android에서 저장·공유·EXIF 제거 미검증** |
+| 2 로컬 사진 분석·추천 | 🟡 | 픽셀 품질 지표, 유사 사진 그룹, 추천 점수·이유, 대표 후보 3장, 수동 편집 완료. Android 실기기(Z Flip5)에서 실사진 9장·샘플 18장 분석 확인(샘플 사진당 약 60ms). **실사진 30/100/300장 측정·메모리 미실행** |
+| 3 SNS 내보내기 | 🟡 | 크롭·순번 파일·OS 공유·캡션은 Android 실기기 확인. 내보내기 사본 EXIF 없음 확인 + GPS 런타임 가드. **사진 앱 저장은 Expo Go 제약으로 미검증(개발 빌드 필요), iOS 전체 미검증** |
 | 4 댓글 없는 커뮤니티 | 🟡 | 마이그레이션(RLS·트리거·RPC·스토리지), 게시·하트·삭제·신고·차단·계정 삭제 UI 완료. **Supabase 실프로젝트 연동·RLS 테스트 미실행** |
 | 5 품질/개인정보/스토어 준비 | ❌ (문서만 일부) | 정책 문서 초안, 개인정보 문서 작성. 실기기 빌드·지원 이메일·법률 검토·자체 아이콘·연령 정책 미완 |
 | 6 수익화/ML 고도화 | ❌ (의도적 보류) | 프롬프트 지시대로 핵심 검증 전 착수하지 않음 |
@@ -89,17 +89,17 @@ npm run bench
 |---|---|
 | React Native + Expo iOS/Android 프로젝트 | ✅ |
 | 사용자가 고른 사진만 처리, 전체 라이브러리 자동 스캔 없음 | ✅ (코드) |
-| 30장 기본 분석 흐름이 **실제 기기**에서 동작 | ❌ 실기기 없음 (웹 미리보기에서 18장 동작 확인) |
+| 30장 기본 분석 흐름이 **실제 기기**에서 동작 | 🟡 Android 실기기에서 실사진 9장·샘플 18장 동작 확인, 30장은 미실행 |
 | 유사 사진 그룹화가 실제 입력 사진으로 검증 | 🟡 합성 샘플 이미지로 검증(통합 테스트), 실사진 미검증 |
 | 품질 신호와 추천 점수 구분 | ✅ |
 | Instagram/TikTok/카카오톡 목적별 결과 구성 | ✅ |
 | 프리셋에 출처·검토일·상태 | ✅ (출처 없음 = hypothesis로 명시) |
 | 추천 수동 수정·순서 변경 | ✅ |
-| 파일 저장·OS 공유를 iOS/Android에서 각각 확인 | ❌ |
+| 파일 저장·OS 공유를 iOS/Android에서 각각 확인 | 🟡 Android: 파일 생성·공유 시트 ✅, 사진 앱 저장 ❌(Expo Go 제약) / iOS ❌ |
 | 로컬 기능은 유료 API·커뮤니티 서버 없이 동작, 장애 시 로컬 유지 | ✅ |
 | 원본 수정/삭제 없음, 프로젝트 데이터 삭제 기능 | ✅ |
 | 테스트 실제 실행·결과 기록 | ✅ (59개 통과, docs/TESTING.md) |
-| Android 빌드/테스트 검증 | ❌ Android SDK 없음 |
+| Android 빌드/테스트 검증 | 🟡 Expo Go로 실기기 테스트 ✅, 독립 APK/개발 빌드 ❌ (Android SDK 없음) |
 | iOS 빌드/실기기 여부와 미검증 이유 명시 | ✅ (미검증: macOS 없음) |
 | 비용·개인정보·라이선스·플랫폼 규칙 문서화 | ✅ |
 
@@ -109,7 +109,7 @@ npm run bench
 | 온보딩 건너뛰기·중단·재실행·수정 일관성 | ✅ 코드 + 웹 확인 |
 | 취향별 추천 결과 차이, 기술 점수 비왜곡 | ✅ 단위 테스트 |
 | 게시 안 한 사진이 네트워크에 안 나감 | 🟡 정적 확인만(프록시 실측 미실행) |
-| 업로드 사본 EXIF/GPS 제거 | 🟡 재인코딩 구조, 실측 미실행 |
+| 업로드 사본 EXIF/GPS 제거 | 🟡 Android 내보내기 사본 EXIF 없음 실측, GPS 런타임 가드(내보내기·업로드). GPS 있는 원본으로는 미확인 |
 | RLS 격리·비인가 삭제·하트 중복·경로 위조 | 🟡 `supabase/tests/rls_test.sql` 작성, 미실행 |
 | 하트 추가/취소·오프라인·중복 요청 | 🟡 낙관적 갱신·롤백·PK 멱등 구현, 실서버 미검증 |
 | 차단 즉시 숨김 / 해제 | 🟡 `get_feed` 양방향 필터, 실서버 미검증 |
@@ -149,7 +149,17 @@ npm test
 - 결정 변경 시 `docs/DECISIONS.md`에 D-0xx로 추가, 마지막에 이 README의 Work Log에 날짜별 항목 추가(기존 내용 보존, 섹션 중복 금지).
 
 ### 3) 우선순위별 다음 작업
-1. **실기기 검증 (Phase 2·3 마무리)** — Android 폰/에뮬레이터(Android Studio 설치 필요) 또는 iPhone + Expo Go
+0. **실기기 테스트 방법 (Android, 이 PC에서 검증된 절차)**
+   - 폰: 개발자 옵션 → USB 디버깅 켜고 PC 허용. Expo Go는 **SDK 58용(58.x)** 필요 — Play 스토어판이 57이면 https://github.com/expo/expo-go-releases 의 Expo-Go-58.x.apk 설치(db install -r)
+   - PC: winget install Google.PlatformTools(adb) → 
+pm run web 또는 
+px expo start로 Metro(8081) 실행 → db reverse tcp:8081 tcp:8081 → db shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent
+   - 자동 조작·캡처: scripts/android-device.ps1 (shot <이름>, 	ap <텍스트>, 	ext, ack, swipeup, 	op). 캡처는 .device/(git 무시)에 저장. **사용자 실사진이 보이는 화면은 캡처하지 말고 	ext로만 확인**
+   - Expo Go에서는 Android 사진 앱 저장이 막혀 있음(D-026) → 저장 검증은 개발 빌드 필요
+1. **실기기 검증 계속 (Phase 2·3 마무리)** — 2026-10-18에 Android 기본 흐름은 확인함(docs/TESTING.md). 남은 것:
+   - **개발 빌드**로 사진 앱 저장 검증: Android Studio+JDK 17 설치 후 
+px expo run:android, 또는 
+px eas-cli@latest build --profile development --platform android(Expo 계정 필요)
    - 실사진 30/100/300장 선택 → 분석 화면 하단 "사진당 약 N ms" 기록 + 프로파일러로 피크 메모리 → `docs/DEVICE_BENCHMARKS.md` 표 채우기 → 필요 시 `IMPORT_LIMITS` 조정
    - 권한 거부/제한 접근(iOS "선택한 사진만"), HEIC·세로 EXIF 회전 사진, 한글·긴 파일명
    - 사진 앱 저장 순서·파일명, 한 장씩 공유 시트(Instagram/TikTok/카카오톡 각각)
@@ -222,3 +232,14 @@ npm test
 - 원격 저장소 https://github.com/Logic-Phantom/CutPick (빈 저장소)에 origin 연결, 지금까지의 작업(eat/cutpick-mvp 브랜치의 커밋 포함)을 main 브랜치로 푸시.
 - README에 **마스터 프롬프트 기준 진행 현황**(Phase 0~6, 13장 완료 기준, 21장 보안·테스트 기준)과 **다음 작업 이어가기**(환경 복원, SDK 58 주의점, 우선순위 작업, 파일 지도) 섹션 추가.
 - 코드 변경 없음. 테스트 재실행 결과는 직전 항목과 동일(59개 통과) — 이번 항목에서 새로 검증한 기능 없음.
+
+### 2026-10-18 — Android 실기기(Galaxy Z Flip5) 검증과 수정
+- 환경: 사용자 승인 후 winget install Google.PlatformTools(adb 1.0.41). 폰 SM-F731N / Android 16, USB 디버깅. Play 스토어 Expo Go 57.0.9는 SDK 58 비호환 → 사용자 승인 후 Expo 공식 릴리스 Expo-Go-58.0.4.apk(215.5MB, SHA256 BD3D3679…B3A6)를 db install -r로 설치. db reverse tcp:8081로 USB 연결 실행.
+- 프라이버시: 사용자 실사진이 보이는 화면은 캡처하지 않고 UI 텍스트 덤프로만 확인. 처음 실수로 찍힌 개인 화면 캡처 1장은 즉시 삭제. 문서 스크린샷(12~14)은 합성 샘플 화면만.
+- 확인 결과: 앱 실행·다크 모드·네이티브 탭 ✅, 실사진 9장 선택·분석 9/9·유사 그룹 2개 ✅, 샘플 18장 분석 사진당 약 60ms ✅, 실사진 추천·이유 ✅, 9:16 내보내기 파일 크기·순번 ✅, OS 공유 시트 열림 ✅, 내보내기 사본 EXIF 블록 없음 ✅(원본에 GPS가 없어 GPS 실제 제거는 미확인), 사진 앱 저장 ❌(Expo Go가 미디어 라이브러리 권한 거부).
+- 수정: (1) 크롭 손실 60% 초과 사진 추가 감점(D-027) — 실기기에서 63% 잘리는 가로 사진이 스토리 2번째로 추천되던 문제, 수정 후 세로 사진으로 바뀜을 재확인 (2) Expo Go(Android)에서 사진 앱 저장 버튼 비활성 + 안내, 원인 오류를 개발 모드 로그에 남김(D-026, isRunningInExpoGo() 사용 — Constants.executionEnvironment는 Expo Go 58에서 are로 보고됨) (3) 내보내기·업로드 사본 GPS 런타임 가드 jpeg-metadata.ts(D-028) (4) adb 조작 스크립트 scripts/android-device.ps1 추가.
+- 명령·결과: 
+px jest 6 suites / **64 tests 통과**(신규: 9:16 크롭 통합 테스트, JPEG 메타데이터 4개), 
+px tsc --noEmit 오류 0, 
+px eslint . 오류 0.
+- 미검증으로 남은 것: 실사진 30/100/300장 시간·메모리, 사진 앱 저장(개발 빌드), GPS 있는 원본, 세로/HEIC 회전 정확성, 플립 커버 화면, iOS 전체, Supabase 실연동.

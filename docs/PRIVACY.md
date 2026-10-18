@@ -16,8 +16,10 @@
 | 핸들, 하트, 신고, 차단 | Supabase DB | 커뮤니티 사용 시 |
 
 ## EXIF/GPS 제거
-- 내보내기·업로드 사본은 원본 바이트를 복사하지 않고 `expo-image-manipulator`로 디코드→재인코딩한다. 재인코딩된 JPEG에는 원본 EXIF 블록이 포함되지 않는 것으로 **예상**된다.
-- **미검증**: 실제 iOS/Android 출력 파일의 EXIF를 검사하지 못했다. 출시 전 확인 절차: 위치 정보가 있는 테스트 사진 → 내보내기 → `exiftool <file>`로 GPS* 태그 부재 확인 → 결과를 이 문서에 기록.
+- 내보내기·업로드 사본은 원본 바이트를 복사하지 않고 `expo-image-manipulator`로 디코드→재인코딩한다.
+- **런타임 가드**: `src/features/export-share/jpeg-metadata.ts`가 사본의 APP1(EXIF)·GPS IFD 존재 여부만 검사(좌표 값은 읽지 않음). 내보내기 사본에 GPS가 있으면 파일을 지우고 중단, 커뮤니티 업로드 사본에 GPS가 있으면 업로드 거부.
+- **실기기 결과 (2026-10-18, Galaxy Z Flip5 / Android 16 / Expo Go 58.0.4)**: 사용자 실사진 3장 내보내기 — 원본(선택기가 넘긴 사본): EXIF 있음·GPS 없음 / 내보내기 사본: **EXIF 블록 자체 없음**(따라서 GPS 없음).
+- **남은 검증**: 원본에 GPS가 실제로 있는 사진으로 확인하지 못했다(카메라 위치 태그가 꺼져 있거나, Android 선택기가 `ACCESS_MEDIA_LOCATION` 없는 앱에 위치를 가려서 넘긴 것으로 추정). iOS 미검증.
 - Android 매니페스트에서 `ACCESS_MEDIA_LOCATION`·위치 권한 차단(app.json `blockedPermissions`).
 
 ## 권한

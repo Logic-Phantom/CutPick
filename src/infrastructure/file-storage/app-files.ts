@@ -60,6 +60,26 @@ export function isFileReachable(uri: string): boolean {
   }
 }
 
+/** Reads up to `maxBytes` of a local file (metadata checks only need the header). */
+export async function readFileHead(uri: string, maxBytes = 256 * 1024): Promise<Uint8Array | null> {
+  try {
+    const bytes = await new File(uri).bytes();
+    return bytes.subarray(0, Math.min(bytes.length, maxBytes));
+  } catch {
+    return null;
+  }
+}
+
+/** Deletes a single derived file (used when a privacy check fails). */
+export function deleteFile(uri: string): void {
+  try {
+    const f = new File(uri);
+    if (f.exists) f.delete();
+  } catch {
+    // best effort
+  }
+}
+
 /** Approximate size of app-private derived files in bytes. */
 export function derivedStorageBytes(): number {
   const root = new Directory(Paths.document, ROOT);

@@ -90,7 +90,8 @@ export function scorePhoto(photo: PhotoAsset, ctx: ScoreContext): ScoreBreakdown
   const isGroupMember = rep != null;
   const isGroupRepresentative = rep === photo.id;
   const retention = cropRetention(photo.width, photo.height, ctx.aspectRatio);
-  const goalFit = SCORE_WEIGHTS.goalFitTotal * retention;
+  const heavyLoss = Math.max(0, SCORE_WEIGHTS.heavyCropRetention - retention) / SCORE_WEIGHTS.heavyCropRetention;
+  const goalFit = SCORE_WEIGHTS.goalFitTotal * retention - SCORE_WEIGHTS.heavyCropPenalty * heavyLoss;
   const duplicate = isGroupMember ? (isGroupRepresentative ? SCORE_WEIGHTS.groupRepresentativeBonus : -SCORE_WEIGHTS.duplicatePenalty) : 0;
 
   if (!m) {

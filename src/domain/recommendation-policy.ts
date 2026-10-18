@@ -54,6 +54,12 @@ export const SCORE_WEIGHTS = {
   learnedTotal: 0.2,
   /** Platform/purpose fit (aspect ratio and crop loss). */
   goalFitTotal: 0.35,
+  /**
+   * Extra penalty when a crop keeps less than `heavyCropRetention` of the photo
+   * (e.g. a landscape shot forced into 9:16). Found on device: a 63%-loss crop was picked 2nd.
+   */
+  heavyCropRetention: 0.6,
+  heavyCropPenalty: 0.45,
   /** Bonus for being the best photo of its duplicate group. */
   groupRepresentativeBonus: 0.1,
   /** Applied to non-representative members of a duplicate group. */
