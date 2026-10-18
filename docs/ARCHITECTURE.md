@@ -13,7 +13,7 @@ src/
 │   ├── export/[id]           크롭·캡션·저장·공유
 │   ├── photo/[id]            사진 상세·장면 태그
 │   ├── community/*           게시 동의, 게시물, 내 게시물, 차단 목록, 계정
-│   └── legal/[doc]           개인정보 처리방침·약관·가이드라인
+│   └── legal/[doc]           개인정보 처리방침·약관·가이드라인·이미지 출처(image-credits)
 ├── design-system/            토큰 + 공통 컴포넌트 (모든 화면이 사용)
 ├── domain/                   모델, 오류, recommendation-policy(모든 가중치·임계값)
 ├── features/
@@ -22,8 +22,8 @@ src/
 │   ├── recommendations/      점수, 다양성 선택, 캐러셀 순서, 설명, 엔진, 편집 훅
 │   ├── platforms/            플랫폼·목적 규칙(데이터), 크롭 수학
 │   ├── style-presets/        프리셋 데이터 + 검증
-│   ├── onboarding/           설문 스키마·마이그레이션, 로컬 저장
-│   ├── preferences/          로컬 개인화(학습 가중치)
+│   ├── onboarding/           설문 스키마·마이그레이션, 로컬 저장, 사진 취향 카드(style-cards: 이미지·태그·라이선스 단일 원본)
+│   ├── preferences/          로컬 개인화(학습 가중치), taste-profile(취향 태그 → 색 목표·장면/방향 보너스)
 │   ├── captions/             템플릿 캡션·해시태그
 │   ├── export-share/         크롭 내보내기, 사진 앱 저장, OS 공유
 │   ├── project-library/      SQLite 저장소
@@ -35,6 +35,7 @@ src/
 │   └── image-processing/     manipulator → jpeg-js 파이프라인
 ├── hooks/                    AppState(취향·학습), 커뮤니티 세션
 └── utils/
+assets/onboarding/styles/     취향 예시 사진 600×750 (Wikimedia Commons, docs/IMAGE_ASSET_ATTRIBUTIONS.md)
 supabase/migrations/          스키마·RLS·트리거·RPC·스토리지 정책
 tests/unit, tests/integration, tests/benchmark
 ```
@@ -59,6 +60,7 @@ tests/unit, tests/integration, tests/benchmark
 
 ## 데이터 흐름
 
+0. 취향: 온보딩 사진 카드 탭 → `toggleStyleCard`(3~8개) → "계속하기" 시 `styleCardsPatch`로 `styleCardIds` + 파생 `styleTags`를 `kv['preference.v1']`에 저장(단계마다) → `recommend()`가 `tasteProfileFrom(preference)`로 색 목표·장면/방향 취향을 만들어 점수와 이유에 사용. 이미지는 번들 자산이라 네트워크 요청 없음, 취향 데이터는 기기 밖으로 나가지 않음.
 1. 선택기 → `normalizeAssets` (영상·미지원 형식 제외, 최대 300장, 허용 시 촬영시각만 읽음) → `projects`/`photos` 행 생성(status=pending)
 2. `startAnalysis` → 동시성 2 큐 → 사진마다: 480px 썸네일(앱 저장소) → 128px JPEG → RGBA → 지표 + 서명 → DB 저장. 상태가 사진별로 저장되므로 앱 종료 후 이어하기 가능
 3. 전체 완료 후 중복 그룹 계산·저장

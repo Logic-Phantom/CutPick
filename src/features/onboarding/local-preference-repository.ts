@@ -4,7 +4,7 @@ import { getDb, kvDelete, kvGet, kvSet } from '@/infrastructure/database/db';
 import { applyEvent, emptyLearnedWeights, recomputeWeights } from '@/features/preferences/personalization';
 import { newId } from '@/utils/id';
 
-import { defaultPreference, migratePreference } from './preference-schema';
+import { migratePreference, resetTaste } from './preference-schema';
 
 const PREF_KEY = 'preference.v1';
 const LEARNED_KEY = 'learned.v1';
@@ -17,9 +17,9 @@ export async function savePreference(pref: UserPreference): Promise<void> {
   await kvSet(PREF_KEY, { ...pref, preferenceUpdatedAt: new Date().toISOString() });
 }
 
-/** Clears explicit taste choices (onboarding answers) but keeps onboarding marked as seen. */
+/** Clears explicit taste choices (see resetTaste) but keeps onboarding marked as seen. */
 export async function resetPreference(): Promise<UserPreference> {
-  const fresh = { ...defaultPreference(), onboardingCompleted: true };
+  const fresh = resetTaste(await loadPreference());
   await kvSet(PREF_KEY, fresh);
   return fresh;
 }

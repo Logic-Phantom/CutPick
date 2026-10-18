@@ -6,6 +6,8 @@ import {
   AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, spacing, tapFeedback, useColors,
 } from '@/design-system';
 import { needsAnalysis } from '@/features/image-analysis/analysis-runner';
+import { STYLE_TAG_META } from '@/features/preferences/taste-profile';
+import { useAppState } from '@/hooks/app-state';
 import { PhotoActionSheet } from '@/features/recommendations/components/PhotoActionSheet';
 import { primaryReason } from '@/features/recommendations/explanations';
 import { RecommendationControls } from '@/features/recommendations/components/RecommendationControls';
@@ -20,7 +22,9 @@ export default function RecommendationsScreen() {
   const [sheetPhotoId, setSheetPhotoId] = useState<string | null>(null);
   const [showAllCandidates, setShowAllCandidates] = useState(false);
 
+  const { preference } = useAppState();
   const byId = useMemo(() => new Map((photos ?? []).map((p) => [p.id, p])), [photos]);
+  const tasteLabel = preference.styleTags.length ? preference.styleTags.slice(0, 3).map((t) => STYLE_TAG_META[t].label).join(' · ') + (preference.styleTags.length > 3 ? ` 외 ${preference.styleTags.length - 3}` : '') : null;
 
   if (loadError) return <ErrorState message="프로젝트를 불러오지 못했어요." onRetry={actions.reload} />;
   if (!project || !photos || !output) return <ActivityIndicator style={{ flex: 1, backgroundColor: c.background }} />;
@@ -86,6 +90,8 @@ export default function RecommendationsScreen() {
           onAspect={actions.setAspect}
           onTarget={actions.setTarget}
           onPreset={actions.setPreset}
+          tasteLabel={tasteLabel}
+          onEditTaste={() => router.push('/onboarding/edit')}
         />
 
         <View>

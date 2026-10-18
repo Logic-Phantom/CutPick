@@ -5,19 +5,9 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import type { PhotoAsset, SceneTag } from '@/domain/models';
 import { AppText, Card, DangerButton, ErrorState, FilterChip, InlineMessage, Row, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
+import { SCENE_OPTIONS as SCENES } from '@/features/project-library/contexts';
 import { getPhoto, removePhotoFromProject, setSceneTags } from '@/features/project-library/project-repository';
 import { formatBytes, pct } from '@/utils/format';
-
-const SCENES: { id: SceneTag; label: string }[] = [
-  { id: 'person', label: '인물' },
-  { id: 'food', label: '음식' },
-  { id: 'landscape', label: '풍경' },
-  { id: 'building', label: '건물·거리' },
-  { id: 'detail', label: '디테일' },
-  { id: 'pet', label: '반려동물' },
-  { id: 'product', label: '제품·소품' },
-  { id: 'other', label: '기타' },
-];
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
@@ -83,7 +73,7 @@ export default function PhotoDetailScreen() {
 
       <View style={{ gap: spacing.xs }}>
         <AppText variant="bodyStrong">장면 태그 (직접 지정)</AppText>
-        <AppText variant="secondary" tone="secondary">자동 장면 분류는 지원하지 않아요. 태그를 붙이면 추천 묶음의 장면 다양성에 반영돼요.</AppText>
+        <AppText variant="secondary" tone="secondary">자동 장면 분류는 지원하지 않아요. 태그를 붙이면 추천 묶음의 장면 다양성과, 취향 설정에서 고른 장면에 반영돼요.</AppText>
         <Row wrap gap={spacing.xs}>
           {SCENES.map((s) => (
             <FilterChip key={s.id} label={s.label} selected={photo.sceneTags.includes(s.id)} onPress={() => toggleTag(s.id)} />

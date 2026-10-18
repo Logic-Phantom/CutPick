@@ -30,6 +30,7 @@ jest(MIT), jest-expo(MIT), typescript(Apache-2.0), @types/*(MIT), eslint(MIT), e
 | 에셋 | 출처 | 상태 |
 |---|---|---|
 | `assets/samples/sample-*.jpg` | `scripts/generate-sample-photos.mjs`로 직접 생성한 합성 이미지 | 자체 제작, 인물·제3자 저작물 없음 |
+| `assets/onboarding/styles/*.jpg` (16장, 취향 설정 예시) | Wikimedia Commons — CC0 1.0 6장, CC BY 2.0 7장, CC BY 4.0 3장 | 상업 이용·재배포·수정 허용 라이선스만(D-032). CC BY는 저작자·라이선스·원본·수정 사실을 앱 "설정 → 이미지 출처"와 `docs/IMAGE_ASSET_ATTRIBUTIONS.md`에 표시. 파일별 기록·남은 확인 사항은 그 문서 |
 | 앱 아이콘·스플래시·파비콘 (`assets/images/*`, `assets/expo.icon`) | Expo 기본 템플릿(MIT 저장소) | **임시**. Expo 로고 형상이 포함돼 있어 출시 전 자체 아이콘으로 교체 필요 |
 | 프리셋 이름·설명 | 직접 작성한 일반 스타일 명칭 | 상용 필터 팩·브랜드 명칭 미사용 |
 

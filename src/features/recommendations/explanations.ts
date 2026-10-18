@@ -1,12 +1,16 @@
 import type { PhotoAsset, RecommendationReason } from '@/domain/models';
 import type { AspectOption } from '@/features/platforms/platform-profiles';
+import { SCENE_LABELS } from '@/features/project-library/contexts';
+import { EMPTY_TASTE, STYLE_TAG_META, colorMatch, matchedColorTags, type TasteProfile } from '@/features/preferences/taste-profile';
 import type { StylePreset } from '@/features/style-presets/presets';
 
 import type { SelectionInfo } from './diversity-selector';
 import type { ScoreBreakdown } from './scoring';
 
 /** Most distinctive reason for a compact tile label (generic quality reasons come last). */
-const LABEL_PRIORITY = ['crop-loss', 'dup-fallback', 'group-rep', 'taste-match', 'learned', 'diverse', 'crop-fit', 'scene-mix', 'orientation-mix', 'soft', 'highlight-clip', 'shadow-clip', 'sharp-exposed', 'sharp', 'preset-tolerant', 'not-analyzed'];
+const LABEL_PRIORITY = ['crop-loss', 'dup-fallback', 'group-rep', 'taste-match', 'taste-scene', 'taste-orientation', 'learned', 'diverse', 'crop-fit', 'preset-match', 'scene-mix', 'orientation-mix', 'soft', 'highlight-clip', 'shadow-clip', 'sharp-exposed', 'sharp', 'preset-tolerant', 'not-analyzed'];
+
+const MATCH_THRESHOLD = 0.75;
 
 export function primaryReason(reasons: RecommendationReason[]): RecommendationReason | undefined {
   for (const code of LABEL_PRIORITY) {
@@ -27,6 +31,7 @@ export function explain(
   aspect: AspectOption,
   preset: StylePreset,
   isCover: boolean,
+  taste: TasteProfile = EMPTY_TASTE,
 ): RecommendationReason[] {
   const r: RecommendationReason[] = [];
   const m = photo.qualityMetrics;
@@ -49,8 +54,24 @@ export function explain(
     r.push({ code: 'preset-tolerant', text: `'${preset.name}' 프리셋이라 노출 편차를 크게 감점하지 않았어요`, tone: 'info' });
   }
 
-  if (score.preferenceMatch != null && score.preferenceMatch >= 0.75) {
-    r.push({ code: 'taste-match', text: `밝기·색감이 고른 취향·'${preset.name}'에 가까워요`, tone: 'positive' });
+  // Name the user's taste only when the photo matches the user's own targets (not just the preset),
+  // and only the specific picked styles it individually matches.
+  const userMatch = colorMatch(m, taste.colorTargets);
+  const named = userMatch != null && userMatch >= MATCH_THRESHOLD ? matchedColorTags(m, taste).slice(0, 2) : [];
+  if (named.length) {
+    r.push({ code: 'taste-match', text: `고른 ${named.map((t) => STYLE_TAG_META[t].label).join('·')} 스타일과 밝기·색감이 가까워요`, tone: 'positive' });
+  } else if (userMatch != null && userMatch >= MATCH_THRESHOLD) {
+    r.push({ code: 'taste-match', text: '밝기·색감이 고른 색감 취향에 가까워요', tone: 'positive' });
+  } else if (userMatch == null && score.preferenceMatch != null && score.preferenceMatch >= MATCH_THRESHOLD) {
+    r.push({ code: 'preset-match', text: `밝기·색감이 '${preset.name}' 프리셋 기준에 가까워요`, tone: 'positive' });
+  }
+  if (score.tasteScene && taste.sceneSource[score.tasteScene]) {
+    const tag = taste.sceneSource[score.tasteScene]!;
+    r.push({ code: 'taste-scene', text: `직접 붙인 '${SCENE_LABELS[score.tasteScene]}' 태그가 고른 '${STYLE_TAG_META[tag].label}' 취향과 맞아요`, tone: 'positive' });
+  }
+  if (score.tasteOrientation && taste.orientationSource) {
+    const kind = taste.orientation === 'landscape' ? '가로' : '세로';
+    r.push({ code: 'taste-orientation', text: `고른 '${STYLE_TAG_META[taste.orientationSource].label}' 취향에 맞는 ${kind} 사진이에요`, tone: 'info' });
   }
   if (score.learned > 0.05) r.push({ code: 'learned', text: '이전에 유지한 사진들과 색·밝기 경향이 비슷해요', tone: 'positive' });
 

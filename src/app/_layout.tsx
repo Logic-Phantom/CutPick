@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { darkColors, lightColors } from '@/design-system';
+import { needsOnboarding } from '@/features/onboarding/preference-schema';
 import { AppStateProvider, useAppState } from '@/hooks/app-state';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -18,10 +19,9 @@ function OnboardingGate() {
   useEffect(() => {
     if (!ready) return;
     SplashScreen.hideAsync().catch(() => {});
-    const needsOnboarding = !preference.onboardingCompleted && !preference.onboardingSkipped;
     const inOnboarding = segments[0] === 'onboarding';
-    if (needsOnboarding && !inOnboarding) router.replace('/onboarding');
-  }, [ready, preference.onboardingCompleted, preference.onboardingSkipped, segments, router]);
+    if (needsOnboarding(preference) && !inOnboarding) router.replace('/onboarding');
+  }, [ready, preference, segments, router]);
 
   return null;
 }

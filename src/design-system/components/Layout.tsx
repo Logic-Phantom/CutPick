@@ -1,16 +1,24 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors, useReducedMotion } from '../theme';
-import { bottomBarMaxHeight, radius, spacing } from '../tokens';
+import { bottomBarMaxHeight, bottomBarSummaryHeight, radius, spacing } from '../tokens';
 import { AppText } from './AppText';
 import { IconButton } from './Buttons';
 
-/** Scrollable screen body. Adds bottom padding when a BottomBar overlays it. */
-export function ScreenScroll({ children, withBottomBar, topInset, ...rest }: ScrollViewProps & { children: ReactNode; withBottomBar?: boolean; topInset?: boolean }) {
+/**
+ * Scrollable screen body. Adds bottom padding when a BottomBar overlays it
+ * (`withBottomBar="summary"` when the bar also shows a summary line).
+ */
+export function ScreenScroll({ children, withBottomBar, topInset, ...rest }: ScrollViewProps & { children: ReactNode; withBottomBar?: boolean | 'summary'; topInset?: boolean }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+  // The bar's buttons and summary grow with the OS text size; keep content scrollable past it.
+  const grow = Math.max(0, Math.min(fontScale, 2) - 1);
+  const summary = withBottomBar === 'summary';
+  const barSpace = withBottomBar ? bottomBarMaxHeight + spacing.lg + (summary ? bottomBarSummaryHeight : 0) + grow * (summary ? 72 : 40) : spacing.xxl;
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
@@ -18,7 +26,7 @@ export function ScreenScroll({ children, withBottomBar, topInset, ...rest }: Scr
         padding: spacing.md,
         paddingTop: topInset ? insets.top + spacing.md : spacing.md,
         gap: spacing.lg,
-        paddingBottom: (withBottomBar ? bottomBarMaxHeight + spacing.lg : spacing.xxl) + insets.bottom,
+        paddingBottom: barSpace + insets.bottom,
       }}
       contentInsetAdjustmentBehavior="never"
       keyboardShouldPersistTaps="handled"
@@ -28,13 +36,17 @@ export function ScreenScroll({ children, withBottomBar, topInset, ...rest }: Scr
   );
 }
 
-/** Fixed bottom action area within thumb reach; respects safe area and stays short. */
-export function BottomBar({ children }: { children: ReactNode }) {
+/**
+ * Fixed bottom action area within thumb reach; respects safe area and stays short.
+ * `summary` is an optional one-line status above the buttons (e.g. "4개 선택").
+ */
+export function BottomBar({ children, summary }: { children: ReactNode; summary?: ReactNode }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.bar, { backgroundColor: c.surfaceElevated, borderTopColor: c.border, paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-      {children}
+    <View style={[styles.barWrap, { backgroundColor: c.surfaceElevated, borderTopColor: c.border, paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+      {summary ? <View style={styles.summary}>{summary}</View> : null}
+      <View style={styles.bar}>{children}</View>
     </View>
   );
 }
@@ -64,7 +76,7 @@ export function Row({ children, gap = spacing.xs, wrap, style }: { children: Rea
 }
 
 const styles = StyleSheet.create({
-  bar: {
+  barWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
@@ -72,10 +84,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
     gap: spacing.xs,
-    alignItems: 'center',
   },
+  summary: { minHeight: bottomBarSummaryHeight - spacing.xs, justifyContent: 'center' },
+  bar: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingHorizontal: spacing.md, paddingTop: spacing.xs },
   sheetHead: { flexDirection: 'row', alignItems: 'center', minHeight: 52 },
 });

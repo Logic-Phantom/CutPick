@@ -1,4 +1,5 @@
 import { SUPPORT_EMAIL } from '@/features/community/moderation-policy';
+import { STYLE_CARDS } from '@/features/onboarding/style-cards';
 
 /**
  * In-app policy texts (MVP drafts). They must be reviewed by a qualified person before any
@@ -44,6 +45,20 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
       { heading: '신고와 차단', body: '게시물 상세에서 신고하거나 계정을 차단할 수 있어요. 여러 명이 신고한 게시물은 검토 전까지 자동으로 숨겨져요. 저작권 침해 신고도 같은 메뉴에서 접수돼요.' },
       { heading: '검토', body: '현재 새 게시물은 운영자 검토 후 공개돼요(설정값). 자동 이미지 검열 기능은 없어요.' },
       { heading: '문의', body: CONTACT },
+    ],
+  },
+  'image-credits': {
+    title: '이미지 출처',
+    updatedAt: '2026-10-18',
+    sections: [
+      {
+        heading: '취향 설정 예시 사진',
+        body: '취향 설정 화면의 예시 사진은 Wikimedia Commons에서 상업적 이용과 재배포가 허용된 라이선스(CC0·퍼블릭 도메인·CC BY)의 사진만 골라 앱에 함께 넣었어요. 모두 작게 줄이고 4:5로 잘랐어요. 사진 속 장소·사물·작가는 컷픽을 보증하지 않아요.',
+      },
+      ...STYLE_CARDS.map((card) => ({
+        heading: card.title,
+        body: [card.credit.attribution, `라이선스: ${card.credit.license}${card.credit.licenseUrl ? ` (${card.credit.licenseUrl})` : ''}`, `원본: ${card.credit.sourceUrl}`, `변경: ${card.credit.modifications}`].join('\n'),
+      })),
     ],
   },
 };

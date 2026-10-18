@@ -1,6 +1,6 @@
 import type { LearnedWeights, PhotoAsset, RecommendedPhoto, UserPreference } from '@/domain/models';
-import { colorTargetsFrom } from '@/features/onboarding/preference-schema';
 import { clampCount, getAspect, getPurpose, type AspectOption, type PlatformPurpose } from '@/features/platforms/platform-profiles';
+import { tasteProfileFrom } from '@/features/preferences/taste-profile';
 import { getPreset } from '@/features/style-presets/preset-registry';
 import type { StylePreset } from '@/features/style-presets/presets';
 
@@ -65,7 +65,8 @@ export function recommend(input: RecommendInput): RecommendOutput {
   const aspect = getAspect(purpose, input.aspectId);
   const preset = getPreset(input.presetId);
   const target = clampCount(purpose, input.targetCount);
-  const colorTargets = colorTargetsFrom(input.preference);
+  // Explicit taste (text chips + picked style cards). Missing v2 fields on old data mean "no taste".
+  const taste = tasteProfileFrom(input.preference);
   const excluded = new Set(input.excludedIds);
 
   const qualityOf = (p: PhotoAsset) => (p.qualityMetrics ? technicalQuality(p.qualityMetrics) : 0);
@@ -73,7 +74,8 @@ export function recommend(input: RecommendInput): RecommendOutput {
 
   const ctx = {
     preset,
-    colorTargets,
+    colorTargets: taste.colorTargets,
+    taste,
     learned: input.learned,
     personalizationEnabled: input.preference.personalizationEnabled,
     aspectRatio: aspect.ratio,
@@ -120,7 +122,7 @@ export function recommend(input: RecommendInput): RecommendOutput {
       photoId: id,
       score: Math.round(s.score.total * 1000) / 1000,
       pinned: !!info?.pinned,
-      reasons: explain(s.photo, s.score, info, aspect, preset, idx === 0),
+      reasons: explain(s.photo, s.score, info, aspect, preset, idx === 0, taste),
     };
   });
 

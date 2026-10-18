@@ -1,6 +1,8 @@
 import type { UserPreference } from '@/domain/models';
 
-export const PREFERENCE_SCHEMA_VERSION = 1;
+import { sanitizeStyleCardIds, styleTagsForCards, type StyleCategoryId } from './style-cards';
+
+export const PREFERENCE_SCHEMA_VERSION = 2;
 
 export interface ChoiceOption {
   id: string;
@@ -28,7 +30,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'preferredSubjects',
     title: '주로 어떤 사진을 찍나요?',
-    subtitle: '여러 개 골라도 돼요. 추천 프리셋을 정하는 데만 써요.',
+    subtitle: '여러 개 골라도 돼요. 장면은 자동 분류하지 않아 취향 기록으로 저장돼요.',
     multi: true,
     options: [
       { id: 'selfie', label: '셀카·인물' },
@@ -131,6 +133,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
 
 export function defaultPreference(now = new Date()): UserPreference {
   return {
+    styleCardIds: [],
+    styleTags: [],
     preferredSubjects: [],
     preferredFoodAngles: [],
     preferredPortraitAndOOTDAngles: [],
@@ -149,15 +153,22 @@ export function defaultPreference(now = new Date()): UserPreference {
   };
 }
 
-/** Migrates or resets a stored preference blob. Unknown/newer versions fall back to defaults. */
+/**
+ * Migrates or resets a stored preference blob. Unknown/newer versions fall back to defaults.
+ * v1 → v2: adds styleCardIds/styleTags (empty), every v1 answer is kept as-is.
+ * Unknown card ids are dropped and styleTags is always recomputed from the remaining cards.
+ */
 export function migratePreference(raw: unknown): UserPreference {
   const base = defaultPreference();
   if (!raw || typeof raw !== 'object') return base;
   const r = raw as Partial<UserPreference>;
   if (typeof r.preferenceSchemaVersion !== 'number' || r.preferenceSchemaVersion > PREFERENCE_SCHEMA_VERSION) return base;
   const arr = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  const styleCardIds = sanitizeStyleCardIds(r.styleCardIds);
   return {
     ...base,
+    styleCardIds,
+    styleTags: styleTagsForCards(styleCardIds),
     preferredSubjects: arr(r.preferredSubjects),
     preferredFoodAngles: arr(r.preferredFoodAngles),
     preferredPortraitAndOOTDAngles: arr(r.preferredPortraitAndOOTDAngles),
@@ -176,30 +187,50 @@ export function migratePreference(raw: unknown): UserPreference {
   };
 }
 
-/** Color-mood targets derived from explicit choices. null = no opinion. */
-export interface ColorTargets {
-  luma: number | null;
-  colorfulness: number | null;
-  warmth: number | null;
-}
-
-const MOOD_TARGETS: Record<string, Partial<ColorTargets>> = {
-  natural: { luma: 135 },
-  warm: { warmth: 0.35 },
-  cool: { warmth: -0.3 },
-  film: { colorfulness: 0.2, luma: 120 },
-  vivid: { colorfulness: 0.6 },
-  flash: { luma: 150 },
-  night: { luma: 70, colorfulness: 0.55 },
+/** Text-chip steps shown as secondary chips inside a category of the visual taste step. */
+export const VISUAL_STEP_CHIPS: Partial<Record<StyleCategoryId, OnboardingStep['id']>> = {
+  composition: 'preferredComposition',
+  light: 'preferredColorMood',
+  scene: 'preferredSubjects',
 };
 
-export function colorTargetsFrom(pref: UserPreference): ColorTargets {
-  const acc: Record<keyof ColorTargets, number[]> = { luma: [], colorfulness: [], warmth: [] };
-  for (const m of pref.preferredColorMood) {
-    const t = MOOD_TARGETS[m];
-    if (!t) continue;
-    (Object.keys(t) as (keyof ColorTargets)[]).forEach((k) => acc[k].push(t[k] as number));
-  }
-  const avg = (a: number[]) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : null);
-  return { luma: avg(acc.luma), colorfulness: avg(acc.colorfulness), warmth: avg(acc.warmth) };
+/** Steps of the onboarding wizard, in order. The visual step replaced the separate subject/color/composition chip steps. */
+export type WizardStepId = 'styles' | 'preferredFoodAngles' | 'preferredPortraitAndOOTDAngles' | 'retouch' | 'preferredPlatformPurposes' | 'privacy';
+export const WIZARD_STEPS: WizardStepId[] = ['styles', 'preferredFoodAngles', 'preferredPortraitAndOOTDAngles', 'retouch', 'preferredPlatformPurposes', 'privacy'];
+
+export function stepById(id: OnboardingStep['id']): OnboardingStep {
+  return ONBOARDING_STEPS.find((s) => s.id === id)!;
 }
+
+export function selectedFor(step: OnboardingStep, pref: UserPreference): string[] {
+  if (step.id === 'retouch') return pref.preferredFilterStrength ? [pref.preferredFilterStrength] : [];
+  return pref[step.id];
+}
+
+export function patchFor(step: OnboardingStep, values: string[]): Partial<UserPreference> {
+  if (step.id === 'retouch') return { preferredFilterStrength: (values[0] as UserPreference['preferredFilterStrength']) ?? null };
+  return { [step.id]: values } as Partial<UserPreference>;
+}
+
+/** Patch that sets the picked style cards and keeps the derived tags in sync. */
+export function styleCardsPatch(ids: string[]): Pick<UserPreference, 'styleCardIds' | 'styleTags'> {
+  const styleCardIds = sanitizeStyleCardIds(ids);
+  return { styleCardIds, styleTags: styleTagsForCards(styleCardIds) };
+}
+
+/**
+ * Clears explicit taste choices (onboarding answers, picked style cards and their tags) and keeps
+ * onboarding marked as seen. The personalization switch is a separate setting and is preserved —
+ * a taste reset must never silently turn usage-based personalization back on.
+ */
+export function resetTaste(current: Pick<UserPreference, 'personalizationEnabled'>, now = new Date()): UserPreference {
+  return { ...defaultPreference(now), onboardingCompleted: true, personalizationEnabled: current.personalizationEnabled };
+}
+
+/** First run shows the wizard until it is completed or skipped once; it never repeats on its own. */
+export function needsOnboarding(pref: Pick<UserPreference, 'onboardingCompleted' | 'onboardingSkipped'>): boolean {
+  return !pref.onboardingCompleted && !pref.onboardingSkipped;
+}
+
+// Kept for existing imports; implementation lives with the rest of the taste logic.
+export { colorTargetsFrom, type ColorTargets } from '@/features/preferences/taste-profile';

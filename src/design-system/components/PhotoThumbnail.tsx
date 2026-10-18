@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
+import { Image, type ImageProps } from 'expo-image';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useColors } from '../theme';
@@ -84,7 +85,66 @@ export function PhotoThumbnail({ uri, size, aspect = 1, onPress, onLongPress, ac
   );
 }
 
+export interface SelectablePhotoCardProps {
+  /** Bundled image (static require). */
+  source: ImageProps['source'];
+  title: string;
+  description?: string;
+  selected: boolean;
+  onPress: () => void;
+  width: number;
+  /** width / height of the photo area; default 4:5. */
+  aspect?: number;
+  testID?: string;
+}
+
+/**
+ * Large tappable photo card for multi-select (e.g. taste onboarding).
+ * Selected = accent border + filled check + light tint + checked state — never color alone.
+ * If the image fails to load the card still shows a placeholder and its label.
+ */
+export function SelectablePhotoCard({ source, title, description, selected, onPress, width, aspect = 4 / 5, testID }: SelectablePhotoCardProps) {
+  const c = useColors();
+  const [failed, setFailed] = useState(false);
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="checkbox"
+      accessibilityLabel={description ? `${title}. ${description}` : title}
+      accessibilityState={{ checked: selected }}
+      aria-checked={selected}
+      style={({ pressed }) => [{ width, gap: spacing.xs, opacity: pressed ? 0.88 : 1 }]}>
+      <View style={[styles.cardPhoto, { height: width / aspect, backgroundColor: c.photoPlaceholder, borderColor: selected ? c.selected : c.border }]}>
+        {failed ? (
+          <View style={styles.placeholder}>
+            <Ionicons name="image-outline" size={26} color={c.textTertiary} />
+          </View>
+        ) : (
+          <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} onError={() => setFailed(true)} accessibilityIgnoresInvertColors />
+        )}
+        {selected ? <View style={[StyleSheet.absoluteFill, { backgroundColor: c.selectedOverlay }]} /> : null}
+        <View style={[styles.check, selected ? { backgroundColor: c.selected, borderColor: c.selected } : { backgroundColor: 'rgba(0,0,0,0.28)', borderColor: '#FFFFFF' }]} importantForAccessibility="no-hide-descendants">
+          {selected ? <Ionicons name="checkmark" size={18} color={c.selectedText} /> : null}
+        </View>
+      </View>
+      <View style={{ gap: 2, paddingHorizontal: 2 }}>
+        <AppText variant="label" numberOfLines={2} style={selected ? { color: c.accent } : undefined}>
+          {title}
+        </AppText>
+        {description ? (
+          <AppText variant="caption" tone="secondary" numberOfLines={2}>
+            {description}
+          </AppText>
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  cardPhoto: { borderRadius: radius.tile, overflow: 'hidden', borderWidth: 3 },
+  check: { position: 'absolute', top: spacing.xs, right: spacing.xs, width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   frame: { flex: 1, borderRadius: radius.photo, overflow: 'hidden', borderWidth: 3 },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 2, minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, justifyContent: 'center' },

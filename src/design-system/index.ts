@@ -7,4 +7,5 @@ export * from './components/FilterChip';
 export * from './components/PhotoThumbnail';
 export * from './components/Feedback';
 export * from './components/Layout';
+export * from './components/Navigation';
 export * from './haptics';

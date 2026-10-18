@@ -2,7 +2,8 @@
  * All numeric weights/thresholds for analysis and recommendation live here.
  * These are tunable starting points, not objective aesthetic truths.
  */
-export const RECOMMENDATION_VERSION = 1;
+/** 2: image-based taste (style cards) joins the preference match and adds scene/orientation bonuses. */
+export const RECOMMENDATION_VERSION = 2;
 /** Bump when analysis output changes; photos analyzed with an older version are re-queued. */
 export const ANALYSIS_VERSION = 2;
 
@@ -77,6 +78,31 @@ export const DIVERSITY = {
   orientationBonus: 0.05,
   /** Bonus for a user scene tag not yet represented. */
   sceneBonus: 0.08,
+} as const;
+
+/**
+ * Image-based taste (style cards picked in onboarding). These never touch the technical quality
+ * score: color tags join the existing preference match (preferenceTotal), the rest are small
+ * separate bonuses that only apply when a real signal exists on the photo.
+ */
+export const TASTE = {
+  /** Color targets per style tag, same scale as PhotoQualityMetrics (luma 0..255, colorfulness 0..1, warmth -1..1). */
+  tagColorTargets: {
+    warm: { warmth: 0.35 },
+    bright: { luma: 165 },
+    calm: { luma: 110, colorfulness: 0.25 },
+    film: { luma: 120, colorfulness: 0.2 },
+    'natural-light': { luma: 145, warmth: 0.15 },
+    muted: { colorfulness: 0.18 },
+    vivid: { colorfulness: 0.6 },
+    dark: { luma: 70, colorfulness: 0.5 },
+  } as Record<string, { luma?: number; colorfulness?: number; warmth?: number }>,
+  /** Bonus when a user-applied scene tag on the photo matches a picked scene card. */
+  sceneMatchBonus: 0.12,
+  /** Bonus when the photo orientation matches a picked composition (wide → landscape, OOTD → portrait). */
+  orientationBonus: 0.06,
+  /** Per-tag color similarity (0..1) needed before a reason names that tag. */
+  reasonMinMatch: 0.75,
 } as const;
 
 /** Learning rate for local personalization; each event moves a weight by at most this amount. */

@@ -65,6 +65,7 @@ npm run bench
 | docs/TREND_RESEARCH.md | 프리셋 검수 절차 |
 | docs/PRIVACY.md, UGC_SAFETY.md | 데이터 흐름, 커뮤니티 안전 |
 | docs/MODEL_AND_LIBRARY_LICENSES.md, THIRD_PARTY_NOTICES.md | 라이선스 |
+| docs/IMAGE_ASSET_ATTRIBUTIONS.md | 취향 설정 예시 사진 16장의 출처·작가·라이선스·수정 내역 |
 | docs/COSTS_AND_DISTRIBUTION.md | 무료 한도, 스토어 비용, 빌드 |
 | docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md | 디자인 토큰, 흐름, QA 결과(스크린샷: docs/screenshots) |
 | docs/TESTING.md, ROADMAP.md | 테스트 범위·결과, 다음 단계 |
@@ -98,7 +99,7 @@ npm run bench
 | 파일 저장·OS 공유를 iOS/Android에서 각각 확인 | 🟡 Android: 파일 생성·공유 시트 ✅, 사진 앱 저장 ❌(Expo Go 제약) / iOS ❌ |
 | 로컬 기능은 유료 API·커뮤니티 서버 없이 동작, 장애 시 로컬 유지 | ✅ |
 | 원본 수정/삭제 없음, 프로젝트 데이터 삭제 기능 | ✅ |
-| 테스트 실제 실행·결과 기록 | ✅ (59개 통과, docs/TESTING.md) |
+| 테스트 실제 실행·결과 기록 | ✅ (최초 59개 → 현재 88개 통과, docs/TESTING.md) |
 | Android 빌드/테스트 검증 | 🟡 Expo Go로 실기기 테스트 ✅, 독립 APK/개발 빌드 ❌ (Android SDK 없음) |
 | iOS 빌드/실기기 여부와 미검증 이유 명시 | ✅ (미검증: macOS 없음) |
 | 비용·개인정보·라이선스·플랫폼 규칙 문서화 | ✅ |
@@ -184,6 +185,9 @@ px eas-cli@latest build --profile development --platform android(Expo 계정 필
 | 추천 로직 / 편집 상태 | `src/features/recommendations/engine.ts` / `use-recommendation-editor.ts` |
 | 플랫폼 규격 | `src/features/platforms/platform-profiles.ts` (+ `docs/PLATFORM_RULES.md`) |
 | 프리셋 | `src/features/style-presets/presets.ts` |
+| 취향 예시 사진 카드(이미지·태그·라이선스) | `src/features/onboarding/style-cards.ts` (+ `assets/onboarding/styles/`, `docs/IMAGE_ASSET_ATTRIBUTIONS.md`) |
+| 취향 태그의 실제 효과 | `src/features/preferences/taste-profile.ts`, 수치는 `recommendation-policy.ts`의 `TASTE` |
+| 온보딩 마법사 | `src/features/onboarding/components/OnboardingWizard.tsx`, 스키마·마이그레이션 `preference-schema.ts` |
 | 로컬 DB 스키마 | `src/infrastructure/database/db.ts` (마이그레이션 배열에 추가) |
 | 커뮤니티 백엔드 | `src/features/community/supabase-community-repository.ts`, `supabase/migrations/` |
 | 화면 | `src/app/**` |
@@ -243,3 +247,32 @@ px jest 6 suites / **64 tests 통과**(신규: 9:16 크롭 통합 테스트, JPE
 px tsc --noEmit 오류 0, 
 px eslint . 오류 0.
 - 미검증으로 남은 것: 실사진 30/100/300장 시간·메모리, 사진 앱 저장(개발 빌드), GPS 있는 원본, 세로/HEIC 회전 정확성, 플립 커버 화면, iOS 전체, Supabase 실연동.
+
+### 2026-10-18 — 이미지 기반 취향 온보딩 + UI 정리
+기준 문서: `Cutpick_Visual_Onboarding_Redesign_SuperPrompt.md`(사용자 제공).
+- **사진 취향 단계**: 온보딩 1단계를 실제 사진 16장 2열 카드 선택(전체/분위기/구도/색감·빛/장면, 3~8개, 카테고리를 바꿔도 선택 유지)으로 교체. 따로 있던 피사체·색감·구도 칩 단계는 해당 카테고리의 "세부 취향" 칩으로 합쳐 단계 8 → 6(D-029, D-030). 건너뛰기·단계별 저장·설정에서 수정/초기화 유지.
+- **저장→추천 반영**: `UserPreference` v2(`styleCardIds`, 파생 `styleTags`) — 같은 `kv` JSON, v1은 답변을 보존하며 자동 마이그레이션, 태그는 항상 카드에서 재계산. 색 태그는 기존 밝기·채도·색온도 목표에 합류, 장면 태그는 직접 붙인 장면 태그 일치 시, 넓은 풍경/OOTD는 사진 방향 일치 시 작은 보너스(D-031). 기술 품질 점수는 취향과 분리(테스트로 고정). 이유는 실제로 일치한 취향만 이름으로 표시(D-034). `RECOMMENDATION_VERSION` 1 → 2.
+- **이미지**: Wikimedia Commons CC0 6 / CC BY 2.0 7 / CC BY 4.0 3, 600×750 번들(약 1.17MB), 라이선스를 Commons API로 2회(수집 시·검수 시) 확인, 16장 직접 검수(식별 가능한 얼굴·워터마크·주제 상표 없음). 앱 "설정 → 이미지 출처" + `docs/IMAGE_ASSET_ATTRIBUTIONS.md`(D-032). 런타임 네트워크 요청 없음.
+- **디자인**: 토큰 추가(`selectedOverlay`, `radius.tile`, `elevation.raised`, `title`/`label` 타이포, `contentMaxWidth`, 하단 바 요약 줄), 컴포넌트 추가(`SelectablePhotoCard`, `StepHeader`, `ListRow`, `Divider`, `BottomBar summary`). 홈 "이어서 하기" 커버 카드, 분석 범위 접기, 추천 요약에 "내 취향 반영" 줄, 설정 그룹 재구성(내 취향 썸네일 / 개인화 / 데이터 / 커뮤니티 / 정보). 새 패키지 없음.
+- **버그 수정**: 취향 초기화가 꺼 둔 개인화를 다시 켜던 문제(D-033), 온보딩 화면에서 재시작 시 저장값 로드 전 기본값으로 초기화되던 문제, 웹에서 카드·칩 `aria-checked` 누락, 근거 없는 "고른 취향" 이유 문구.
+- **명령·결과**: `npx jest` 8 suites / **88 tests 통과**(신규 24: `taste-onboarding.test.ts`, `style-assets.test.ts`), `npx tsc --noEmit` 오류 0, `npx eslint .` 오류·경고 0. `npm run bench`는 분석 코드 변경이 없어 재실행하지 않음.
+- **웹 미리보기**(Claude 데스크톱 브라우저 패널, 기기 아님): 첫 실행→카드 선택/해제·최소/최대·카테고리 전환·세부 칩→뒤로·새로고침 후 유지→완료→샘플 분석→추천(취향 줄·이유)→내보내기→개인화 끄기→취향 초기화(스위치 유지, 취향 언급 사라짐)→다른 취향으로 수정→이유 변화→이미지 출처. 375×812 라이트, 320×640 다크, 외부 호스트 요청 없음. 스크린샷 `docs/screenshots/15~19`.
+- **미검증**: iOS/Android 실기기에서의 새 온보딩·이미지 표시, 큰 글자, VoiceOver/TalkBack, 노치·제스처 바. 이미지 라이선스는 출처 문서 기준으로 확인했지만 **법률 검토는 아님**(1971년 사진 배경의 작은 상표 간판 등 `docs/IMAGE_ASSET_ATTRIBUTIONS.md` 참고). (→ Android는 바로 아래 항목에서 일부 확인)
+
+### 2026-10-18 — 사진 취향 온보딩 Android 실기기 확인 (Galaxy Z Flip5)
+- 환경: SM-F731N / Android 16 / Expo Go 58.0.4, USB adb(사용자가 디버깅 재승인), 기존 웹 미리보기 Metro(8081)에 `adb reverse`. 다크 모드, 3버튼 내비게이션. 조작·확인은 `scripts/android-device.ps1`(탭·uiautomator 텍스트 덤프). 폰에 사용자 실사진 프로젝트가 있어 홈·설정은 캡처하지 않고 텍스트로만 확인, 캡처는 예시 카드·합성 샘플 화면만(`docs/screenshots/20~23`).
+- ✅ 확인: 기존 v1 취향 데이터에서 크래시 없이 업그레이드·답변 보존 / 카드 16장 표시·하단 바와 내비게이션 바 겹침 없음 / 선택·해제 개수, 2개에서 "계속하기" 비활성·3개에서 활성, 9번째 거부 안내 / 카테고리 전환 후 선택 유지 / 카드 `checkable`·`checked`, 칩 RadioButton 접근성 노드 / 저장 후 강제 종료→콜드 스타트에서 8개 유지 / 합성 샘플 추천에 "내 취향 반영" 줄과 취향 이유 / 개인화를 끈 상태에서 취향 초기화 시 스위치 꺼짐 유지, 추천의 취향 언급 사라짐(사용자 승인, 확인 후 스위치 원복, 폰의 취향은 초기화된 상태로 둠).
+- 발견·수정: 글자 크기 최대(2.0, 사용자가 직접 설정)에서 하단 바의 "계속하기 비활성 이유"가 잘림 → 두 줄 줄바꿈 + 글자 배율만큼 스크롤 하단 여백 확대(`ScreenScroll`), 기기 재확인 ✅. 홈 이어서 하기 카드 제목·날짜 2줄 허용. 설정 "내 취향" 요약이 기존 답변 포함 25개를 나열 → 사진 스타일을 주 줄로, 나머지는 "그 밖의 답변 N개".
+- 명령·결과: `npx jest` 8 suites / **88 tests 통과**, `npx tsc --noEmit` 오류 0, `npx eslint .` 오류 0.
+- 미확인: TalkBack 실제 음성(시스템 설정이라 켜지 않음), 오프라인 표시(Expo Go 개발 모드는 이미지를 Metro에서 받으므로 정식/개발 빌드 필요), 데이터 없는 첫 실행(실사진 프로젝트 보호를 위해 전체 삭제 안 함 — 웹에서만 확인), 플립 커버 화면, iOS. 사용자에게 폰 글자 크기를 원래대로 되돌려 달라고 요청함.
+
+### 2026-10-18 — 이미지 취향 온보딩 작업 GitHub 푸시
+- 위 두 항목(이미지 기반 취향 온보딩 + UI 정리, Android 실기기 확인)의 변경을 한 커밋으로 `main`에 커밋하고 https://github.com/Logic-Phantom/CutPick 의 `main`으로 푸시(사용자 요청).
+- 포함: 코드(`src/**`), 예시 사진 16장(`assets/onboarding/styles/`), 테스트 2개 파일, 문서(`docs/**`, `README.md`, `THIRD_PARTY_NOTICES.md`), 스크린샷 15~23. `.device/`(기기 캡처 원본)는 git 무시 대상이라 올리지 않음.
+- 푸시 직전 재확인: `npx jest` 88 통과, `npx tsc --noEmit` 오류 0, `npx eslint .` 오류 0. 이번 항목에서 새로 검증한 기능은 없음.
+
+#### 다음에 이어서 할 일 (이미지 취향 관련)
+- TalkBack/VoiceOver로 카드 선택 상태 낭독 확인, iOS 전체.
+- 개발/정식 빌드에서 비행기 모드로 예시 사진 표시(번들 포함) 확인.
+- 데이터 없는 첫 실행을 실기기에서 확인(테스트용 기기 또는 사용자 데이터 백업 후).
+- 출시 전 예시 사진 라이선스 법률 검토(특히 `mood-film-vintage.jpg` 배경 간판), 앱 내 오픈소스/이미지 고지 화면 점검.

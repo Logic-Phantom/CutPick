@@ -9,7 +9,14 @@
 | `photos` | id, project_id(FK cascade), local_uri, asset_id, width, height, file_size, mime_type, created_at(촬영시각, 허용 시), orientation, thumbnail_uri, phash(16×16 휘도 서명), metrics_json(PhotoQualityMetrics), scene_tags_json, dup_group_id, status, error, import_index | PhotoAsset. 바이너리 없음 (웹 미리보기만 썸네일 data URI) |
 | `recommendation_sets` | id, project_id, purpose_id, data_json, updated_at, UNIQUE(project_id, purpose_id) | RecommendationSet: 목적별 1개. orderedPhotoIds(최종), manualOrder(사용자 편집), pinned/excluded, groupRepresentatives, cropPreferences, captionDraft, aspectId, targetCount, details(점수·이유) |
 | `preference_events` | id, type(keep/exclude/pin/reorder), features_json(밝기·채도·색온도·대비·방향), preset_id, created_at | 최대 200건 |
-| `kv` | key, value | `preference.v1`(UserPreference, schemaVersion 1), `learned.v1`(LearnedWeights) |
+| `kv` | key, value | `preference.v1`(UserPreference JSON, **schemaVersion 2**), `learned.v1`(LearnedWeights) |
+
+### UserPreference v2 (2026-10-18)
+- 추가: `styleCardIds: string[]`(고른 예시 사진 카드 id, 최대 8), `styleTags: StyleTag[]`(카드에서 파생된 취향 태그).
+- 저장 위치는 그대로 `kv['preference.v1']` JSON — SQLite 테이블·`user_version` 변경 없음. 키 이름은 호환을 위해 유지.
+- 마이그레이션(`migratePreference`): v1 → v2는 두 필드를 빈 배열로 추가하고 기존 답변을 모두 보존. 알 수 없는 카드 id·중복·문자열이 아닌 값은 버리고, `styleTags`는 저장값을 믿지 않고 **항상 남은 카드에서 다시 계산**(카드가 없어지면 그 취향도 사라짐). 더 새로운 버전·손상된 값은 기본값.
+- 초기화(`resetTaste`): 카드·태그·모든 답변 삭제, `onboardingCompleted=true`, **`personalizationEnabled`는 기존 값 유지**.
+- 카드 정의(이미지·이름·태그·라이선스): `src/features/onboarding/style-cards.ts`. 태그의 실제 효과: `src/features/preferences/taste-profile.ts`(`STYLE_TAG_META`), 수치: `recommendation-policy.ts`의 `TASTE`.
 
 `PhotoQualityMetrics`: sharpnessScore, exposureScore, contrastScore, resolutionScore, meanLuma, highlightClipRatio, shadowClipRatio, colorfulness, warmth, meanRgb, analysisVersion(현재 2), calculatedAt.
 `analysisVersion`이 현재 값과 다르면 분석 대상에 다시 포함된다(`needsAnalysis`).

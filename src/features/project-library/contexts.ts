@@ -1,4 +1,17 @@
-import type { SourceContext } from '@/domain/models';
+import type { SceneTag, SourceContext } from '@/domain/models';
+
+export const SCENE_LABELS: Record<SceneTag, string> = {
+  person: '인물',
+  food: '음식',
+  landscape: '풍경',
+  building: '건물·거리',
+  detail: '디테일',
+  pet: '반려동물',
+  product: '제품·소품',
+  other: '기타',
+};
+
+export const SCENE_OPTIONS = (Object.keys(SCENE_LABELS) as SceneTag[]).map((id) => ({ id, label: SCENE_LABELS[id] }));
 
 export const CONTEXT_LABELS: Record<SourceContext, string> = {
   travel: '여행',

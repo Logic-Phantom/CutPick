@@ -123,7 +123,36 @@ export interface RecommendationSet {
   details: RecommendedPhoto[];
 }
 
+/**
+ * Taste tags derived from the reference photos picked in onboarding (src/features/onboarding/style-cards.ts).
+ * Only some tags map to a measurable signal; see STYLE_TAG_META for what each one actually changes.
+ */
+export type StyleTag =
+  // mood / color / light → brightness·colorfulness·warmth targets
+  | 'warm'
+  | 'bright'
+  | 'calm'
+  | 'film'
+  | 'natural-light'
+  | 'muted'
+  | 'vivid'
+  | 'dark'
+  // composition
+  | 'centered'
+  | 'negative-space'
+  | 'wide'
+  | 'closeup'
+  // scene
+  | 'travel'
+  | 'food'
+  | 'fashion'
+  | 'objects';
+
 export interface UserPreference {
+  /** Reference photo cards picked in the visual taste step (card ids, not tags). */
+  styleCardIds: string[];
+  /** Taste tags derived from styleCardIds. Recomputed on load so the two never drift apart. */
+  styleTags: StyleTag[];
   preferredSubjects: string[];
   preferredFoodAngles: string[];
   preferredPortraitAndOOTDAngles: string[];

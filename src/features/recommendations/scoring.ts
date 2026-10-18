@@ -1,12 +1,14 @@
-import type { LearnedWeights, PhotoAsset, PhotoQualityMetrics } from '@/domain/models';
+import type { LearnedWeights, PhotoAsset, PhotoQualityMetrics, SceneTag } from '@/domain/models';
 import { PERSONALIZATION, SCORE_WEIGHTS } from '@/domain/recommendation-policy';
-import type { ColorTargets } from '@/features/onboarding/preference-schema';
 import { cropRetention } from '@/features/platforms/crop';
+import { colorMatch, tasteBonus, type ColorTargets, type TasteProfile } from '@/features/preferences/taste-profile';
 import type { StylePreset } from '@/features/style-presets/presets';
 
 export interface ScoreContext {
   preset: StylePreset;
   colorTargets: ColorTargets;
+  /** Image-based taste (scene/orientation). Omitted = no taste beyond colorTargets. */
+  taste?: TasteProfile | null;
   learned: LearnedWeights | null;
   personalizationEnabled: boolean;
   /** Target aspect ratio (w/h) or null for "keep original". */
@@ -18,6 +20,8 @@ export interface ScoreContext {
 export interface ScoreBreakdown {
   quality: number;
   preference: number;
+  /** Scene/orientation bonus from image-based taste (separate from quality and color match). */
+  taste?: number;
   learned: number;
   goalFit: number;
   duplicate: number;
@@ -27,6 +31,8 @@ export interface ScoreBreakdown {
   isGroupRepresentative: boolean;
   isGroupMember: boolean;
   preferenceMatch: number | null;
+  tasteScene?: SceneTag | null;
+  tasteOrientation?: boolean;
 }
 
 /** Pure technical quality (0..1), unaffected by taste. */
@@ -35,10 +41,6 @@ export function technicalQuality(m: Pick<PhotoQualityMetrics, 'sharpnessScore' |
   const ew = w.exposure * exposureWeight;
   const sum = w.sharpness + ew + w.contrast + w.resolution;
   return (w.sharpness * m.sharpnessScore + ew * m.exposureScore + w.contrast * m.contrastScore + w.resolution * m.resolutionScore) / sum;
-}
-
-function similarity(value: number, target: number, range: number): number {
-  return Math.max(0, 1 - Math.abs(value - target) / range);
 }
 
 /** Blend preset targets with the user's explicit color mood (user choice wins when both exist). */
@@ -53,12 +55,7 @@ export function effectiveTargets(preset: StylePreset, user: ColorTargets): Color
 
 /** 0..1 similarity to targets, or null when there are no targets. */
 export function preferenceMatch(m: PhotoQualityMetrics, t: ColorTargets): number | null {
-  const parts: number[] = [];
-  if (t.luma != null) parts.push(similarity(m.meanLuma, t.luma, 128));
-  if (t.colorfulness != null) parts.push(similarity(m.colorfulness, t.colorfulness, 0.6));
-  if (t.warmth != null) parts.push(similarity(m.warmth, t.warmth, 1.2));
-  if (!parts.length) return null;
-  return parts.reduce((s, v) => s + v, 0) / parts.length;
+  return colorMatch(m, t);
 }
 
 /** Feature vector used by local personalization, each roughly in -1..1. */
@@ -97,13 +94,29 @@ export function scorePhoto(photo: PhotoAsset, ctx: ScoreContext): ScoreBreakdown
   if (!m) {
     // Unanalyzed photos can still be chosen manually but rank below analyzed ones.
     const total = goalFit + duplicate;
-    return { quality: 0, preference: 0, learned: 0, goalFit, duplicate, total, cropRetention: retention, isGroupRepresentative, isGroupMember, preferenceMatch: null };
+    return { quality: 0, preference: 0, taste: 0, learned: 0, goalFit, duplicate, total, cropRetention: retention, isGroupRepresentative, isGroupMember, preferenceMatch: null, tasteScene: null, tasteOrientation: false };
   }
 
+  // Taste never feeds into `quality`: it is computed from the technical metrics alone.
   const quality = SCORE_WEIGHTS.qualityTotal * ctx.preset.adjust.qualityWeight * technicalQuality(m, ctx.preset.adjust.exposureWeight);
   const match = preferenceMatch(m, effectiveTargets(ctx.preset, ctx.colorTargets));
   const preference = match == null ? 0 : SCORE_WEIGHTS.preferenceTotal * (match - 0.5) * 2;
+  const bonus = ctx.taste ? tasteBonus(photo, ctx.taste) : { value: 0, scene: null, orientation: false };
   const learned = ctx.personalizationEnabled ? SCORE_WEIGHTS.learnedTotal * learnedAdjustment(m, photo.orientation, ctx.learned) : 0;
-  const total = quality + preference + learned + goalFit + duplicate;
-  return { quality, preference, learned, goalFit, duplicate, total, cropRetention: retention, isGroupRepresentative, isGroupMember, preferenceMatch: match };
+  const total = quality + preference + bonus.value + learned + goalFit + duplicate;
+  return {
+    quality,
+    preference,
+    taste: bonus.value,
+    learned,
+    goalFit,
+    duplicate,
+    total,
+    cropRetention: retention,
+    isGroupRepresentative,
+    isGroupMember,
+    preferenceMatch: match,
+    tasteScene: bonus.scene,
+    tasteOrientation: bonus.orientation,
+  };
 }

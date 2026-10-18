@@ -20,6 +20,8 @@ export interface ColorTokens {
   accentSoft: string;
   selected: string;
   selectedText: string;
+  /** Light tint laid over a selected photo card (with border + check, never alone). */
+  selectedOverlay: string;
   success: string;
   successSoft: string;
   warning: string;
@@ -47,6 +49,7 @@ export const lightColors: ColorTokens = {
   accentSoft: '#E5ECFB',
   selected: '#2F5BD3',
   selectedText: '#FFFFFF',
+  selectedOverlay: 'rgba(47,91,211,0.14)',
   success: '#1E7A4C',
   successSoft: '#E1F2E8',
   warning: '#8A5A00',
@@ -75,6 +78,7 @@ export const darkColors: ColorTokens = {
   accentSoft: '#1E2A4A',
   selected: '#7FA2FF',
   selectedText: '#0B1330',
+  selectedOverlay: 'rgba(127,162,255,0.18)',
   success: '#5CC58F',
   successSoft: '#13301F',
   warning: '#E8B54A',
@@ -97,19 +101,31 @@ export const spacing = {
 } as const;
 
 export const radius = {
+  /** Dense photo grids (thumbnails). */
   photo: 6,
+  /** Large photo cards (taste cards, home cover). */
+  tile: 12,
   chip: 999,
   button: 12,
   card: 16,
   sheet: 20,
 } as const;
 
+/** The only shadow in the app: a faint lift for the one hero card per screen. Lists use borders. */
+export const elevation = {
+  raised: { shadowColor: '#000000', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+} as const;
+
 export const typography = {
   screenTitle: { fontSize: 28, lineHeight: 34, fontWeight: '700' },
+  /** Question / hero headline inside a screen (onboarding question, home next action). */
+  title: { fontSize: 22, lineHeight: 29, fontWeight: '700' },
   sectionTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
   body: { fontSize: 16, lineHeight: 23, fontWeight: '400' },
   bodyStrong: { fontSize: 16, lineHeight: 23, fontWeight: '600' },
   secondary: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
+  /** Short UI labels under photos and on chips. */
+  label: { fontSize: 14, lineHeight: 19, fontWeight: '600' },
   caption: { fontSize: 12, lineHeight: 16, fontWeight: '500' },
   numeric: { fontSize: 22, lineHeight: 28, fontWeight: '700', fontVariant: ['tabular-nums'] },
 } as const;
@@ -119,3 +135,9 @@ export const touchTarget = 44;
 
 /** Bottom action bar height cap so CTAs never cover too much of the photo grid. */
 export const bottomBarMaxHeight = 96;
+
+/** Extra height when the bottom bar shows a one-line summary above its buttons. */
+export const bottomBarSummaryHeight = 28;
+
+/** Content column cap so cards don't grow huge on tablets / the web preview. */
+export const contentMaxWidth = 640;

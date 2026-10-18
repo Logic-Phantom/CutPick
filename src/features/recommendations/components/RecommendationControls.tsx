@@ -1,8 +1,9 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import type { PlatformId } from '@/domain/models';
-import { AppText, Card, FilterChip, GhostButton, IconButton, Row, spacing, useColors } from '@/design-system';
+import { AppText, Card, Divider, FilterChip, GhostButton, IconButton, Row, radius, spacing, useColors } from '@/design-system';
 import { PLATFORM_LABELS, purposesFor, type AspectOption, type PlatformPurpose } from '@/features/platforms/platform-profiles';
 import { activePresets, getPreset, isPresetStale } from '@/features/style-presets/preset-registry';
 
@@ -19,6 +20,9 @@ export interface RecommendationControlsProps {
   onAspect: (id: string) => void;
   onTarget: (n: number) => void;
   onPreset: (id: string) => void;
+  /** Short list of the user's picked styles, shown so it's clear taste is applied. */
+  tasteLabel?: string | null;
+  onEditTaste?: () => void;
 }
 
 /**
@@ -52,6 +56,13 @@ export function RecommendationControls(p: RecommendationControlsProps) {
             </Row>
           ) : null}
         </Row>
+        {p.tasteLabel ? (
+          <Pressable onPress={p.onEditTaste} disabled={!p.onEditTaste} accessibilityRole="button" accessibilityLabel={`내 취향 반영 중: ${p.tasteLabel}. 탭하면 취향 수정`} style={({ pressed }) => [styles.taste, { backgroundColor: c.surfaceSunken, opacity: pressed ? 0.7 : 1 }]}>
+            <Ionicons name="color-palette-outline" size={18} color={c.accent} />
+            <AppText variant="caption" tone="secondary" numberOfLines={1} style={{ flex: 1 }}>내 취향 반영 · {p.tasteLabel}</AppText>
+            <Ionicons name="chevron-forward" size={14} color={c.textTertiary} />
+          </Pressable>
+        ) : null}
         <GhostButton compact icon={open ? 'chevron-up' : 'options-outline'} label={open ? '설정 접기' : '플랫폼·비율·프리셋 바꾸기'} onPress={() => setOpen(!open)} testID="rec-settings-toggle" />
 
         {open ? (
@@ -68,7 +79,7 @@ export function RecommendationControls(p: RecommendationControlsProps) {
             </ScrollView>
             <AppText variant="secondary" tone="secondary">{p.purpose.description}</AppText>
 
-            <View style={[styles.divider, { backgroundColor: c.border }]} />
+            <Divider />
             <AppText variant="caption" tone="secondary">비율</AppText>
             <View style={styles.wrap}>
               {p.purpose.aspects.map((a) => (
@@ -81,7 +92,7 @@ export function RecommendationControls(p: RecommendationControlsProps) {
               </AppText>
             ) : null}
 
-            <View style={[styles.divider, { backgroundColor: c.border }]} />
+            <Divider />
             <AppText variant="caption" tone="secondary">감성 프리셋 · 사진에 필터를 입히지 않고 추천 순위만 조정해요</AppText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hscroll} accessibilityLabel="감성 프리셋">
               {activePresets().map((pr) => (
@@ -99,5 +110,5 @@ export function RecommendationControls(p: RecommendationControlsProps) {
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   hscroll: { gap: spacing.xs, paddingRight: spacing.md },
-  divider: { height: StyleSheet.hairlineWidth },
+  taste: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, minHeight: 36, borderRadius: radius.button },
 });

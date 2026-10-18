@@ -4,7 +4,7 @@ import { FlatList, View, useWindowDimensions } from 'react-native';
 
 import type { PhotoAsset } from '@/domain/models';
 import {
-  AppText, BottomBar, Card, InlineMessage, PhotoThumbnail, PrimaryButton, ProgressPanel, SecondaryButton, spacing, successFeedback, useColors, type ProgressStep,
+  AppText, BottomBar, Card, GhostButton, InlineMessage, PhotoThumbnail, PrimaryButton, ProgressPanel, SecondaryButton, spacing, successFeedback, useColors, type ProgressStep,
 } from '@/design-system';
 import { cancelAnalysis, getJob, isRunning, needsAnalysis, startAnalysis, subscribeJob, type JobState } from '@/features/image-analysis/analysis-runner';
 import { HEURISTIC_CAPABILITIES } from '@/features/image-analysis/heuristic-provider';
@@ -36,6 +36,7 @@ export default function AnalysisScreen() {
   const [job, setJob] = useState<JobState | null>(getJob(id));
   const [photos, setPhotos] = useState<PhotoAsset[]>([]);
   const lastRefresh = useRef(0);
+  const [showScope, setShowScope] = useState(false);
 
   const refresh = useCallback(async () => {
     setPhotos(await listPhotos(id));
@@ -98,10 +99,19 @@ export default function AnalysisScreen() {
             {finished && job?.msPerPhoto ? (
               <AppText variant="caption" tone="tertiary">이번 분석 측정값: 사진당 약 {job.msPerPhoto}ms (이 기기·이 사진 기준)</AppText>
             ) : null}
-            <Card>
-              <CapabilityList caps={HEURISTIC_CAPABILITIES} />
-            </Card>
-            <AppText variant="bodyStrong">사진 {photos.length}장</AppText>
+            <GhostButton
+              compact
+              icon={showScope ? 'chevron-up' : 'information-circle-outline'}
+              label={showScope ? '분석 범위 접기' : '무엇을 분석하나요?'}
+              onPress={() => setShowScope(!showScope)}
+              style={{ alignSelf: 'flex-start', paddingHorizontal: 0 }}
+            />
+            {showScope ? (
+              <Card>
+                <CapabilityList caps={HEURISTIC_CAPABILITIES} />
+              </Card>
+            ) : null}
+            <AppText variant="sectionTitle">사진 {photos.length}장</AppText>
           </View>
         }
         renderItem={({ item, index }) => (

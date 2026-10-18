@@ -26,6 +26,7 @@ export function FilterChip({ label, selected, onPress, disabled, role = 'checkbo
       accessibilityRole={role}
       accessibilityLabel={label}
       accessibilityState={{ checked: selected, disabled: !!disabled }}
+      aria-checked={selected}
       style={({ pressed }) => [
         styles.chip,
         {
