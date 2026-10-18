@@ -69,6 +69,116 @@ npm run bench
 | docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md | 디자인 토큰, 흐름, QA 결과(스크린샷: docs/screenshots) |
 | docs/TESTING.md, ROADMAP.md | 테스트 범위·결과, 다음 단계 |
 
+## 마스터 프롬프트 기준 진행 현황 (2026-10-18)
+
+기준 문서: `Cutpick_ClaudeCode_SuperPrompt.md` (사용자 제공 마스터 프롬프트). ✅ 완료(코드+테스트) · 🟡 코드 완료·실검증 미완 · ❌ 미착수/불가
+
+### 단계별 (프롬프트 22장 Phase 0~6)
+| Phase | 상태 | 내용 |
+|---|---|---|
+| 0 환경/실현 가능성 조사 | ✅ | Node·Expo SDK 58 확인, 공식 문서로 API 확인, 픽셀 접근 방식 결정(D-003), 플랫폼 규격·무료 한도·스토어 비용 조사, DECISIONS/ARCHITECTURE/COSTS/LICENSES 작성. REA 미사용(선택 사항) |
+| 1 온보딩·로컬 기반 앱 | ✅ | 디자인 시스템, 홈, 사진 선택, 프로젝트 CRUD, SQLite·파일 저장, 취향 온보딩(저장·수정·초기화), 샘플 모드 |
+| 2 로컬 사진 분석·추천 | 🟡 | 픽셀 품질 지표, 유사 사진 그룹, 추천 점수·이유, 대표 후보 3장, 수동 편집 완료. **실기기 30/100/300장 측정 미실행** |
+| 3 SNS 내보내기 | 🟡 | 크롭·순번 파일·사진 앱 저장·OS 공유·캡션 구현. **iOS/Android에서 저장·공유·EXIF 제거 미검증** |
+| 4 댓글 없는 커뮤니티 | 🟡 | 마이그레이션(RLS·트리거·RPC·스토리지), 게시·하트·삭제·신고·차단·계정 삭제 UI 완료. **Supabase 실프로젝트 연동·RLS 테스트 미실행** |
+| 5 품질/개인정보/스토어 준비 | ❌ (문서만 일부) | 정책 문서 초안, 개인정보 문서 작성. 실기기 빌드·지원 이메일·법률 검토·자체 아이콘·연령 정책 미완 |
+| 6 수익화/ML 고도화 | ❌ (의도적 보류) | 프롬프트 지시대로 핵심 검증 전 착수하지 않음 |
+
+### 완료 기준 (프롬프트 13장)
+| 기준 | 상태 |
+|---|---|
+| React Native + Expo iOS/Android 프로젝트 | ✅ |
+| 사용자가 고른 사진만 처리, 전체 라이브러리 자동 스캔 없음 | ✅ (코드) |
+| 30장 기본 분석 흐름이 **실제 기기**에서 동작 | ❌ 실기기 없음 (웹 미리보기에서 18장 동작 확인) |
+| 유사 사진 그룹화가 실제 입력 사진으로 검증 | 🟡 합성 샘플 이미지로 검증(통합 테스트), 실사진 미검증 |
+| 품질 신호와 추천 점수 구분 | ✅ |
+| Instagram/TikTok/카카오톡 목적별 결과 구성 | ✅ |
+| 프리셋에 출처·검토일·상태 | ✅ (출처 없음 = hypothesis로 명시) |
+| 추천 수동 수정·순서 변경 | ✅ |
+| 파일 저장·OS 공유를 iOS/Android에서 각각 확인 | ❌ |
+| 로컬 기능은 유료 API·커뮤니티 서버 없이 동작, 장애 시 로컬 유지 | ✅ |
+| 원본 수정/삭제 없음, 프로젝트 데이터 삭제 기능 | ✅ |
+| 테스트 실제 실행·결과 기록 | ✅ (59개 통과, docs/TESTING.md) |
+| Android 빌드/테스트 검증 | ❌ Android SDK 없음 |
+| iOS 빌드/실기기 여부와 미검증 이유 명시 | ✅ (미검증: macOS 없음) |
+| 비용·개인정보·라이선스·플랫폼 규칙 문서화 | ✅ |
+
+### 프롬프트 21장 보안·테스트 기준
+| 항목 | 상태 |
+|---|---|
+| 온보딩 건너뛰기·중단·재실행·수정 일관성 | ✅ 코드 + 웹 확인 |
+| 취향별 추천 결과 차이, 기술 점수 비왜곡 | ✅ 단위 테스트 |
+| 게시 안 한 사진이 네트워크에 안 나감 | 🟡 정적 확인만(프록시 실측 미실행) |
+| 업로드 사본 EXIF/GPS 제거 | 🟡 재인코딩 구조, 실측 미실행 |
+| RLS 격리·비인가 삭제·하트 중복·경로 위조 | 🟡 `supabase/tests/rls_test.sql` 작성, 미실행 |
+| 하트 추가/취소·오프라인·중복 요청 | 🟡 낙관적 갱신·롤백·PK 멱등 구현, 실서버 미검증 |
+| 차단 즉시 숨김 / 해제 | 🟡 `get_feed` 양방향 필터, 실서버 미검증 |
+| 신고 실제 저장·처리 상태 | 🟡 테이블·상태값 구현, 실서버 미검증 |
+| 게시물·계정 삭제 시 스토리지 정리 | 🟡 구현, 실서버 미검증 |
+| 정책·연락처 링크 접근 | 🟡 화면 존재, **지원 이메일 미설정** |
+| env 비면 크래시 없이 로컬 모드 | ✅ 웹에서 확인 |
+
+## 다음 작업 이어가기 (Resume Guide)
+
+새 세션에서 이 README만 보고 바로 이어서 작업할 수 있도록 정리한 절차다. Claude Code에 그대로 이렇게 요청하면 된다: **"README의 '다음 작업 이어가기'를 읽고 우선순위 1번부터 진행해. 마스터 프롬프트 규칙(정직한 검증 보고, 무료 우선, 프라이버시)을 계속 지켜."**
+
+### 1) 개발 환경 복원
+```bash
+git clone https://github.com/Logic-Phantom/CutPick.git
+```
+```bash
+npm install
+```
+```bash
+npm test
+```
+- Node.js 20+ 필요(이 저장소는 24.20.0으로 개발). Windows PowerShell에서 방금 설치한 Node가 안 잡히면 새 터미널을 열거나 PATH를 갱신.
+- 웹 미리보기: `npm run web` (UI 확인 전용). 실기기: `npx expo start` 후 Expo Go로 QR 스캔 — 현재 코드는 Expo Go 포함 모듈만 쓰므로 개발 빌드 불필요.
+- Claude Code 브라우저 미리보기 설정: `.claude/launch.json`의 `cutpick-web`.
+
+### 2) 작업 전 반드시 알아둘 것
+- **Expo SDK 58 API는 학습 데이터와 다르다.** `AGENTS.md` 지시대로 https://docs.expo.dev/versions/v58.0.0/ 를 확인할 것. 이미 맞춰 둔 부분:
+  - 사진 앱 저장: `import { Asset, requestPermissionsAsync } from 'expo-media-library'` → `Asset.create(uri)` (구 `createAssetAsync`는 런타임 throw)
+  - 파일: `expo-file-system`의 `File`/`Directory`/`Paths` 객체 API (`move()`는 Promise)
+  - 이미지: `ImageManipulator.manipulate(uri).resize().renderAsync()` → `saveAsync()`
+  - 탭: `expo-router/native-tabs` (웹은 `src/app/(tabs)/_layout.web.tsx`에서 `expo-router/js-tabs`)
+  - 패키지 추가는 `npx expo install <pkg>` (네트워크 오류 시 `npm i`로 버전 직접 지정)
+- 모든 가중치·임계값은 `src/domain/recommendation-policy.ts` 한 곳. 분석 결과 형식을 바꾸면 `ANALYSIS_VERSION`을 올릴 것(기존 사진 자동 재분석).
+- 테스트 위치: `tests/unit`, `tests/integration`(샘플 이미지 실디코드), `tests/benchmark`(`npm run bench`, 기기 측정 아님).
+- 웹은 출시 대상이 아니다(썸네일 data URI 저장, 사진 앱 저장·공유 불가). 결과를 "기기 검증"으로 기록하지 말 것.
+- 결정 변경 시 `docs/DECISIONS.md`에 D-0xx로 추가, 마지막에 이 README의 Work Log에 날짜별 항목 추가(기존 내용 보존, 섹션 중복 금지).
+
+### 3) 우선순위별 다음 작업
+1. **실기기 검증 (Phase 2·3 마무리)** — Android 폰/에뮬레이터(Android Studio 설치 필요) 또는 iPhone + Expo Go
+   - 실사진 30/100/300장 선택 → 분석 화면 하단 "사진당 약 N ms" 기록 + 프로파일러로 피크 메모리 → `docs/DEVICE_BENCHMARKS.md` 표 채우기 → 필요 시 `IMPORT_LIMITS` 조정
+   - 권한 거부/제한 접근(iOS "선택한 사진만"), HEIC·세로 EXIF 회전 사진, 한글·긴 파일명
+   - 사진 앱 저장 순서·파일명, 한 장씩 공유 시트(Instagram/TikTok/카카오톡 각각)
+   - 내보내기 사본 EXIF 검사: GPS 포함 사진 → 내보내기 → `exiftool`로 GPS 태그 없음 확인 → `docs/PRIVACY.md` 갱신
+   - 큰 글자·VoiceOver/TalkBack·다크 모드·노치/제스처 바 → `docs/DESIGN_QA.md` 갱신
+   - 실사진 연사로 중복 임계값(서명 거리 5) 재보정, 노이즈 사진 선명도 과대평가 개선 검토
+2. **Supabase 실검증 (Phase 4 마무리)**
+   - Supabase Free 프로젝트 생성 → `supabase/migrations/20261018000000_community_init.sql` 적용
+   - `supabase/tests/rls_test.sql` 실행(로컬 `supabase start` 또는 일회용 프로젝트) → 결과를 `docs/TESTING.md`에 기록
+   - `.env.local`에 URL·publishable key·지원 이메일 → 이메일 OTP 로그인, 프로필, 게시(검토 대기→대시보드 승인), 하트, 신고, 차단, 게시물·계정 삭제 후 스토리지 잔존 확인
+   - Supabase 대시보드 Auth 설정에서 이메일 OTP 템플릿에 6자리 코드가 포함되는지 확인
+3. **출시 준비 (Phase 5)** — 지원 이메일(`EXPO_PUBLIC_SUPPORT_EMAIL`), 처리방침·약관 법률 검토, 자체 앱 아이콘·스플래시(현재 Expo 템플릿 이미지), 앱 내 오픈소스 라이선스 화면, 연령 정책(Apple 1.2.1(a)), 상표 조사, `npx license-checker` 등 의존성 감사, Android targetSdk 36 확인, EAS Build 설정
+4. **UX 잔여 과제** — 표시용 Tag 컴포넌트(비활성 칩 대체), 웹 가로 사진 4:5 내보내기 해상도 이상 원인 확인, 드래그 정렬(버튼 대체 수단 유지)
+5. **보류** — 온디바이스 ML(라이선스·성능 게이트 통과 시, 개발 빌드 필요), 색 보정 프리셋, 캐러셀 게시, 수익화
+
+### 4) 주요 파일 지도
+| 하고 싶은 일 | 파일 |
+|---|---|
+| 점수·임계값 조정 | `src/domain/recommendation-policy.ts` |
+| 분석 지표 | `src/features/image-analysis/pixel-metrics.ts`, `perceptual-hash.ts` |
+| 분석 실행 흐름 | `src/features/image-analysis/analysis-runner.ts`, `heuristic-provider.ts` |
+| 추천 로직 / 편집 상태 | `src/features/recommendations/engine.ts` / `use-recommendation-editor.ts` |
+| 플랫폼 규격 | `src/features/platforms/platform-profiles.ts` (+ `docs/PLATFORM_RULES.md`) |
+| 프리셋 | `src/features/style-presets/presets.ts` |
+| 로컬 DB 스키마 | `src/infrastructure/database/db.ts` (마이그레이션 배열에 추가) |
+| 커뮤니티 백엔드 | `src/features/community/supabase-community-repository.ts`, `supabase/migrations/` |
+| 화면 | `src/app/**` |
+| 디자인 토큰 | `src/design-system/tokens.ts` |
+
 ## 작업 내역 (Work Log)
 
 ### 2026-10-18 — 최초 구현 (Phase 0~4 코드, 웹 미리보기 QA)
@@ -107,3 +217,8 @@ npm run bench
 **디자인**: 토큰·컴포넌트를 전 화면에 적용(docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md 존재·구현과 일치 확인). 웹에서 다크 모드 버튼 대비, 탭 겹침, 추천 화면 정보 과밀 등 수정. 남은 문제: 웹 가로 사진 4:5 내보내기 해상도 이상(비율은 정확), 강한 그레인 사진의 선명도 과대평가, 표시용 태그의 스크린리더 역할.
 
 **미해결 위험·다음 단계**: 실기기 검증, Supabase 실검증, 지원 이메일·법률 검토·자체 아이콘·연령 정책(UGC 출시 전 필수), 중복 임계값 실사진 재보정. 상세: docs/ROADMAP.md.
+
+### 2026-10-18 — GitHub 업로드 및 이어가기 문서화
+- 원격 저장소 https://github.com/Logic-Phantom/CutPick (빈 저장소)에 origin 연결, 지금까지의 작업(eat/cutpick-mvp 브랜치의 커밋 포함)을 main 브랜치로 푸시.
+- README에 **마스터 프롬프트 기준 진행 현황**(Phase 0~6, 13장 완료 기준, 21장 보안·테스트 기준)과 **다음 작업 이어가기**(환경 복원, SDK 58 주의점, 우선순위 작업, 파일 지도) 섹션 추가.
+- 코드 변경 없음. 테스트 재실행 결과는 직전 항목과 동일(59개 통과) — 이번 항목에서 새로 검증한 기능 없음.
