@@ -82,7 +82,7 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
 
 1. **Supabase 프로젝트 만들기**: https://supabase.com → New project(Free 플랜, 리전은 사용자와 가까운 곳 예: Northeast Asia (Seoul)). DB 비밀번호는 앱에 넣지 않는다.
 2. **스키마 적용**: 대시보드 → SQL Editor → `supabase/migrations/20261018000000_community_init.sql` 전체를 붙여 넣고 Run → 이어서 `supabase/migrations/20261022000000_instant_publish.sql`도 Run(올리면 바로 공개, D-049). (CLI를 쓴다면 `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.) 테이블 6개(RLS 켜짐), 트리거, `get_feed`·`get_my_blocks`·`delete_my_account` 함수, 공개 스토리지 버킷 `post-images`(JPEG, 2MB)가 생긴다.
-3. **이메일 로그인(OTP) 설정**: Authentication → Sign In / Providers → Email 켜기. Authentication → Emails → "Magic Link" 템플릿 본문에 6자리 코드 `{{ .Token }}`를 넣는다(앱은 링크가 아니라 코드를 입력받음). 무료 기본 메일 발송은 시간당 몇 통으로 제한되므로 테스트 이상이면 SMTP(Resend 등)를 연결한다.
+3. **이메일 로그인(OTP) 설정**: Authentication → Sign In / Providers → Email 켜기(새 프로젝트는 기본 켜짐). 앱은 링크가 아니라 **메일 속 코드**를 입력받는데, Supabase 기본 메일은 링크만 들어 있다. **2026-10 기준 템플릿은 커스텀 SMTP를 연결해야 수정할 수 있으므로**: ① Authentication → Emails → SMTP Settings에서 SMTP 연결(테스트용은 Gmail 앱 비밀번호 `smtp.gmail.com:465`, 운영은 자체 도메인 + Resend 등) → ② "Magic link or OTP"와 "Confirm sign up" **두 템플릿 본문 모두**에 `{{ .Token }}`를 넣는다(새 사용자는 "Confirm email"이 켜져 있으면 가입 확인 메일을 받음). 코드 길이는 Email 공급자 설정의 "Email OTP length"(새 프로젝트 기본 **8자리**, 앱은 6~10자리 입력 허용), 만료는 기본 3600초.
 4. **앱 키 넣기**: Project Settings → API Keys에서 **Publishable key**(또는 legacy anon key)와 Project URL을 복사 → `.env.example`을 `.env.local`로 복사해 입력:
    ```
    EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
@@ -417,3 +417,10 @@ npm test
 - 안전장치는 그대로(게시 전 동의 4개, 하루 5건, 신고 3명 자동 숨김, 차단, 운영자 삭제). 즉시 공개라 **매일 신고·신규 게시물 확인**이 필요하고, 문제가 생기면 대시보드에서 `require_review=true`로 승인제 복귀 가능.
 - **미검증**: 실제 Supabase에서 즉시 공개·자동 숨김 동작(소유자 프로젝트에서 확인 필요).
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-22 — 소유자 Supabase 프로젝트 점검 (읽기 전용)
+- 프로젝트 `mgycpqjzdulzbufupqdu`(Cutpick) 대시보드에 소유자가 직접 로그인한 브라우저로 접속해 SQL Editor에서 **읽기 전용 점검 쿼리**만 실행(데이터·설정 변경 없음).
+- ✅ 테이블 6개 존재·RLS 모두 켜짐, 함수 3개(`get_feed`·`get_my_blocks`·`delete_my_account`), 트리거 3개, 공개 버킷 `post-images`, 정책 public 15 + storage 3 = 마이그레이션의 18개와 일치, `community_settings` = 승인제 false·하루 5건·업로드 켜짐·자동 숨김 3명(즉시 공개 마이그레이션 반영됨). 사용자·프로필·게시물 0건.
+- ✅ Auth: Email 공급자 켜짐, 신규 가입 허용, Confirm email 켜짐, Email OTP 8자리·3600초. Publishable key(`sb_publishable_…`) 존재.
+- ⚠️ **막힌 부분**: 커스텀 SMTP가 없어 메일 템플릿이 기본값(로그인 링크만, 코드 없음)이고 수정 불가 → 앱의 코드 입력 로그인이 아직 불가능. README 설정 3단계를 SMTP 연결 + 두 템플릿에 `{{ .Token }}` 추가로 고침.
+- 남은 일: SMTP 연결·템플릿 수정(소유자), `.env.local` 작성(소유자), 앱에서 로그인→게시→하트→신고→삭제 실서버 검증, `supabase/tests/rls_test.sql` 실행.
