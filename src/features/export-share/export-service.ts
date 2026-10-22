@@ -6,7 +6,7 @@ import { AppError } from '@/domain/errors';
 import type { CropPreference, PhotoAsset } from '@/domain/models';
 import { clearExports, deleteFile, persistExport, readFileHead } from '@/infrastructure/file-storage/app-files';
 import { renderCroppedJpeg } from '@/infrastructure/image-processing/image-pipeline';
-import { centerCropRect } from '@/features/platforms/crop';
+import { cropForDecoded } from '@/features/platforms/crop';
 import type { AspectOption, PlatformPurpose } from '@/features/platforms/platform-profiles';
 
 import { exportFileName } from './file-naming';
@@ -53,8 +53,8 @@ export async function exportPhotos(params: {
   for (let i = 0; i < orderedIds.length; i++) {
     const p = byId.get(orderedIds[i]);
     if (!p) continue;
-    const rect = crops.find((c) => c.photoId === p.id && c.aspect === aspect.id)?.rect ?? centerCropRect(p.width, p.height, aspect.ratio);
-    const rendered = await renderCroppedJpeg(p.localUri, { width: p.width, height: p.height }, rect, purpose.exportMaxSide, 0.9, IS_WEB);
+    const saved = crops.find((c) => c.photoId === p.id && c.aspect === aspect.id)?.rect;
+    const rendered = await renderCroppedJpeg(p.localUri, (decoded) => cropForDecoded(p, decoded, aspect.ratio, saved), purpose.exportMaxSide, 0.9, IS_WEB);
     const fileName = exportFileName(now, purpose.id, i, orderedIds.length);
     const uri = IS_WEB && rendered.base64 ? `data:image/jpeg;base64,${rendered.base64}` : await persistExport(rendered.uri, projectId, fileName);
     // Privacy guard: an exported copy must never carry location metadata.

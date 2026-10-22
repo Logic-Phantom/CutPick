@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import type { CutpickProject } from '@/domain/models';
-import { AppText, BrandLockup, Card, EmptyState, ErrorState, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SectionHeader, elevation, radius, spacing, useColors, type IconName } from '@/design-system';
+import { AppText, BrandLockup, Card, EmptyState, ErrorState, GhostButton, InlineMessage, PrimaryButton, ScreenScroll, SectionHeader, TagList, elevation, radius, spacing, useColors, type IconName } from '@/design-system';
 import { listProjects } from '@/features/project-library/project-repository';
 import { CONTEXT_LABELS } from '@/features/project-library/contexts';
 import { useAppState } from '@/hooks/app-state';
@@ -48,14 +48,7 @@ export default function HomeScreen() {
       <View style={{ gap: spacing.sm }}>
         <BrandLockup size={30} />
         <AppText variant="body" tone="secondary">고른 사진만 기기 안에서 분석해 올릴 사진을 추천해요.</AppText>
-        <View style={styles.pills}>
-          {FEATURES.map((p) => (
-            <View key={p.label} style={[styles.pill, { borderColor: c.border }]}>
-              <Ionicons name={p.icon} size={14} color={c.textSecondary} />
-              <AppText variant="caption" tone="secondary">{p.label}</AppText>
-            </View>
-          ))}
-        </View>
+        <TagList tags={FEATURES} label="주요 기능" />
       </View>
 
       {dbError ? <InlineMessage tone="error" message="로컬 저장소를 열지 못했어요. 앱을 다시 실행해 주세요." /> : null}
@@ -153,8 +146,6 @@ const styles = StyleSheet.create({
   heroCover: { aspectRatio: 16 / 9, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderTopLeftRadius: radius.card - 1, borderTopRightRadius: radius.card - 1 },
   heroBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md },
   ctaIcon: { width: 48, height: 48, borderRadius: radius.button, alignItems: 'center', justifyContent: 'center' },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs, paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.chip, borderWidth: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, borderWidth: 1, minHeight: 72 },
   cover: { width: 56, height: 56, borderRadius: radius.photo, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
 });

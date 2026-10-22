@@ -44,6 +44,12 @@ describe('onboarding choice cards — catalog', () => {
     expect(urls.size).toBe(1);
   });
 
+  it('food-angle cards come from one photographer so only the angle differs (D-046)', () => {
+    const food = choiceCardsFor('preferredFoodAngles');
+    expect(new Set(food.map((c) => c.credit.author)).size).toBe(1);
+    expect(new Set(food.map((c) => c.credit.sourceUrl)).size).toBe(food.length);
+  });
+
   it('maps stored answers back to their photos', () => {
     const picked = pickedChoiceCards({ ...defaultPreference(), preferredFoodAngles: ['table'], preferredPortraitAndOOTDAngles: ['full', 'nope'], preferredFilterStrength: 'light' });
     expect(picked.map((c) => `${c.stepId}:${c.optionId}`)).toEqual(['preferredFoodAngles:table', 'preferredPortraitAndOOTDAngles:full', 'retouch:light']);

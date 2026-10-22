@@ -9,6 +9,7 @@ import type { ImageAttribution, ImageLicense } from './style-cards';
  * Images are bundled (static require), license-checked on Wikimedia Commons (D-032) and listed in
  * the in-app "이미지 출처" page and docs/IMAGE_ASSET_ATTRIBUTIONS.md.
  * The three retouch cards are one CC0 photo edited three ways (none / light / film preset).
+ * Food cards: every photo is a plated dish by one photographer, so only the camera angle differs.
  */
 
 export type ChoiceStepId = 'preferredFoodAngles' | 'preferredPortraitAndOOTDAngles' | 'retouch';
@@ -29,7 +30,7 @@ const CROP = 'Commons 썸네일을 4:5(600×750)로 크롭·축소하고 메타�
 const BY2 = 'https://creativecommons.org/licenses/by/2.0/';
 const CC0 = 'https://creativecommons.org/publicdomain/zero/1.0/';
 
-function commons(file: string, author: string, license: ImageLicense, licenseUrl: string, modifications = CROP): ImageAttribution {
+function commons(file: string, author: string, license: ImageLicense, licenseUrl: string, modifications = CROP, checkedAt = CHECKED): ImageAttribution {
   const name = file.replace(/_/g, ' ');
   return {
     sourceName: 'Wikimedia Commons',
@@ -39,16 +40,20 @@ function commons(file: string, author: string, license: ImageLicense, licenseUrl
     licenseUrl,
     attribution: license === 'CC0 1.0' ? `"${name}" — ${author}, ${license} (퍼블릭 도메인 기증), Wikimedia Commons` : `"${name}" — ${author}, ${license}, Wikimedia Commons`,
     modifications,
-    checkedAt: CHECKED,
+    checkedAt,
   };
 }
 
 const NENAD = 'Nenad Stojkovic';
 const TROLLE = 'Kristoffer Trolle';
+/** Andy Li (Commons: Onthewings) — all five food cards, so the angle is the only thing that changes (D-046). */
+const ANDY = 'Andy Li';
+const FOOD_CHECKED = '2026-10-22';
 const LATTE = 'Latte_-_Taith,_Lewes_2026-07-03.jpg';
+const FOOD_CROP = 'Commons 1920px 렌더를 4:5로 크롭(질문과 관계없는 손·소스병 라벨·벽 글자는 프레임 밖)하고 600×750으로 축소, 메타데이터 없는 sRGB JPEG(품질 85)로 다시 저장. 색 보정·합성 없음';
 
 export const CHOICE_CARDS: ChoiceCard[] = [
-  // 음식 각도
+  // 음식 각도 — 모두 접시에 담긴 요리, 같은 작가·비슷한 카페 조명
   {
     stepId: 'preferredFoodAngles',
     optionId: 'top',
@@ -56,7 +61,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '바로 위에서 내려다본 구도',
     source: require('@/assets/onboarding/food/food-top.jpg'),
     file: 'food/food-top.jpg',
-    credit: commons('Two_black_coffees_and_sugar_from_above._(51535520012).jpg', NENAD, 'CC BY 2.0', BY2),
+    credit: commons('King_prawn_curry_-_Sunoso.jpg', ANDY, 'CC0 1.0', CC0, FOOD_CROP, FOOD_CHECKED),
   },
   {
     stepId: 'preferredFoodAngles',
@@ -65,7 +70,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '눈높이에서 옆으로 본 구도',
     source: require('@/assets/onboarding/food/food-front.jpg'),
     file: 'food/food-front.jpg',
-    credit: commons('Cup_of_whipped_cream_with_sprinkles_with_an_orange_juice_glass_and_three_croissants_behind_it_displayed_on_a_table_(49430317643).jpg', NENAD, 'CC BY 2.0', BY2),
+    credit: commons('Cheddar_Cheese_Beef_Burger_-_Gourmet_Burger_Kitchen_2023-10-03.jpg', ANDY, 'CC0 1.0', CC0, FOOD_CROP, FOOD_CHECKED),
   },
   {
     stepId: 'preferredFoodAngles',
@@ -74,7 +79,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '비스듬히 앉아서 찍은 구도',
     source: require('@/assets/onboarding/food/food-45.jpg'),
     file: 'food/food-45.jpg',
-    credit: commons('Top_view_dessert_of_ice_cream,_chocolate_cake_and_strawberry_juice_on_wooden_table_in_restaurant_(48962119157).jpg', NENAD, 'CC BY 2.0', BY2),
+    credit: commons('Chicken_curry_rice_-_Milk_No_Sugar.jpg', ANDY, 'CC0 1.0', CC0, FOOD_CROP, FOOD_CHECKED),
   },
   {
     stepId: 'preferredFoodAngles',
@@ -83,7 +88,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '질감이 보이게 아주 가까이',
     source: require('@/assets/onboarding/food/food-detail.jpg'),
     file: 'food/food-detail.jpg',
-    credit: commons('Closeup_of_glamour_Valentine_cake_with_heart_decoration._(49479515006).jpg', NENAD, 'CC BY 2.0', BY2),
+    credit: commons('Close_up_of_western_fried_rice.jpg', ANDY, 'CC0 1.0', CC0, FOOD_CROP, FOOD_CHECKED),
   },
   {
     stepId: 'preferredFoodAngles',
@@ -92,7 +97,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '차린 음식을 한 화면에',
     source: require('@/assets/onboarding/food/food-table.jpg'),
     file: 'food/food-table.jpg',
-    credit: commons('Multiple_plates_of_pizza_served_on_wooden_plates_on_display_(49443005697).jpg', NENAD, 'CC BY 2.0', BY2),
+    credit: commons("Mixed_Mushrooms_Joe's_'on_toast'_and_Le_Hash_-_Joe's_Cafe.jpg", ANDY, 'CC0 1.0', CC0, FOOD_CROP, FOOD_CHECKED),
   },
   // 인물·OOTD 구도
   {

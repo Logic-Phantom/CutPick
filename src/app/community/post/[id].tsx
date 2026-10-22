@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
 import {
-  AppText, BottomSheet, DangerButton, EmptyState, FilterChip, GhostButton, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, radius, spacing, useColors,
+  AppText, BottomSheet, DangerButton, EmptyState, FilterChip, GhostButton, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, TagList, radius, spacing, useColors,
 } from '@/design-system';
 import type { FeedPost } from '@/features/community/community-repository';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
@@ -101,10 +101,7 @@ function PostDetail({ id }: { id: string }) {
         </View>
         <HeartButton liked={post.likedByMe} count={post.likeCount} onPress={toggleLike} disabled={post.moderationStatus !== 'visible'} />
       </Row>
-      <Row wrap gap={spacing.xs}>
-        <FilterChip label={categoryLabel(post.category)} selected={false} onPress={() => {}} disabled />
-        {post.styleTags.map((t) => <FilterChip key={t} label={styleLabel(t)} selected={false} onPress={() => {}} disabled />)}
-      </Row>
+      <TagList tags={[{ label: categoryLabel(post.category), icon: 'pricetag-outline' }, ...post.styleTags.map((t) => ({ label: styleLabel(t) }))]} />
       {post.moderationStatus !== 'visible' ? (
         <InlineMessage tone="warning" message={post.moderationStatus === 'pending' ? '운영자 검토 대기 중이라 다른 사람에게는 아직 보이지 않아요.' : '이 게시물은 숨김 처리됐어요.'} />
       ) : null}

@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import {
-  AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, spacing, tapFeedback, useColors,
+  AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, radius, spacing, tapFeedback, useColors,
 } from '@/design-system';
 import { needsAnalysis } from '@/features/image-analysis/analysis-runner';
 import { STYLE_TAG_META } from '@/features/preferences/taste-profile';
@@ -21,6 +21,7 @@ export default function RecommendationsScreen() {
   const { project, photos, output, edit, canUndo, loadError, actions } = useRecommendationEditor(id);
   const [sheetPhotoId, setSheetPhotoId] = useState<string | null>(null);
   const [showAllCandidates, setShowAllCandidates] = useState(false);
+  const [ordering, setOrdering] = useState(false);
 
   const { preference } = useAppState();
   const byId = useMemo(() => new Map((photos ?? []).map((p) => [p.id, p])), [photos]);
@@ -58,6 +59,26 @@ export default function RecommendationsScreen() {
     tapFeedback();
     setSheetPhotoId(pid);
   };
+  // Every reorder path (inline arrows, menu, screen-reader action) reports the new position.
+  const moveAndAnnounce = (pid: string, delta: number) => {
+    const from = selected.indexOf(pid);
+    const to = Math.max(0, Math.min(selected.length - 1, from + delta));
+    if (from < 0 || to === from) return;
+    tapFeedback();
+    actions.move(pid, to - from);
+    AccessibilityInfo.announceForAccessibility(`${to + 1}번째로 옮겼어요`);
+  };
+  const coverAndAnnounce = (pid: string) => {
+    actions.makeCover(pid);
+    AccessibilityInfo.announceForAccessibility('첫 장으로 옮기고 고정했어요');
+  };
+  const reorderActions = (i: number) =>
+    single
+      ? undefined
+      : [
+          ...(i > 0 ? [{ name: 'earlier', label: '앞으로 옮기기' }, { name: 'cover', label: '첫 장으로' }] : []),
+          ...(i < selected.length - 1 ? [{ name: 'later', label: '뒤로 옮기기' }] : []),
+        ];
   const close = () => setSheetPhotoId(null);
   const run = (fn: () => void) => () => {
     fn();
@@ -97,7 +118,10 @@ export default function RecommendationsScreen() {
         <View>
           <SectionHeader
             title={single ? `대표 후보 ${list.length}장` : `추천 묶음 ${selected.length}장`}
-            subtitle={single ? '첫 번째가 선택된 사진이에요. 탭해서 바꿀 수 있어요.' : output.strategy === 'chronological' ? '첫 장은 점수가 가장 높은 사진, 나머지는 촬영 순서예요.' : output.strategy === 'manual' ? '직접 바꾼 순서를 유지하고 있어요.' : '첫 장은 대표 사진, 비슷한 사진이 이어지지 않게 배치했어요.'}
+            subtitle={single ? '첫 번째가 선택된 사진이에요. 탭해서 바꿀 수 있어요.' : ordering ? '화살표로 순서를 바꿔요. 바꾼 순서는 바로 저장돼요.' : output.strategy === 'chronological' ? '첫 장은 점수가 가장 높은 사진, 나머지는 촬영 순서예요.' : output.strategy === 'manual' ? '직접 바꾼 순서를 유지하고 있어요.' : '첫 장은 대표 사진, 비슷한 사진이 이어지지 않게 배치했어요.'}
+            right={!single && selected.length > 1 ? (
+              <GhostButton compact label={ordering ? '완료' : '순서 바꾸기'} icon={ordering ? 'checkmark' : 'swap-horizontal'} onPress={() => setOrdering(!ordering)} testID="rec-reorder-toggle" />
+            ) : null}
           />
           {list.length === 0 ? (
             <EmptyState
@@ -127,9 +151,17 @@ export default function RecommendationsScreen() {
                       topLeft={single ? (i === 0 ? { kind: 'check' } : { kind: 'order', value: i + 1 }) : { kind: 'order', value: i + 1 }}
                       topRight={pinned ? { kind: 'pinned' } : null}
                       bottomLeft={p.duplicateGroupId ? { kind: 'group' } : null}
+                      accessibilityActions={reorderActions(i)}
+                      onAccessibilityAction={(name) => (name === 'cover' ? coverAndAnnounce(pid) : moveAndAnnounce(pid, name === 'earlier' ? -1 : 1))}
                       testID={`rec-${i}`}
                     />
-                    {firstReason ? (
+                    {ordering && !single ? (
+                      <View style={[styles.orderBar, { backgroundColor: c.surfaceSunken }]}>
+                        <IconButton icon="arrow-back" label={`${i + 1}번째 사진을 앞으로`} onPress={() => moveAndAnnounce(pid, -1)} disabled={i === 0} testID={`rec-${i}-earlier`} />
+                        <AppText variant="label" accessibilityElementsHidden importantForAccessibility="no">{i + 1}</AppText>
+                        <IconButton icon="arrow-forward" label={`${i + 1}번째 사진을 뒤로`} onPress={() => moveAndAnnounce(pid, 1)} disabled={i === selected.length - 1} testID={`rec-${i}-later`} />
+                      </View>
+                    ) : firstReason ? (
                       <AppText variant="caption" tone={firstReason.tone === 'caution' ? 'warning' : 'secondary'} numberOfLines={2}>
                         {firstReason.text}
                       </AppText>
@@ -202,8 +234,8 @@ export default function RecommendationsScreen() {
         onExclude={run(() => sheetPhotoId && actions.exclude(sheetPhotoId))}
         onRestore={run(() => sheetPhotoId && actions.restore(sheetPhotoId))}
         onAdd={run(() => sheetPhotoId && actions.add(sheetPhotoId))}
-        onMove={(delta) => sheetPhotoId && actions.move(sheetPhotoId, delta)}
-        onMakeCover={run(() => sheetPhotoId && actions.makeCover(sheetPhotoId))}
+        onMove={(delta) => sheetPhotoId && moveAndAnnounce(sheetPhotoId, delta)}
+        onMakeCover={run(() => sheetPhotoId && coverAndAnnounce(sheetPhotoId))}
         onChooseSingle={run(() => sheetPhotoId && actions.chooseSingle(sheetPhotoId))}
         onSetRepresentative={(pid) => {
           if (!groupId) return;
@@ -215,3 +247,7 @@ export default function RecommendationsScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  orderBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: radius.button },
+});

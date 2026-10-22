@@ -52,10 +52,13 @@ export interface PhotoThumbnailProps {
   topLeft?: SelectionBadgeProps | null;
   topRight?: SelectionBadgeProps | null;
   bottomLeft?: SelectionBadgeProps | null;
+  /** Screen-reader shortcuts (e.g. move earlier/later) so edits never require opening a menu or dragging. */
+  accessibilityActions?: { name: string; label: string }[];
+  onAccessibilityAction?: (name: string) => void;
   testID?: string;
 }
 
-export function PhotoThumbnail({ uri, size, aspect = 1, onPress, onLongPress, accessibilityLabel, selected, dimmed, topLeft, topRight, bottomLeft, testID }: PhotoThumbnailProps) {
+export function PhotoThumbnail({ uri, size, aspect = 1, onPress, onLongPress, accessibilityLabel, selected, dimmed, topLeft, topRight, bottomLeft, accessibilityActions, onAccessibilityAction, testID }: PhotoThumbnailProps) {
   const c = useColors();
   const height = size / aspect;
   return (
@@ -67,6 +70,8 @@ export function PhotoThumbnail({ uri, size, aspect = 1, onPress, onLongPress, ac
       accessibilityRole={onPress ? 'button' : 'image'}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={selected != null ? { selected } : undefined}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction ? (e) => onAccessibilityAction(e.nativeEvent.actionName) : undefined}
       style={({ pressed }) => [{ width: size, height, opacity: pressed ? 0.85 : 1 }]}>
       <View style={[styles.frame, { backgroundColor: c.photoPlaceholder }]}>
         {uri ? (

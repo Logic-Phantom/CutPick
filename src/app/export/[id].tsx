@@ -11,7 +11,7 @@ import {
 } from '@/design-system';
 import { buildCaption } from '@/features/captions/caption-templates';
 import { exportPhotos, IS_EXPO_GO_ANDROID, IS_WEB, saveToLibrary, shareFile, type ExportedFile } from '@/features/export-share/export-service';
-import { centerCropRect, shiftCrop } from '@/features/platforms/crop';
+import { centerCropRect, cropOffset, shiftCrop } from '@/features/platforms/crop';
 import { getAspect, getPurpose } from '@/features/platforms/platform-profiles';
 import { getProject, latestRecommendationSet, listPhotos, saveRecommendationSet } from '@/features/project-library/project-repository';
 
@@ -65,13 +65,7 @@ export default function ExportScreen() {
   const tileW = Math.min(220, (width - spacing.md * 2) * 0.62);
 
   const cropFor = (p: PhotoAsset) => set.cropPreferences.find((cp) => cp.photoId === p.id && cp.aspect === aspect.id)?.rect ?? centerCropRect(p.width, p.height, aspect.ratio);
-  const offsetFor = (p: PhotoAsset) => {
-    const r = cropFor(p);
-    const base = centerCropRect(p.width, p.height, aspect.ratio);
-    if (r.width < 1) return Math.round((r.x - base.x) / Math.max(base.x, 1e-6));
-    if (r.height < 1) return Math.round((r.y - base.y) / Math.max(base.y, 1e-6));
-    return 0;
-  };
+  const offsetFor = (p: PhotoAsset) => cropOffset(cropFor(p), p.width, p.height, aspect.ratio);
   const setOffset = (p: PhotoAsset, v: number) => {
     const rect = shiftCrop(centerCropRect(p.width, p.height, aspect.ratio), v);
     const others = set.cropPreferences.filter((cp) => !(cp.photoId === p.id && cp.aspect === aspect.id));

@@ -3,6 +3,7 @@ import * as jpeg from 'jpeg-js';
 
 import { AppError } from '@/domain/errors';
 import type { RgbaImage } from '@/features/image-analysis/pixel-metrics';
+import { cropToPixels, fitLongestSide as outputSize, type NormRect } from '@/features/platforms/crop';
 import { base64ToBytes } from '@/utils/base64';
 
 /**
@@ -59,27 +60,31 @@ export async function renderJpeg(
   }
 }
 
-/** Crops (normalized rect) and resizes, returning a JPEG suitable for export or upload. */
+/**
+ * Crops and resizes, returning a JPEG suitable for export or upload. The crop is computed from the
+ * size of the bitmap as decoded (`rectFor`), not from stored picker dimensions, so EXIF-rotated or
+ * mis-sized sources still come out at the requested ratio without clamping (see cropForDecoded).
+ */
 export async function renderCroppedJpeg(
   uri: string,
-  size: Size,
-  rect: { x: number; y: number; width: number; height: number },
+  rectFor: (decoded: Size) => NormRect,
   maxSide: number,
   quality: number,
   withBase64 = false,
 ): Promise<RenderedJpeg> {
+  let srcCtx: ImageManipulatorContext | null = null;
+  let src: ImageRef | null = null;
   let ctx: ImageManipulatorContext | null = null;
   let ref: ImageRef | null = null;
   try {
-    ctx = ImageManipulator.manipulate(uri);
-    const crop = {
-      originX: Math.round(rect.x * size.width),
-      originY: Math.round(rect.y * size.height),
-      width: Math.max(1, Math.round(rect.width * size.width)),
-      height: Math.max(1, Math.round(rect.height * size.height)),
-    };
+    srcCtx = ImageManipulator.manipulate(uri);
+    src = await srcCtx.renderAsync();
+    const decoded = { width: src.width, height: src.height };
+    const crop = cropToPixels(rectFor(decoded), decoded);
+    const target = outputSize(crop, maxSide);
+    ctx = ImageManipulator.manipulate(src);
     ctx.crop(crop);
-    ctx.resize(fitLongestSide({ width: crop.width, height: crop.height }, maxSide));
+    if (target.width !== crop.width) ctx.resize({ width: target.width });
     ref = await ctx.renderAsync();
     const out = await ref.saveAsync({ format: SaveFormat.JPEG, compress: quality, base64: withBase64 });
     return { uri: out.uri, width: out.width, height: out.height, base64: out.base64 };
@@ -88,6 +93,8 @@ export async function renderCroppedJpeg(
   } finally {
     release(ref);
     release(ctx);
+    release(src);
+    release(srcCtx);
   }
 }
 
