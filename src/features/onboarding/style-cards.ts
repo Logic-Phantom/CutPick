@@ -20,13 +20,17 @@ export const STYLE_CATEGORIES: { id: StyleCategoryId | 'all'; label: string; hin
   { id: 'scene', label: '장면', hint: '장면은 자동으로 분류하지 않아요. 사진에 직접 붙인 장면 태그와 맞을 때만 반영해요.' },
 ];
 
-/** Licenses accepted for bundled reference photos (commercial use + redistribution allowed, no share-alike). */
-export const ALLOWED_IMAGE_LICENSES = ['CC0 1.0', 'Public domain', 'CC BY 2.0', 'CC BY 2.5', 'CC BY 3.0', 'CC BY 4.0'] as const;
+/**
+ * Licenses accepted for bundled reference photos (commercial use + redistribution allowed, no share-alike).
+ * '소유자 제공' = images the project owner supplied and confirmed usable in the app (D-047); they have no
+ * public source page, so their record names the owner's confirmation instead.
+ */
+export const ALLOWED_IMAGE_LICENSES = ['CC0 1.0', 'Public domain', 'CC BY 2.0', 'CC BY 2.5', 'CC BY 3.0', 'CC BY 4.0', '소유자 제공'] as const;
 export type ImageLicense = (typeof ALLOWED_IMAGE_LICENSES)[number];
 
 export interface ImageAttribution {
-  sourceName: 'Wikimedia Commons';
-  /** File page the license was read from. */
+  sourceName: 'Wikimedia Commons' | '프로젝트 소유자 제공';
+  /** File page the license was read from; empty for owner-provided images. */
   sourceUrl: string;
   author: string;
   license: ImageLicense;

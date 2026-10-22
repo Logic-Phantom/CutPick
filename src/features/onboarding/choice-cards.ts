@@ -44,6 +44,20 @@ function commons(file: string, author: string, license: ImageLicense, licenseUrl
   };
 }
 
+/** Images the project owner supplied for the app (D-047): no public source page, the owner confirmed use. */
+function ownerProvided(description: string): ImageAttribution {
+  return {
+    sourceName: '프로젝트 소유자 제공',
+    sourceUrl: '',
+    author: 'CutPick 프로젝트 소유자 제공',
+    license: '소유자 제공',
+    licenseUrl: '',
+    attribution: `${description} — CutPick 프로젝트 소유자 제공 이미지(앱 내 사용 허락)`,
+    modifications: '소유자가 준 콜라주 이미지(1536×1024)에서 한 칸을 4:5로 잘라 600×750으로 확대(약 1.9배, 약한 선명화), 메타데이터 없는 JPEG(품질 88)로 저장. 색 보정·합성 없음',
+    checkedAt: '2026-10-22',
+  };
+}
+
 const NENAD = 'Nenad Stojkovic';
 const TROLLE = 'Kristoffer Trolle';
 /** Andy Li (Commons: Onthewings) — all five food cards, so the angle is the only thing that changes (D-046). */
@@ -134,7 +148,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '아래에서 올려 찍어 길어 보이게',
     source: require('@/assets/onboarding/portrait/portrait-low.jpg'),
     file: 'portrait/portrait-low.jpg',
-    credit: commons('Deserttour_24_(25790248628).jpg', 'Greger Ravik', 'CC BY 2.0', BY2),
+    credit: ownerProvided('로우 앵글 — 하늘을 배경으로 아래에서 올려 찍은 전신(얼굴은 옷깃·모자에 가림)'),
   },
   {
     stepId: 'preferredPortraitAndOOTDAngles',
@@ -143,7 +157,7 @@ export const CHOICE_CARDS: ChoiceCard[] = [
     description: '거울에 비친 모습을 직접',
     source: require('@/assets/onboarding/portrait/portrait-mirror.jpg'),
     file: 'portrait/portrait-mirror.jpg',
-    credit: commons('November_-_Flickr_-_MonikaMurren.jpg', 'MonikaMurren from Beacon, NY, United States', 'CC BY 2.0', BY2),
+    credit: ownerProvided('거울샷 — 전신 거울 앞에서 휴대폰으로 얼굴을 가린 셀카'),
   },
   {
     stepId: 'preferredPortraitAndOOTDAngles',

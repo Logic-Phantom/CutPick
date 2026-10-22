@@ -78,10 +78,22 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
 ```
 
 ## 커뮤니티(선택) 설정
-1. Supabase Free 프로젝트 생성 → `supabase/migrations/20261018000000_community_init.sql` 적용(`supabase db push` 또는 SQL 편집기).
-2. `.env.example`을 `.env.local`로 복사해 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL` 입력. **service_role 키는 절대 넣지 않는다.**
-3. 값이 비어 있으면 커뮤니티는 "서버 미설정" 화면을 보여 주고 나머지 기능은 그대로 동작한다.
-4. 운영 절차와 출시 체크리스트: `docs/UGC_SAFETY.md`. 운영자 없이 공개 출시하지 않는다.
+값이 비어 있으면 커뮤니티 탭은 "서버 미설정" 화면을 보여 주고 나머지 기능은 그대로 동작한다. 켜려면 아래를 **프로젝트 소유자가 직접** 한다(계정 생성·키 입력은 대신할 수 없음).
+
+1. **Supabase 프로젝트 만들기**: https://supabase.com → New project(Free 플랜, 리전은 사용자와 가까운 곳 예: Northeast Asia (Seoul)). DB 비밀번호는 앱에 넣지 않는다.
+2. **스키마 적용**: 대시보드 → SQL Editor → `supabase/migrations/20261018000000_community_init.sql` 전체를 붙여 넣고 Run. (CLI를 쓴다면 `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.) 테이블 6개(RLS 켜짐), 트리거, `get_feed`·`get_my_blocks`·`delete_my_account` 함수, 공개 스토리지 버킷 `post-images`(JPEG, 2MB)가 생긴다.
+3. **이메일 로그인(OTP) 설정**: Authentication → Sign In / Providers → Email 켜기. Authentication → Emails → "Magic Link" 템플릿 본문에 6자리 코드 `{{ .Token }}`를 넣는다(앱은 링크가 아니라 코드를 입력받음). 무료 기본 메일 발송은 시간당 몇 통으로 제한되므로 테스트 이상이면 SMTP(Resend 등)를 연결한다.
+4. **앱 키 넣기**: Project Settings → API Keys에서 **Publishable key**(또는 legacy anon key)와 Project URL을 복사 → `.env.example`을 `.env.local`로 복사해 입력:
+   ```
+   EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
+   EXPO_PUBLIC_SUPPORT_EMAIL=<문의 받을 이메일>
+   ```
+   **service_role / secret 키, DB 비밀번호는 절대 넣지 않는다**(앱 번들에 그대로 들어감). `.env.local`은 git에 올라가지 않는다.
+5. **다시 시작**: `npx.cmd expo start --clear`(환경 변수는 번들할 때 들어가므로 재시작 필요). 독립 APK는 다시 빌드해야 반영된다.
+6. **동작 확인**: 커뮤니티 탭 → 로그인(이메일 코드) → 핸들 만들기 → 추천 결과에서 사진을 눌러 "이 사진을 커뮤니티에 공유" → 4개 동의 → 게시. 기본값이 **운영자 승인 후 공개**라 피드에는 바로 안 보인다 → 대시보드 Table Editor → `posts`에서 `moderation_status`를 `pending` → `visible`로 바꾸면 피드에 나온다.
+7. **운영 설정(대시보드 `community_settings` 행)**: `require_review`(기본 true, 끄면 즉시 공개 — 운영자 없으면 끄지 말 것), `daily_post_limit`(기본 5), `uploads_enabled`(한도 근접 시 false). 신고 처리·차단·저작권 절차는 `docs/UGC_SAFETY.md`.
+8. **공개 전 필수 검증**: `supabase/tests/rls_test.sql` 실행(RLS 격리·비인가 삭제·하트 중복·경로 위조), 차단·신고·게시물/계정 삭제 후 스토리지 잔존 확인, 지원 이메일·약관 법률 검토·연령 정책. **운영할 사람이 없으면 공개 출시하지 않는다**(현재는 지인 대상 제한 테스트 단계).
 
 ## 테스트·검사
 ```bash
@@ -391,3 +403,9 @@ npm test
 - **환경**: `.claude/launch.json` 웹 미리보기 실행을 Windows용 `npx.cmd expo start --web`으로 되돌림.
 - **명령·결과**: `npx jest` 12 suites / **127 tests 통과**, `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0.
 - **GitHub**: 위 변경을 한 커밋으로 `main`에 커밋하고 https://github.com/Logic-Phantom/CutPick 의 `main`으로 푸시(사용자 요청). 조사용 썸네일 시트(`.device/gallery/`)와 다운로드 원본은 git 무시·스크래치 폴더라 올리지 않음.
+
+### 2026-10-22 — 인물 거울샷·로우 앵글 교체, 커뮤니티 활성화 준비
+- **인물 카드 2장 교체(D-047)**: 사용자가 준 콜라주(거울샷 4칸·로우 앵글 4칸, 1536×1024)에서 거울샷은 1행 1번째(아치형 전신 거울, 휴대폰으로 얼굴 가림), 로우 앵글은 2행 4번째(하늘 배경으로 올려 찍은 전신)를 4:5로 잘라 600×750 저장. 원본 칸이 약 314×392라 **약 1.9배 확대**(약한 선명화)해 다른 카드보다 디테일이 약함. 출처 모델에 "프로젝트 소유자 제공 / 소유자 제공"을 추가해 앱 "이미지 출처"에 표시, 이 두 장 외에는 쓰지 못하게 테스트로 고정. **출시 전 확인**: 원 촬영자 또는 구매·생성 경로와 사용 허락 범위를 문서로 남길 것(`docs/IMAGE_ASSET_ATTRIBUTIONS.md`).
+- **커뮤니티 활성화 준비(D-048)**: 백엔드(마이그레이션·RLS·트리거·RPC·스토리지)와 피드·하트·신고·차단·게시·삭제 화면은 이미 있었고, 켜려면 소유자의 Supabase 프로젝트와 `.env.local`이 필요함 → README "커뮤니티(선택) 설정"을 8단계 절차(프로젝트 생성, SQL 적용, 이메일 OTP 템플릿 `{{ .Token }}`, publishable key, 재시작, 동작 확인·승인, 운영 설정, 공개 전 검증)로 다시 씀. 코드: 추천 결과 사진 시트에 "이 사진을 커뮤니티에 공유"(서버 설정 시·묶음 사진만), 게시 화면에 "검토 후 공개·언제든 삭제 가능" 안내와 게시 후 "추천 결과로 돌아가기", 빈 피드 안내 문구 갱신. 피드 최신순·운영자 승인 기본값·댓글 없음은 유지.
+- **검증**: `npx jest` 12 suites / **128 tests 통과**, `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0. 웹 미리보기에서 새 거울샷 카드 표시, 이미지 출처 화면의 "소유자 제공" 표기 확인. **미검증**: Supabase 실연동 전체(이 PC에는 프로젝트·키 없음), 서버 설정 상태의 공유 버튼 표시(설정 전에는 숨김이 정상).
+- **GitHub**: `main`에 커밋·푸시(사용자 요청).

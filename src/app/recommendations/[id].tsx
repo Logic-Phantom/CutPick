@@ -5,6 +5,7 @@ import { AccessibilityInfo, ActivityIndicator, StyleSheet, View, useWindowDimens
 import {
   AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, radius, spacing, tapFeedback, useColors,
 } from '@/design-system';
+import { SUPABASE_CONFIGURED } from '@/features/community/supabase-client';
 import { needsAnalysis } from '@/features/image-analysis/analysis-runner';
 import { STYLE_TAG_META } from '@/features/preferences/taste-profile';
 import { useAppState } from '@/hooks/app-state';
@@ -243,6 +244,7 @@ export default function RecommendationsScreen() {
           setSheetPhotoId(pid); // keep the sheet on the photo that now represents the group
         }}
         onOpenDetail={run(() => sheetPhotoId && router.push(`/photo/${sheetPhotoId}`))}
+        onShareToCommunity={SUPABASE_CONFIGURED && position >= 0 ? run(() => sheetPhotoId && router.push({ pathname: '/community/publish', params: { photoId: sheetPhotoId } })) : undefined}
       />
     </View>
   );

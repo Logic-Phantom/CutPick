@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
 import type { PhotoAsset } from '@/domain/models';
-import { AppText, BottomBar, Card, FilterChip, InlineMessage, PrimaryButton, Row, ScreenScroll, radius, spacing, useColors } from '@/design-system';
+import { AppText, BottomBar, Card, FilterChip, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
 import { COMMUNITY_LIMITS, POST_CATEGORIES, STYLE_TAGS, type PostCategory, type StyleTag } from '@/features/community/moderation-policy';
 import { publishPhoto } from '@/features/community/post-service';
@@ -70,6 +70,7 @@ function PublishForm({ photoId }: { photoId: string }) {
           message={done === 'pending' ? '운영자 검토 후 피드에 보여요. 내 게시물에서 상태를 확인하거나 삭제할 수 있어요.' : '피드에 공개됐어요.'}
         />
         <PrimaryButton label="내 게시물 보기" onPress={() => router.replace('/community/my-posts')} />
+        {router.canGoBack() ? <SecondaryButton label="추천 결과로 돌아가기" icon="arrow-back" onPress={() => router.back()} /> : null}
       </ScreenScroll>
     );
   }
@@ -87,6 +88,9 @@ function PublishForm({ photoId }: { photoId: string }) {
             <AppText variant="secondary">· 고른 카테고리와 스타일 태그</AppText>
             <AppText variant="bodyStrong" style={{ marginTop: spacing.xs }}>업로드되지 않는 것</AppText>
             <AppText variant="secondary">· 원본 파일, 위치(GPS)·촬영기기 등 EXIF 정보, 프로젝트의 다른 사진, 분석 기록, 취향 정보</AppText>
+            <AppText variant="bodyStrong" style={{ marginTop: spacing.xs }}>공개 후</AppText>
+            <AppText variant="secondary">· 운영자 검토가 끝나면 피드에 최신순으로 보여요. 검토 중에는 나만 볼 수 있어요.</AppText>
+            <AppText variant="secondary">· 내 게시물에서 언제든 삭제할 수 있어요. 받은 하트도 함께 지워져요.</AppText>
           </View>
         </Card>
 

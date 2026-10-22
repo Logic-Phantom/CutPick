@@ -26,6 +26,8 @@ export interface PhotoActionSheetProps {
   onChooseSingle: () => void;
   onSetRepresentative: (photoId: string) => void;
   onOpenDetail: () => void;
+  /** Present only when the community server is configured and the photo is part of the result. */
+  onShareToCommunity?: () => void;
 }
 
 const TONE_ICON = { positive: 'add-circle', info: 'information-circle', caution: 'alert-circle' } as const;
@@ -100,6 +102,12 @@ export function PhotoActionSheet(p: PhotoActionSheetProps) {
         </View>
       ) : null}
 
+      {p.onShareToCommunity && !p.excluded ? (
+        <View style={{ gap: spacing.xxs }}>
+          <SecondaryButton label="이 사진을 커뮤니티에 공유" icon="heart-outline" onPress={p.onShareToCommunity} compact testID="sheet-share-community" />
+          <AppText variant="caption" tone="tertiary">이 사진 한 장의 공유용 사본만 올라가요. 공유하지 않아도 추천 결과는 그대로예요.</AppText>
+        </View>
+      ) : null}
       <SecondaryButton label="크게 보기·상세 정보" icon="expand-outline" onPress={p.onOpenDetail} compact />
     </BottomSheet>
   );

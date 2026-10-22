@@ -32,6 +32,14 @@ describe('onboarding choice cards — catalog', () => {
     for (const card of CHOICE_CARDS) {
       const cr = card.credit;
       expect(ALLOWED_IMAGE_LICENSES).toContain(cr.license);
+      if (cr.license === '소유자 제공') {
+        // D-047: owner-supplied images have no public page; the record must say so explicitly.
+        expect(cr.sourceName).toBe('프로젝트 소유자 제공');
+        expect(cr.sourceUrl).toBe('');
+        expect(cr.attribution).toContain('소유자 제공');
+        continue;
+      }
+      expect(cr.sourceName).toBe('Wikimedia Commons');
       expect(cr.sourceUrl).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
       expect(cr.attribution).toContain(cr.license);
       if (cr.license.startsWith('CC BY')) expect(cr.attribution).toContain(cr.author);
@@ -48,6 +56,11 @@ describe('onboarding choice cards — catalog', () => {
     const food = choiceCardsFor('preferredFoodAngles');
     expect(new Set(food.map((c) => c.credit.author)).size).toBe(1);
     expect(new Set(food.map((c) => c.credit.sourceUrl)).size).toBe(food.length);
+  });
+
+  it('owner-provided images are only the mirror and low-angle cards', () => {
+    const owner = CHOICE_CARDS.filter((c) => c.credit.license === '소유자 제공').map((c) => c.optionId).sort();
+    expect(owner).toEqual(['low', 'mirror']);
   });
 
   it('maps stored answers back to their photos', () => {

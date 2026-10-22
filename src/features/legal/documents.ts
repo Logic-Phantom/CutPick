@@ -14,7 +14,7 @@ export interface LegalDoc {
 }
 
 function creditBody(c: ImageAttribution): string {
-  return [c.attribution, `라이선스: ${c.license}${c.licenseUrl ? ` (${c.licenseUrl})` : ''}`, `원본: ${c.sourceUrl}`, `변경: ${c.modifications}`].join('\n');
+  return [c.attribution, `라이선스: ${c.license}${c.licenseUrl ? ` (${c.licenseUrl})` : ''}`, c.sourceUrl ? `원본: ${c.sourceUrl}` : `출처: ${c.sourceName}`, `변경: ${c.modifications}`].join('\n');
 }
 
 const CONTACT =SUPPORT_EMAIL ? `문의: ${SUPPORT_EMAIL}` : '문의 연락처가 이 빌드에 설정되지 않았어요(EXPO_PUBLIC_SUPPORT_EMAIL). 공개 출시 전 반드시 설정해야 해요.';

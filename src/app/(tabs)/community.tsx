@@ -101,7 +101,7 @@ function Feed() {
         posts == null && !error ? (
           <ActivityIndicator style={{ marginTop: spacing.xl }} />
         ) : !error ? (
-          <EmptyState title="아직 게시물이 없어요" message="추천 결과의 저장·공유 화면에서 마음에 드는 사진을 공개할 수 있어요." />
+          <EmptyState title="아직 게시물이 없어요" message="추천 결과에서 사진을 눌러 '커뮤니티에 공유'를 고르거나, 저장·공유 화면에서 공개할 수 있어요. 첫 게시물은 운영자 검토 후 보여요." />
         ) : undefined
       }
       ListFooterComponent={loadingMore ? <ActivityIndicator /> : undefined}
