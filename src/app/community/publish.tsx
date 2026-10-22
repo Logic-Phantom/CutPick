@@ -89,7 +89,8 @@ function PublishForm({ photoId }: { photoId: string }) {
             <AppText variant="bodyStrong" style={{ marginTop: spacing.xs }}>업로드되지 않는 것</AppText>
             <AppText variant="secondary">· 원본 파일, 위치(GPS)·촬영기기 등 EXIF 정보, 프로젝트의 다른 사진, 분석 기록, 취향 정보</AppText>
             <AppText variant="bodyStrong" style={{ marginTop: spacing.xs }}>공개 후</AppText>
-            <AppText variant="secondary">· 운영자 검토가 끝나면 피드에 최신순으로 보여요. 검토 중에는 나만 볼 수 있어요.</AppText>
+            <AppText variant="secondary">· 공개하면 바로 피드 맨 앞(최신순)에 보여요.</AppText>
+            <AppText variant="secondary">· 여러 사람이 신고하면 운영자 확인 전까지 자동으로 숨겨져요.</AppText>
             <AppText variant="secondary">· 내 게시물에서 언제든 삭제할 수 있어요. 받은 하트도 함께 지워져요.</AppText>
           </View>
         </Card>

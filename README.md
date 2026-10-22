@@ -81,7 +81,7 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
 값이 비어 있으면 커뮤니티 탭은 "서버 미설정" 화면을 보여 주고 나머지 기능은 그대로 동작한다. 켜려면 아래를 **프로젝트 소유자가 직접** 한다(계정 생성·키 입력은 대신할 수 없음).
 
 1. **Supabase 프로젝트 만들기**: https://supabase.com → New project(Free 플랜, 리전은 사용자와 가까운 곳 예: Northeast Asia (Seoul)). DB 비밀번호는 앱에 넣지 않는다.
-2. **스키마 적용**: 대시보드 → SQL Editor → `supabase/migrations/20261018000000_community_init.sql` 전체를 붙여 넣고 Run. (CLI를 쓴다면 `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.) 테이블 6개(RLS 켜짐), 트리거, `get_feed`·`get_my_blocks`·`delete_my_account` 함수, 공개 스토리지 버킷 `post-images`(JPEG, 2MB)가 생긴다.
+2. **스키마 적용**: 대시보드 → SQL Editor → `supabase/migrations/20261018000000_community_init.sql` 전체를 붙여 넣고 Run → 이어서 `supabase/migrations/20261022000000_instant_publish.sql`도 Run(올리면 바로 공개, D-049). (CLI를 쓴다면 `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.) 테이블 6개(RLS 켜짐), 트리거, `get_feed`·`get_my_blocks`·`delete_my_account` 함수, 공개 스토리지 버킷 `post-images`(JPEG, 2MB)가 생긴다.
 3. **이메일 로그인(OTP) 설정**: Authentication → Sign In / Providers → Email 켜기. Authentication → Emails → "Magic Link" 템플릿 본문에 6자리 코드 `{{ .Token }}`를 넣는다(앱은 링크가 아니라 코드를 입력받음). 무료 기본 메일 발송은 시간당 몇 통으로 제한되므로 테스트 이상이면 SMTP(Resend 등)를 연결한다.
 4. **앱 키 넣기**: Project Settings → API Keys에서 **Publishable key**(또는 legacy anon key)와 Project URL을 복사 → `.env.example`을 `.env.local`로 복사해 입력:
    ```
@@ -91,8 +91,8 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
    ```
    **service_role / secret 키, DB 비밀번호는 절대 넣지 않는다**(앱 번들에 그대로 들어감). `.env.local`은 git에 올라가지 않는다.
 5. **다시 시작**: `npx.cmd expo start --clear`(환경 변수는 번들할 때 들어가므로 재시작 필요). 독립 APK는 다시 빌드해야 반영된다.
-6. **동작 확인**: 커뮤니티 탭 → 로그인(이메일 코드) → 핸들 만들기 → 추천 결과에서 사진을 눌러 "이 사진을 커뮤니티에 공유" → 4개 동의 → 게시. 기본값이 **운영자 승인 후 공개**라 피드에는 바로 안 보인다 → 대시보드 Table Editor → `posts`에서 `moderation_status`를 `pending` → `visible`로 바꾸면 피드에 나온다.
-7. **운영 설정(대시보드 `community_settings` 행)**: `require_review`(기본 true, 끄면 즉시 공개 — 운영자 없으면 끄지 말 것), `daily_post_limit`(기본 5), `uploads_enabled`(한도 근접 시 false). 신고 처리·차단·저작권 절차는 `docs/UGC_SAFETY.md`.
+6. **동작 확인**: 커뮤니티 탭 → 로그인(이메일 코드) → 핸들 만들기 → 추천 결과에서 사진을 눌러 "이 사진을 커뮤니티에 공유" → 4개 동의 → 게시 → **바로 피드 맨 앞에 보이면 정상**(인스타처럼 즉시 공개). 다른 계정으로 신고 3건이 쌓이면 자동으로 숨겨지는 것도 확인.
+7. **운영 설정(대시보드 `community_settings` 행)**: `require_review`(false = 즉시 공개, 문제가 생기면 true로 바꿔 승인제로 되돌림), `auto_hide_report_threshold`(서로 다른 신고자 몇 명이면 자동 숨김, 기본 3), `daily_post_limit`(기본 5), `uploads_enabled`(한도 근접 시 false). 즉시 공개라 **신고 확인을 매일** 해야 한다. 신고 처리·차단·저작권 절차는 `docs/UGC_SAFETY.md`.
 8. **공개 전 필수 검증**: `supabase/tests/rls_test.sql` 실행(RLS 격리·비인가 삭제·하트 중복·경로 위조), 차단·신고·게시물/계정 삭제 후 스토리지 잔존 확인, 지원 이메일·약관 법률 검토·연령 정책. **운영할 사람이 없으면 공개 출시하지 않는다**(현재는 지인 대상 제한 테스트 단계).
 
 ## 테스트·검사
@@ -241,13 +241,13 @@ npm test
 3. **Supabase 실검증 (Phase 4 마무리)**
    - Supabase Free 프로젝트 생성 → `supabase/migrations/20261018000000_community_init.sql` 적용
    - `supabase/tests/rls_test.sql` 실행(로컬 `supabase start` 또는 일회용 프로젝트) → 결과를 `docs/TESTING.md`에 기록
-   - `.env.local`에 URL·publishable key·지원 이메일 → 이메일 OTP 로그인, 프로필, 게시(검토 대기→대시보드 승인), 하트, 신고, 차단, 게시물·계정 삭제 후 스토리지 잔존 확인
+   - `.env.local`에 URL·publishable key·지원 이메일 → 이메일 OTP 로그인, 프로필, 게시(즉시 공개, D-049), 하트, 신고, 차단, 게시물·계정 삭제 후 스토리지 잔존 확인
    - Supabase 대시보드 Auth 설정에서 이메일 OTP 템플릿에 6자리 코드가 포함되는지 확인
    - **검증 전 공개 출시 금지:** RLS 격리, 비인가 삭제, 하트 중복 방지, 양방향 차단, 신고 저장/자동 숨김, 게시물·계정 삭제 시 스토리지 정리, 권한 거부·네트워크 실패 처리를 실서버에서 확인한다.
 
 4. **커뮤니티 UX·활성화 — 실서버 보안 검증 이후**
    - 커뮤니티는 CutPick의 주 기능을 대체하는 SNS가 아니라 **베스트샷 추천 결과를 공유하고 다른 촬영 사례를 발견하는 선택 기능**으로 유지한다. 로그인·게시를 강제하지 않고, 커뮤니티 서버가 없어도 로컬 기능은 계속 동작해야 한다.
-   - **첫 공개 범위:** 승인된 게시물 피드, 최신순 정렬, 카테고리 필터(여행/카페/음식/OOTD/일상), 하트, 내 게시물 삭제, 신고, 차단/해제, 게시 상태 안내만 제공한다. 댓글·DM·팔로워·싫어요·외모 평가·인기 랭킹은 추가하지 않는다.
+   - **첫 공개 범위:** 공개 게시물 피드(올리면 즉시 공개, 신고로 사후 관리 — D-049), 최신순 정렬, 카테고리 필터(여행/카페/음식/OOTD/일상), 하트, 내 게시물 삭제, 신고, 차단/해제, 게시 상태 안내만 제공한다. 댓글·DM·팔로워·싫어요·외모 평가·인기 랭킹은 추가하지 않는다.
    - **게시 진입점:** 추천 결과에서 사용자가 명시적으로 선택한 사진에 한해 “커뮤니티에 공유”를 제공한다. 공개 전 미리보기에서 이미지·카테고리·공개 범위·삭제 가능 여부를 확인시키고 별도 동의를 받는다. 분석을 위해 고른 사진 전체나 게시하지 않은 원본은 업로드하지 않는다.
    - **피드 기본 원칙:** 초기에는 최신순을 기본값으로 사용한다. 하트 수 기반 인기순을 기본으로 두지 않아 신규 게시물이 묻히는 문제를 줄인다. 추천 피드는 이용 데이터가 쌓인 후 별도 실험으로 검토한다.
    - **활성화 아이디어 1 — 오늘의 픽(Daily Pick):** 하루 또는 주 단위로 촬영 주제를 제안한다. 참여는 선택 사항이며, 주제별 게시물은 별도 탭/필터로 모은다. 자동 게시나 연속 참여 압박은 금지한다.
@@ -409,3 +409,11 @@ npm test
 - **커뮤니티 활성화 준비(D-048)**: 백엔드(마이그레이션·RLS·트리거·RPC·스토리지)와 피드·하트·신고·차단·게시·삭제 화면은 이미 있었고, 켜려면 소유자의 Supabase 프로젝트와 `.env.local`이 필요함 → README "커뮤니티(선택) 설정"을 8단계 절차(프로젝트 생성, SQL 적용, 이메일 OTP 템플릿 `{{ .Token }}`, publishable key, 재시작, 동작 확인·승인, 운영 설정, 공개 전 검증)로 다시 씀. 코드: 추천 결과 사진 시트에 "이 사진을 커뮤니티에 공유"(서버 설정 시·묶음 사진만), 게시 화면에 "검토 후 공개·언제든 삭제 가능" 안내와 게시 후 "추천 결과로 돌아가기", 빈 피드 안내 문구 갱신. 피드 최신순·운영자 승인 기본값·댓글 없음은 유지.
 - **검증**: `npx jest` 12 suites / **128 tests 통과**, `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0. 웹 미리보기에서 새 거울샷 카드 표시, 이미지 출처 화면의 "소유자 제공" 표기 확인. **미검증**: Supabase 실연동 전체(이 PC에는 프로젝트·키 없음), 서버 설정 상태의 공유 버튼 표시(설정 전에는 숨김이 정상).
 - **GitHub**: `main`에 커밋·푸시(사용자 요청).
+
+### 2026-10-22 — 커뮤니티 즉시 공개로 변경 (D-049)
+- 사용자 결정: 인스타처럼 운영자 승인 없이 올리면 바로 공개. 새 마이그레이션 `supabase/migrations/20261022000000_instant_publish.sql`(`require_review` 기본값 false + 기존 설정 행 false)을 추가 — 이미 첫 SQL을 실행한 프로젝트는 이 파일만 SQL Editor에서 한 번 더 실행하면 된다.
+- 앱 문구: 게시 화면 "공개하면 바로 피드 맨 앞에 보여요 / 여러 사람이 신고하면 자동으로 숨겨져요", 빈 피드 "올리면 바로 여기에 보여요", 커뮤니티 가이드라인 "공개와 관리"(즉시 공개·사후 관리) — 가이드라인 갱신일 2026-10-22.
+- 문서: README 설정 절차 2·6·7단계, `docs/UGC_SAFETY.md`(필터링 항목·운영 절차), DECISIONS D-049(D-018 대체).
+- 안전장치는 그대로(게시 전 동의 4개, 하루 5건, 신고 3명 자동 숨김, 차단, 운영자 삭제). 즉시 공개라 **매일 신고·신규 게시물 확인**이 필요하고, 문제가 생기면 대시보드에서 `require_review=true`로 승인제 복귀 가능.
+- **미검증**: 실제 Supabase에서 즉시 공개·자동 숨김 동작(소유자 프로젝트에서 확인 필요).
+- **GitHub**: `main`에 커밋·푸시.
