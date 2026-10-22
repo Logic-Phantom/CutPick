@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { isRunningInExpoGo } from 'expo';
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -16,7 +18,7 @@ import type {
   NewPostInput,
 } from './community-repository';
 import { COMMUNITY_LIMITS, isValidCategory, sanitizeStyleTags, validateHandle, type ReportReason } from './moderation-policy';
-import { AUTH_CALLBACK_PATH, enabledSocialProviders, parseAuthCallback, type SocialProviderId } from './social-auth';
+import { AUTH_CALLBACK_PATH, enabledSocialProviders, expoGoCallbackUrl, parseAuthCallback, type SocialProviderId } from './social-auth';
 import { fetchAuthSettings, getSupabase } from './supabase-client';
 
 const BUCKET = 'post-images';
@@ -119,7 +121,8 @@ export class SupabaseCommunityRepository implements CommunityRepository {
   }
 
   async signInWithProvider(provider: SocialProviderId): Promise<CommunitySession | null> {
-    const redirectTo = Linking.createURL(AUTH_CALLBACK_PATH);
+    const hostUri = isRunningInExpoGo() ? Constants.expoConfig?.hostUri : undefined;
+    const redirectTo = hostUri ? expoGoCallbackUrl(hostUri) : Linking.createURL(AUTH_CALLBACK_PATH);
     const { data, error } = await this.sb.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: true } });
     if (error || !data.url) throw mapBackendError(error ?? new Error('no oauth url'));
     const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);

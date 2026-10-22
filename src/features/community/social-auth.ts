@@ -16,6 +16,17 @@ export const SOCIAL_PROVIDERS: { id: SocialProviderId; label: string }[] = [
 /** Path the provider redirects back to (`cutpick://auth/callback`, or `exp://…/--/auth/callback` in Expo Go). */
 export const AUTH_CALLBACK_PATH = 'auth/callback';
 
+/**
+ * Redirect URL while running inside Expo Go. Linking.createURL decides by Constants.executionEnvironment,
+ * which Expo Go 58 reports as 'bare' (same quirk as D-026), so it returned `cutpick:///auth/callback` and
+ * Android opened a separately installed CutPick build instead of Expo Go (seen on a Galaxy Z Flip5).
+ * Built from the dev server host instead: `exp://<host:port>/--/auth/callback`.
+ */
+export function expoGoCallbackUrl(hostUri: string): string {
+  const host = hostUri.replace(/^\w+:\/\//, '').split('?')[0].replace(/\/+$/, '');
+  return `exp://${host}/--/${AUTH_CALLBACK_PATH}`;
+}
+
 /** Which social providers are switched on in the Supabase dashboard, from GET /auth/v1/settings. */
 export function enabledSocialProviders(settings: unknown): SocialProviderId[] {
   const external = (settings as { external?: Record<string, unknown> } | null)?.external ?? {};

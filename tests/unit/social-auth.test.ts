@@ -1,4 +1,4 @@
-import { enabledSocialProviders, parseAuthCallback, SOCIAL_PROVIDERS } from '@/features/community/social-auth';
+import { enabledSocialProviders, expoGoCallbackUrl, parseAuthCallback, SOCIAL_PROVIDERS } from '@/features/community/social-auth';
 
 describe('social sign-in helpers (D-050)', () => {
   it('shows only providers enabled in the Supabase auth settings, in display order', () => {
@@ -28,6 +28,12 @@ describe('social sign-in helpers (D-050)', () => {
 
   it('returns nothing for a URL without code or error', () => {
     expect(parseAuthCallback('cutpick://auth/callback')).toEqual({ code: null, error: null });
+  });
+
+  it('builds the Expo Go redirect from the dev server host (not the app scheme)', () => {
+    expect(expoGoCallbackUrl('127.0.0.1:8081')).toBe('exp://127.0.0.1:8081/--/auth/callback');
+    expect(expoGoCallbackUrl('10.92.115.23:8081')).toBe('exp://10.92.115.23:8081/--/auth/callback');
+    expect(expoGoCallbackUrl('exp://10.0.0.2:8081/?foo=bar')).toBe('exp://10.0.0.2:8081/--/auth/callback');
   });
 
   it('labels are Korean call-to-actions, Kakao first', () => {

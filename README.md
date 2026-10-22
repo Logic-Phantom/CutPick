@@ -213,9 +213,21 @@ npm test
 
 ### 3) 우선순위별 다음 작업
 
+> ### ▶ 지금 바로 이어서 할 일 (2026-10-22 세션 종료 시점)
+> 커뮤니티 서버(Supabase `mgycpqjzdulzbufupqdu`, 도쿄 리전)와 이메일·카카오·구글 로그인 설정까지 끝났고, **폰(Galaxy Z Flip5, Expo Go 58)에서 소셜 로그인 실테스트 도중** 멈췄다. 다음 순서로 이어간다.
+> 1. **구글 로그인 마무리 확인** — 마지막 수정(Expo Go 리디렉션 주소 수정, 아래 "이번 세션 결과" 참고) 후 폰에서 "Google로 계속하기" → 구글 동의 화면까지는 떴음(소유자 계정이 테스트 사용자). 소유자가 "계속"을 눌러 앱으로 돌아와 핸들 만들기 화면이 뜨는지 확인. 실패 시 Supabase 대시보드 Authentication → Users에 사용자가 생겼는지와 Metro 로그 확인.
+> 2. **카카오 KOE205 해결(소유자 작업)** — 카카오가 "설정하지 않은 동의 항목: account_email"로 거부함(실기기 확인). Supabase Kakao는 `account_email`을 항상 요청하므로: 카카오 콘솔(앱 1617973) → 앱 → 일반에서 **앱 아이콘 등록**(`assets/images/icon.png`) → **비즈 앱 전환**(개인 개발자: 본인인증 + 카카오비즈니스 약관 동의) → 동의항목 **카카오계정(이메일) = 선택 동의**. 그다음 폰에서 카카오 로그인 재시도.
+> 3. **로그인 이후 커뮤니티 실서버 검증** — 핸들 만들기 → 추천 결과 사진 시트 "이 사진을 커뮤니티에 공유" → 즉시 피드 노출 → 하트 → 다른 계정으로 신고 3건 시 자동 숨김 → 차단 → 내 게시물 삭제(스토리지 파일까지 삭제되는지 대시보드 Storage에서 확인) → 계정 삭제. 결과를 `docs/TESTING.md`에 기록.
+> 4. **`supabase/tests/rls_test.sql` 실행**(SQL Editor) → 결과 기록. 공개 출시 전 필수.
+> 5. 출시 전 정리: 처리방침에 **개인정보 국외이전(일본, Supabase/AWS 도쿄)** 고지 + 카카오 동의항목 화면 "개인정보 국외이전 정보 등록", 지원 이메일 확인, 약관 법률 검토, 독립 APK 재빌드(현재 폰에 설치된 예전 APK에는 커뮤니티 설정·`auth/callback` 화면이 없음 — `cutpick://` 링크를 이 APK가 가로챌 수 있음).
+>
+> **폰 테스트 재개 방법(이 PC)**: Terminal에서 `npx.cmd expo start --lan --go --clear` → USB 연결·디버깅 허용 → `adb reverse tcp:8081 tcp:8081` → `adb shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081/--/community/account host.exp.exponent`(Git Bash에서는 `MSYS_NO_PATHCONV=1` 필요). 화면 확인은 `adb shell uiautomator dump`로 텍스트만(개인 사진 화면은 캡처 금지). 계정 비밀번호·동의 버튼은 소유자가 직접 누른다.
+>
+> **설정 위치 요약**: 앱 환경변수 `.env.local`(git 무시: URL·publishable key·지원 이메일) / Supabase: 스키마 2개 마이그레이션 적용 완료, 즉시 공개(`require_review=false`), Gmail SMTP, 메일 템플릿 2종에 `{{ .Token }}`(코드 8자리), Redirect URLs `exp://**`·`cutpick://**`, 공급자 Email·Kakao·Google 켜짐 / 카카오 콘솔 앱 1617973(로그인 ON, Redirect URI, 닉네임 필수·프로필 사진 선택) / Google Cloud 프로젝트 `cutpick`(동의 화면 외부·테스트 중, 테스트 사용자 = 소유자, 웹 OAuth 클라이언트).
+
 > **작업 순서 원칙:** 기존 README에 기록된 UX 문제를 가장 먼저 해결한다. 커뮤니티 기능을 확장하기 전에 사용자가 사진을 고르고 추천 결과를 이해하는 핵심 흐름을 완성한다.
 
-0. **기존 UX 과제 우선 해결 — 가장 먼저 진행** (2026-10-22 진행 상황: 0-1 음식 5장 교체 완료·인물 거울샷/로우 앵글은 대체 사진 미확보, 0-2·0-3·0-4 완료, 0-5 웹 회귀 완료·실기기 큰 글자/TalkBack 미확인 — 아래 Work Log)
+0. **기존 UX 과제 우선 해결 — 가장 먼저 진행** (2026-10-22 진행 상황: 0-1 음식 5장·인물 거울샷/로우 앵글 모두 교체 완료(인물 2장은 소유자 제공 이미지, 출처 문서화 필요), 0-2·0-3·0-4 완료, 0-5 웹 회귀 완료·실기기 큰 글자/TalkBack 미확인 — 아래 Work Log)
    1. **취향 예시 사진 재선정 (최우선)** — 각 질문의 카드는 질문에서 묻는 대상이 한눈에 보여야 한다. 음식 각도 질문이면 5장 모두 접시에 담긴 요리를 정면·멀리서(테이블 전체)·위에서(탑뷰)·45도·근접으로 촬영한 사진으로 구성한다. 커피잔·생크림 머그처럼 음식인지 애매하거나 질문과 관계없어 보이는 사진은 제외한다. 인물·OOTD 구도도 사람이 해당 구도로 찍힌 장면이 분명해야 한다. 현재 거울샷은 휴대폰 대신 카메라를 든 장면이고, 로우 앵글은 피사체가 너무 작아 의도가 약하므로 교체 후보로 본다.
       - 가능하면 한 질문 안에서 **같은 피사체·비슷한 톤을 유지하고 각도/구도만 바꿔** 비교를 쉽게 한다.
       - 기존 D-032 라이선스 기준(Commons CC0/CC BY, 식별 가능한 얼굴 제외)을 유지한다.
@@ -432,5 +444,6 @@ npm test
 - **카카오 개발자 콘솔 설정(앱 ID 1617973, 소유자 로그인 브라우저에서)**: 카카오 로그인 사용 설정 ON, REST API 키의 "카카오 로그인 리다이렉트 URI"에 `https://mgycpqjzdulzbufupqdu.supabase.co/auth/v1/callback` 저장(재조회로 확인), 클라이언트 시크릿은 기본 활성화 상태 확인, 동의항목 닉네임=필수·프로필 사진=선택(목적 "CutPick 커뮤니티 계정 생성 및 회원 식별"). 카카오계정(이메일)은 "권한 없음" — 비즈 앱 전환(개인 개발자도 본인인증·약관 동의로 가능, 앱 아이콘 등록 필요) 후 설정 가능. Supabase Redirect URLs(`exp://**`, `cutpick://**`)는 소유자가 이미 추가. Supabase 프로젝트 리전이 **Northeast Asia (Tokyo)**라 카카오 동의항목 화면의 "개인정보 국외이전 정보" 등록과 처리방침 국외이전 고지가 필요. 남은 일: Supabase Kakao 공급자에 REST API 키·클라이언트 시크릿 입력(소유자), 이메일 권한이 없으면 "Allow users without email" 켜기.
 - **카카오 공급자 켜짐 확인**: 소유자가 Supabase Kakao에 REST API 키·시크릿 입력·"Allow users without email" 켬 → `/auth/v1/settings`에서 kakao=true, `/auth/v1/authorize?provider=kakao` → 302로 kauth.kakao.com 이동 확인. 단 Supabase가 요청하는 scope가 `account_email profile_image profile_nickname`이라, 카카오 앱에 이메일 동의항목 권한이 없으면 로그인 후 카카오 오류(KOE205 예상)가 날 수 있음 → 비즈 앱 전환 후 이메일 "선택 동의" 설정 필요(실제 로그인으로 확인 예정).
 - **Google Cloud 설정(소유자 로그인 브라우저, 계정 동의 받아 진행)**: 새 프로젝트 `cutpick` 생성 → Google 인증 플랫폼 구성(앱 이름 CutPick, 대상 외부, 게시 상태 "테스트 중", 연락처·테스트 사용자 = 소유자 계정, 사용자 데이터 정책 동의) → OAuth 클라이언트 "웹 애플리케이션" 생성, 승인된 리디렉션 URI `https://mgycpqjzdulzbufupqdu.supabase.co/auth/v1/callback`. 클라이언트 ID·시크릿은 소유자가 Supabase Google 공급자에 직접 입력(진행 중). 테스트 중에는 테스트 사용자로 등록한 계정만 로그인 가능(최대 100명).
+- **폰 실테스트(Galaxy Z Flip5 SM-F731N, Expo Go 58.0.4, USB adb, Metro LAN + adb reverse)**: 커뮤니티 계정 화면에 "카카오로 계속하기"·"Google로 계속하기" 버튼 표시 ✅(서버 설정 자동 반영). 카카오 → Chrome 탭에서 **KOE205 "설정하지 않은 동의 항목: account_email"** ❌(비즈 앱 전환 필요, 소유자). 구글 → 로그인 없이 바로 code 발급까지 진행됐으나 리디렉션이 `cutpick:///auth/callback`으로 만들어져 **폰에 설치된 예전 독립 APK가 열림**("Unmatched Route") ❌ → 원인: `Linking.createURL`이 `Constants.executionEnvironment`로 판단하는데 Expo Go 58은 'bare'로 보고(D-026과 같은 문제). **수정**: Expo Go에서는 `isRunningInExpoGo()` + `Constants.expoConfig.hostUri`로 `exp://<host>/--/auth/callback`을 직접 만듦(`expoGoCallbackUrl`, 테스트 추가). 수정 후 재시도에서 구글 동의 화면("mgycpqjzdulzbufupqdu.supabase.co 서비스로 로그인", 소유자 계정 선택됨)까지 확인, 소유자 동의·앱 복귀는 **미확인**(세션 종료). 참고: 구글 동의 화면에 앱 이름 대신 Supabase 도메인이 보임 — 출시 전 Google 브랜딩(앱 도메인·로고) 또는 Supabase 커스텀 도메인 검토.
 - 소유자가 Publishable key 입력 후 API 스모크 테스트(curl, 키 값 비출력): 비로그인 `get_feed` → 200 빈 배열 ✅, `community_settings` 직접 읽기 → 빈 결과(정책 없음으로 차단) ✅, 비로그인 `posts` 쓰기 → 401 RLS 거부 ✅, Auth 설정: email 켜짐·가입 허용·자동 확인 꺼짐 ✅.
 - 남은 일: 앱에서 로그인→게시→하트→신고→삭제 실서버 검증, `supabase/tests/rls_test.sql` 실행.
