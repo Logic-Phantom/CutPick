@@ -13,6 +13,13 @@ const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 
 export const SUPABASE_CONFIGURED = /^https:\/\/.+/.test(url) && key.length > 20;
 
+/** Public auth settings (which providers are enabled). Same public values the client already uses. */
+export async function fetchAuthSettings(): Promise<unknown> {
+  if (!SUPABASE_CONFIGURED) return null;
+  const res = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } });
+  return res.ok ? res.json() : null;
+}
+
 let client: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient | null {
@@ -24,6 +31,8 @@ export function getSupabase(): SupabaseClient | null {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
+        // PKCE: the OAuth redirect carries a one-time code, exchanged in-app (social-auth.ts).
+        flowType: 'pkce',
       },
     });
     if (Platform.OS !== 'web') {

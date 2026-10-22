@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
 import { AppError } from '@/domain/errors';
 import { uuidv4 } from '@/utils/id';
@@ -14,7 +16,8 @@ import type {
   NewPostInput,
 } from './community-repository';
 import { COMMUNITY_LIMITS, isValidCategory, sanitizeStyleTags, validateHandle, type ReportReason } from './moderation-policy';
-import { getSupabase } from './supabase-client';
+import { AUTH_CALLBACK_PATH, enabledSocialProviders, parseAuthCallback, type SocialProviderId } from './social-auth';
+import { fetchAuthSettings, getSupabase } from './supabase-client';
 
 const BUCKET = 'post-images';
 
@@ -105,6 +108,41 @@ export class SupabaseCommunityRepository implements CommunityRepository {
     const { data, error } = await this.sb.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' });
     if (error || !data.user) throw new AppError('auth-failed', undefined, error);
     return { userId: data.user.id, email: data.user.email ?? null };
+  }
+
+  async listSocialProviders(): Promise<SocialProviderId[]> {
+    try {
+      return enabledSocialProviders(await fetchAuthSettings());
+    } catch {
+      return []; // offline: email sign-in stays available
+    }
+  }
+
+  async signInWithProvider(provider: SocialProviderId): Promise<CommunitySession | null> {
+    const redirectTo = Linking.createURL(AUTH_CALLBACK_PATH);
+    const { data, error } = await this.sb.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: true } });
+    if (error || !data.url) throw mapBackendError(error ?? new Error('no oauth url'));
+    const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (res.type !== 'success') return null; // cancelled or dismissed
+    return this.completeOAuthRedirect(res.url);
+  }
+
+  /** One exchange per code: on Android the redirect can reach both the auth session and the router. */
+  private exchanges = new Map<string, Promise<CommunitySession>>();
+
+  async completeOAuthRedirect(url: string): Promise<CommunitySession | null> {
+    const { code, error } = parseAuthCallback(url);
+    if (error) throw new AppError('auth-failed', `로그인하지 못했어요: ${error}`);
+    if (!code) return null;
+    let pending = this.exchanges.get(code);
+    if (!pending) {
+      pending = this.sb.auth.exchangeCodeForSession(code).then(({ data, error: exchangeError }) => {
+        if (exchangeError || !data.user) throw new AppError('auth-failed', '로그인을 마치지 못했어요. 다시 시도해 주세요.', exchangeError);
+        return { userId: data.user.id, email: data.user.email ?? null };
+      });
+      this.exchanges.set(code, pending);
+    }
+    return pending;
   }
 
   async signOut(): Promise<void> {

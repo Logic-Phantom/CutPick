@@ -1,4 +1,5 @@
 import type { PostCategory, ReportReason, StyleTag } from './moderation-policy';
+import type { SocialProviderId } from './social-auth';
 
 /** Provider-agnostic boundary for the community backend. */
 
@@ -60,6 +61,12 @@ export interface CommunityRepository {
   onSessionChange(cb: (s: CommunitySession | null) => void): () => void;
   sendEmailCode(email: string): Promise<void>;
   verifyEmailCode(email: string, code: string): Promise<CommunitySession>;
+  /** Social providers switched on in the backend (empty when none or offline). */
+  listSocialProviders(): Promise<SocialProviderId[]>;
+  /** Opens the provider's sign-in in the system browser. Resolves null if the user cancelled. */
+  signInWithProvider(provider: SocialProviderId): Promise<CommunitySession | null>;
+  /** Finishes a sign-in from a redirect URL that reached the app outside the browser session. */
+  completeOAuthRedirect(url: string): Promise<CommunitySession | null>;
   signOut(): Promise<void>;
   /** Deletes storage images, posts, likes, blocks, profile and the auth user. */
   deleteAccount(): Promise<void>;

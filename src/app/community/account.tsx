@@ -1,11 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
 import { AppText, BottomSheet, Card, DangerButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, fonts, radius, spacing, useColors } from '@/design-system';
 import type { CommunityProfile } from '@/features/community/community-repository';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
+import { SOCIAL_PROVIDERS, type SocialProviderId } from '@/features/community/social-auth';
 import { validateHandle } from '@/features/community/moderation-policy';
 import { communityRepository } from '@/features/community/supabase-community-repository';
 import { useCommunitySession } from '@/hooks/use-community-session';
@@ -13,6 +14,31 @@ import { useCommunitySession } from '@/hooks/use-community-session';
 function Field(props: React.ComponentProps<typeof TextInput>) {
   const c = useColors();
   return <TextInput placeholderTextColor={c.textTertiary} {...props} style={[styles.input, { color: c.textPrimary, borderColor: c.borderStrong, backgroundColor: c.surface }]} />;
+}
+
+/**
+ * Brand-colored sign-in buttons, text only (no logos bundled). Kakao: container #FEE500 with
+ * 85% black label per Kakao's login button guide; Google: neutral white/outlined button.
+ */
+function SocialButton({ provider, label, onPress, loading, disabled }: { provider: SocialProviderId; label: string; onPress: () => void; loading: boolean; disabled: boolean }) {
+  const c = useColors();
+  const kakao = provider === 'kakao';
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
+      testID={`social-${provider}`}
+      style={({ pressed }) => [
+        styles.social,
+        kakao ? { backgroundColor: '#FEE500', borderColor: '#FEE500' } : { backgroundColor: '#FFFFFF', borderColor: c.borderStrong },
+        { opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+      ]}>
+      {loading ? <ActivityIndicator color="#191919" /> : <AppText variant="bodyStrong" style={{ color: kakao ? 'rgba(0,0,0,0.85)' : '#1F1F1F' }}>{label}</AppText>}
+    </Pressable>
+  );
 }
 
 function Account() {
@@ -27,6 +53,13 @@ function Account() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [socialProviders, setSocialProviders] = useState<SocialProviderId[]>([]);
+
+  // Buttons appear only for providers switched on in the Supabase dashboard.
+  useEffect(() => {
+    if (session) return;
+    communityRepository.listSocialProviders().then(setSocialProviders).catch(() => setSocialProviders([]));
+  }, [session]);
 
   useEffect(() => {
     if (!session) return; // signed-out UI does not read `profile`
@@ -52,7 +85,22 @@ function Account() {
   if (!session) {
     return (
       <ScreenScroll>
-        <AppText variant="body" tone="secondary">이메일로 받은 6자리 코드로 로그인해요. 비밀번호는 쓰지 않아요. 계정은 커뮤니티 기능에만 쓰여요.</AppText>
+        {socialProviders.length ? (
+          <View style={{ gap: spacing.xs }}>
+            {SOCIAL_PROVIDERS.filter((p) => socialProviders.includes(p.id)).map((p) => (
+              <SocialButton
+                key={p.id}
+                provider={p.id}
+                label={p.label}
+                loading={busy === p.id}
+                disabled={!!busy && busy !== p.id}
+                onPress={wrap(p.id, async () => { await communityRepository.signInWithProvider(p.id); })}
+              />
+            ))}
+            <AppText variant="caption" tone="tertiary" align="center">또는 이메일로</AppText>
+          </View>
+        ) : null}
+        <AppText variant="body" tone="secondary">이메일로 받은 인증 코드로 로그인해요. 비밀번호는 쓰지 않아요. 계정은 커뮤니티 기능에만 쓰여요.</AppText>
         <Field value={email} onChangeText={setEmail} placeholder="이메일" keyboardType="email-address" autoCapitalize="none" autoComplete="email" accessibilityLabel="이메일" />
         {codeSent ? (
           <>
@@ -125,4 +173,5 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   input: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: spacing.md, fontSize: 16, fontFamily: fonts.regular },
+  social: { minHeight: 48, borderWidth: 1, borderRadius: radius.button, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.md },
 });

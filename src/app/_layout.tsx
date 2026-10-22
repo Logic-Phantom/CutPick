@@ -80,6 +80,7 @@ export default function RootLayout() {
             <Stack.Screen name="recommendations/[id]" options={{ title: '추천 결과' }} />
             <Stack.Screen name="export/[id]" options={{ title: '저장·공유' }} />
             <Stack.Screen name="photo/[id]" options={{ title: '사진 상세', presentation: 'modal' }} />
+            <Stack.Screen name="auth/callback" options={{ title: '로그인 중', headerBackVisible: false }} />
             <Stack.Screen name="community/publish" options={{ title: '커뮤니티에 공개', presentation: 'modal' }} />
             <Stack.Screen name="community/post/[id]" options={{ title: '게시물' }} />
             <Stack.Screen name="community/my-posts" options={{ title: '내 게시물' }} />
