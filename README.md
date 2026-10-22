@@ -424,4 +424,5 @@ npm test
 - ✅ Auth: Email 공급자 켜짐, 신규 가입 허용, Confirm email 켜짐, Email OTP 8자리·3600초. Publishable key(`sb_publishable_…`) 존재.
 - ⚠️ **막힌 부분**: 커스텀 SMTP가 없어 메일 템플릿이 기본값(로그인 링크만, 코드 없음)이고 수정 불가 → 앱의 코드 입력 로그인이 아직 불가능. README 설정 3단계를 SMTP 연결 + 두 템플릿에 `{{ .Token }}` 추가로 고침.
 - 이후(같은 날): 소유자가 Gmail SMTP 연결 → 대시보드에서 "Magic link or OTP"(제목 "CutPick 로그인 코드")·"Confirm sign up"(제목 "CutPick 가입 확인 코드") 본문을 `{{ .Token }}` 코드 안내로 교체·저장, 새로고침 후 반영 확인. `.env.local`은 URL만 채워 만들고 Publishable key·지원 이메일은 소유자가 직접 붙여 넣기로 함(git 무시 파일).
-- 남은 일: `.env.local`에 Publishable key 입력(소유자), 앱에서 로그인→게시→하트→신고→삭제 실서버 검증, `supabase/tests/rls_test.sql` 실행.
+- 소유자가 Publishable key 입력 후 API 스모크 테스트(curl, 키 값 비출력): 비로그인 `get_feed` → 200 빈 배열 ✅, `community_settings` 직접 읽기 → 빈 결과(정책 없음으로 차단) ✅, 비로그인 `posts` 쓰기 → 401 RLS 거부 ✅, Auth 설정: email 켜짐·가입 허용·자동 확인 꺼짐 ✅.
+- 남은 일: 앱에서 로그인→게시→하트→신고→삭제 실서버 검증, `supabase/tests/rls_test.sql` 실행.
