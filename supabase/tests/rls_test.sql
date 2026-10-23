@@ -1,7 +1,10 @@
 -- RLS / policy test script for the Cutpick community schema.
--- STATUS: written but NOT EXECUTED (no Supabase project or local Docker stack in the build environment).
--- Run against a disposable local stack:  supabase start && supabase db reset && psql "$DB_URL" -f supabase/tests/rls_test.sql
--- Every block raises an exception on failure; success prints NOTICEs.
+-- Runs inside one transaction and rolls back, so it is safe on the live project.
+--   psql:              psql "$DB_URL" -f supabase/tests/rls_test.sql   (PASS lines arrive as NOTICEs)
+--   Dashboard SQL Editor: it does not show NOTICEs — replace the final `rollback;` with
+--     do $$ begin raise exception 'ALL_RLS_TESTS_PASSED'; end $$;
+--   so a full pass shows that message (and still rolls back); a failure shows its FAIL: message.
+-- Every block raises an exception on failure.
 
 begin;
 
@@ -128,13 +131,29 @@ do $$ begin
   end;
 end $$;
 
--- 11) Account deletion removes rows
+-- 11) A report must name a target; B also reports A's account (exercises deletion below)
+select pg_temp.act_as('00000000-0000-0000-0000-00000000000b');
+do $$ begin
+  begin
+    insert into public.reports (reporter_id, reason_code) values ('00000000-0000-0000-0000-00000000000b', 'spam');
+    raise exception 'FAIL: report without target accepted';
+  exception when insufficient_privilege or check_violation then raise notice 'PASS report needs a target';
+  end;
+end $$;
+insert into public.reports (reporter_id, reported_user_id, reason_code) values ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000a', 'impersonation');
+select pg_temp.act_as('00000000-0000-0000-0000-00000000000a');
+
+-- 12) Account deletion removes rows even when the post and the account were reported
 select public.delete_my_account();
 do $$ declare n int; begin
   perform set_config('role', 'postgres', true);
   select count(*) into n from public.posts where author_id = '00000000-0000-0000-0000-00000000000a';
   if n <> 0 then raise exception 'FAIL: posts remain after account deletion'; end if;
   raise notice 'PASS account deletion cleans posts';
+  -- Reports survive as operator records without a reporter-visible target
+  select count(*) into n from public.reports where reporter_id = '00000000-0000-0000-0000-00000000000b';
+  if n <> 2 then raise exception 'FAIL: reports lost on deletion (%)', n; end if;
+  raise notice 'PASS reports kept after target deletion';
 end $$;
 
 rollback;
