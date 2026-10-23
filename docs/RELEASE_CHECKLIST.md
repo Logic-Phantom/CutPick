@@ -13,9 +13,9 @@
 ## B. 소유자가 할 일 — 출시 순서대로
 
 ### 1. 정보 채우기 (10분)
-- [ ] `.env.local`에 `EXPO_PUBLIC_OPERATOR_NAME=<개인정보 보호책임자 이름 또는 상호>` 추가 (지원 이메일은 이미 있음).
-- [ ] 처리방침 웹페이지 만들기: `node --no-warnings scripts/build-legal-site.mjs` → `docs/legal/` 생성 → 커밋·푸시.
-- [ ] GitHub 저장소 → Settings → Pages → Source "Deploy from a branch", Branch `main` / `/docs` → 저장. 몇 분 뒤 `https://logic-phantom.github.io/CutPick/legal/privacy.html`이 열리는지 확인. 이 주소가 스토어의 **개인정보처리방침 URL**, `…/legal/account-deletion.html`이 Play의 **계정 삭제 URL**.
+- [x] `.env.local`에 `EXPO_PUBLIC_OPERATOR_NAME` 추가 (2026-10-23, 보호책임자 = 소유자 실명).
+- [x] (2026-10-23) 처리방침 웹페이지 만들기: `node --no-warnings scripts/build-legal-site.mjs` → `docs/legal/` 생성 → 커밋·푸시.
+- [x] (2026-10-23 소유자, 공개 URL 200 확인) GitHub 저장소 → Settings → Pages → Source "Deploy from a branch", Branch `main` / `/docs` → 저장. 몇 분 뒤 `https://logic-phantom.github.io/CutPick/legal/privacy.html`이 열리는지 확인. 이 주소가 스토어의 **개인정보처리방침 URL**, `…/legal/account-deletion.html`이 Play의 **계정 삭제 URL**.
 - [ ] 메일 발송을 Gmail에서 Resend 등으로 바꾸면 `policy-texts.ts`의 `MAIL_SENDER`를 고치고 페이지 재생성.
 
 ### 2. 소셜 로그인 출시 상태로 (30분)
@@ -24,7 +24,7 @@
 - [ ] 구글 로그인 앱 복귀 → 핸들 만들기까지 폰에서 확인.
 
 ### 3. 커뮤니티 실서버 검증 (공개 출시 전 필수)
-- [ ] Supabase SQL Editor에서 `supabase/tests/rls_test.sql` 실행 → 결과를 `docs/TESTING.md`에 기록.
+- [ ] Supabase SQL Editor에서 `supabase/tests/rls_test.sql` 실행(전체가 `begin … rollback`이라 실서버에서 돌려도 테스트 데이터가 남지 않음, 실패 시 `FAIL:` 예외로 멈춤) → 결과를 `docs/TESTING.md`에 기록.
 - [ ] 두 계정으로 게시 → 하트 → 신고 3건 자동 숨김 → 차단 → 게시물 삭제(Storage 파일까지) → 계정 삭제.
 - [ ] 매일 신고·신규 게시물을 확인할 사람 정하기(`docs/UGC_SAFETY.md` 운영 절차). 없으면 커뮤니티 없이 출시하거나 `require_review=true`(승인제).
 - [ ] Supabase Free는 **1주 비활성 시 일시 중지** — 출시 후 사용자가 적으면 커뮤니티가 멈출 수 있음. Pro(월 US$25) 전환 여부 결정.
@@ -61,6 +61,6 @@ npx eas-cli@latest env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://mgycp
 
 ### 7. 법적 확인
 - [ ] 처리방침·약관을 전문가(또는 개인정보보호위원회 "개인정보 처리방침 작성지침")로 검토. 현재 문구는 초안.
-- [ ] "CutPick/컷픽" 상표 검색(KIPRIS) — 같은 류(9류 앱, 42류)에 등록 상표가 있는지.
+- [x] (2026-10-23 1차) KIPRIS 국내 상표 "CUTPICK+컷픽" 검색 → 2건, 모두 다른 상품류(05류 "프리컷픽스젠틀", 03류 "웨이크메이크 오일 컷 픽서"), 9류·42류 동일·유사 표장 없음. 법적 판단(유사성 심사)은 아니며, 상표 출원 여부는 소유자 결정.
 - [ ] 베스트샷 샘플 20장의 원 출처·사용 허락 문서 확보(`docs/IMAGE_ASSET_ATTRIBUTIONS.md` 남은 확인 사항). 확인 못 하면 출시 빌드에서 제외.
 - [ ] 사업자 등록 여부: 무료·광고 없는 개인 앱은 보통 불필요하지만, 유료화 시 필요.

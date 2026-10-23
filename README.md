@@ -491,3 +491,10 @@ npm test
 - **웹 미리보기**(기기 아님): 설정 → 오픈소스 라이선스 목록 표시, 커뮤니티 계정 화면에서 체크 전 소셜 버튼 비활성 → 체크 후 활성 확인. 정책 웹페이지 렌더링 확인.
 - **미검증**: EAS 빌드(Expo 계정 필요), 실기기에서 새 화면, 처리방침 법률 검토, iOS 소셜 로그인 심사 대응.
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-23 — 출시 체크리스트 소유자 항목 진행 (1차)
+- 보호책임자 이름을 `.env.local`(git 무시)에 넣고 `scripts/build-legal-site.mjs`로 `docs/legal/` 생성·푸시. 소유자가 GitHub Pages(main `/docs`)를 켬 → `https://logic-phantom.github.io/CutPick/legal/{privacy,terms,account-deletion}.html` 모두 200 확인.
+- KIPRIS 국내 상표 검색("CUTPICK+컷픽"): 2건, 모두 다른 상품류(05·03류) — 9·42류 충돌 없음(1차 확인, 법적 판단 아님).
+- `supabase/tests/rls_test.sql`은 `begin … rollback`이라 운영 프로젝트에서 실행해도 데이터가 남지 않음을 확인.
+- **막힌 부분**: 내장 브라우저에는 Google·Supabase·카카오·GitHub 로그인이 없고, Claude in Chrome 확장은 연결되지 않아 Google 동의 화면 게시·카카오 설정·RLS 실행은 진행하지 못함. EAS는 `eas whoami` = 로그인 안 됨(소유자 로그인 대기). iOS 소셜 로그인 방향은 보류(소유자 결정).
+- **GitHub**: `main`에 커밋·푸시.
