@@ -24,7 +24,8 @@
 - [ ] 구글 로그인 앱 복귀 → 핸들 만들기까지 폰에서 확인.
 
 ### 3. 커뮤니티 실서버 검증 (공개 출시 전 필수)
-- [ ] Supabase SQL Editor에서 `supabase/tests/rls_test.sql` 실행(전체가 `begin … rollback`이라 실서버에서 돌려도 테스트 데이터가 남지 않음, 실패 시 `FAIL:` 예외로 멈춤) → 결과를 `docs/TESTING.md`에 기록.
+- [x] (2026-10-23) Supabase SQL Editor에서 `supabase/tests/rls_test.sql` 실행 → **실제 버그 발견**: 신고받은 게시물·계정은 삭제가 실패(`reports_check` 제약). 수정 마이그레이션 `20261023000000_reports_survive_deletion.sql`을 테스트와 같은 트랜잭션에서 돌려 **13개 검사 전부 통과**(전부 롤백, 운영 DB 변경 없음 확인).
+- [ ] **운영 DB에 `20261023000000_reports_survive_deletion.sql` 적용** — 적용 전까지는 신고받은 사용자가 게시물·계정을 지울 수 없음.
 - [ ] 두 계정으로 게시 → 하트 → 신고 3건 자동 숨김 → 차단 → 게시물 삭제(Storage 파일까지) → 계정 삭제.
 - [ ] 매일 신고·신규 게시물을 확인할 사람 정하기(`docs/UGC_SAFETY.md` 운영 절차). 없으면 커뮤니티 없이 출시하거나 `require_review=true`(승인제).
 - [ ] Supabase Free는 **1주 비활성 시 일시 중지** — 출시 후 사용자가 적으면 커뮤니티가 멈출 수 있음. Pro(월 US$25) 전환 여부 결정.

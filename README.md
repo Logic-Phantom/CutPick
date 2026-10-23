@@ -505,3 +505,9 @@ npm test
 - **카카오**: 동의항목 → 개인정보 국외이전 정보 등록(일본 / Supabase, Inc. / https://supabase.com/privacy) 저장 확인, 앱 아이콘 등록(250KB 제한 → 256px 사본). 비즈 앱 전환은 본인인증이 필요해 소유자 작업으로 남김.
 - **막힌 부분**: Chrome에 Supabase 로그인 없음 → RLS 테스트 미실행(GitHub 로그인 버튼은 다른 계정이 새로 생길 수 있어 누르지 않음).
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-23 — Supabase RLS 실서버 테스트, 신고 삭제 버그 수정 (D-053)
+- 소유자가 Chrome에서 Supabase 로그인 → SQL Editor에서 `rls_test.sql` 실행(끝을 의도적 오류로 바꿔 전부 롤백, 편집기가 NOTICE를 안 보여 주기 때문).
+- 1~10번 통과, **계정 삭제 실패**: 신고받은 게시물이 지워질 때 `reports.post_id`가 NULL이 되어 `reports_check` 위반 → 신고받은 사용자는 게시물·계정을 지울 수 없는 실제 버그.
+- 수정 마이그레이션 `supabase/migrations/20261023000000_reports_survive_deletion.sql`(CHECK 제거, 같은 조건을 신고 등록 정책으로) + 테스트 3개 추가 → 같은 트랜잭션에서 **13개 전부 통과**, 실행 후 운영 DB 무변경 확인. 결과 `docs/TESTING.md`.
+- **운영 DB 적용은 소유자 확인 대기.**
