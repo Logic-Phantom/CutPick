@@ -5,7 +5,8 @@ import { fonts, useColors } from '@/design-system';
 export default function TabsLayout() {
   const c = useColors();
   return (
-    <NativeTabs backgroundColor={c.surface} tintColor={c.accent} labelStyle={{ default: { fontFamily: fonts.medium }, selected: { color: c.accent, fontFamily: fonts.semibold } }}>
+    // Android hides unselected labels by default ('auto' with 4+ tabs); the design labels every tab.
+    <NativeTabs backgroundColor={c.surface} tintColor={c.accent} labelVisibilityMode="labeled" labelStyle={{ default: { fontFamily: fonts.medium }, selected: { color: c.accent, fontFamily: fonts.semibold } }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
