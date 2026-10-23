@@ -498,3 +498,10 @@ npm test
 - `supabase/tests/rls_test.sql`은 `begin … rollback`이라 운영 프로젝트에서 실행해도 데이터가 남지 않음을 확인.
 - **막힌 부분**: 내장 브라우저에는 Google·Supabase·카카오·GitHub 로그인이 없고, Claude in Chrome 확장은 연결되지 않아 Google 동의 화면 게시·카카오 설정·RLS 실행은 진행하지 못함. EAS는 `eas whoami` = 로그인 안 됨(소유자 로그인 대기). iOS 소셜 로그인 방향은 보류(소유자 결정).
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-23 — 출시 체크리스트 소유자 항목 진행 (2차, Chrome 연결 후)
+- **EAS**: 소유자가 `npx.cmd eas-cli login`(계정 `lcm2`) → `eas init`으로 `@lcm2/cutpick` 생성·연결. `eas init`이 app.json에 권한 목록·라우터 설정까지 풀어 써서 `extra.eas.projectId`·`owner`만 남기고 되돌림. 환경 변수 4개(`EXPO_PUBLIC_SUPABASE_URL`·`_PUBLISHABLE_KEY`·`_SUPPORT_EMAIL`·`_OPERATOR_NAME`)를 preview·production에 plaintext로 등록(`env:list`로 확인). preview APK 빌드 대기열 등록(빌드 7026aa6a…, 결과 미확인).
+- **Google Cloud**: 브랜딩에 홈페이지·처리방침·약관 URL(GitHub Pages)과 승인 도메인 `logic-phantom.github.io` 추가·저장 확인 → 대상 → 앱 게시 → **"프로덕션 단계"** 확인. 로고 없음·기본 범위라 인증 심사 불필요.
+- **카카오**: 동의항목 → 개인정보 국외이전 정보 등록(일본 / Supabase, Inc. / https://supabase.com/privacy) 저장 확인, 앱 아이콘 등록(250KB 제한 → 256px 사본). 비즈 앱 전환은 본인인증이 필요해 소유자 작업으로 남김.
+- **막힌 부분**: Chrome에 Supabase 로그인 없음 → RLS 테스트 미실행(GitHub 로그인 버튼은 다른 계정이 새로 생길 수 있어 누르지 않음).
+- **GitHub**: `main`에 커밋·푸시.
