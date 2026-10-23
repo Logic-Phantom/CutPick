@@ -7,6 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   AppSwitch, AppText, BottomSheet, BrandWordmark, Card, DangerButton, Divider, InlineMessage, ListRow, Row, ScreenScroll, SecondaryButton, SectionHeader, radius, spacing, useColors, type IconName,
 } from '@/design-system';
+import { SUPPORT_EMAIL } from '@/features/community/moderation-policy';
 import { HEURISTIC_CAPABILITIES } from '@/features/image-analysis/heuristic-provider';
 import { CapabilityList } from '@/features/image-analysis/components/CapabilityList';
 import { clearLearning, resetPreference } from '@/features/onboarding/local-preference-repository';
@@ -176,6 +177,8 @@ export default function SettingsScreen() {
           <LinkRow icon="document-text-outline" label="이용약관" href="/legal/terms" />
           <Divider inset={ROW_INSET} />
           <LinkRow icon="image-outline" label="이미지 출처" href="/legal/image-credits" />
+          <Divider inset={ROW_INSET} />
+          <LinkRow icon="code-slash-outline" label="오픈소스 라이선스" href="/legal/oss" />
         </Card>
       </View>
 
@@ -184,7 +187,7 @@ export default function SettingsScreen() {
       </Card>
       <View style={styles.footer}>
         <BrandWordmark size={18} />
-        <AppText variant="caption" tone="tertiary">{Constants.expoConfig?.version ?? ''} · 오픈소스 라이선스: THIRD_PARTY_NOTICES.md</AppText>
+        <AppText variant="caption" tone="tertiary">버전 {Constants.expoConfig?.version ?? ''}{SUPPORT_EMAIL ? ` · 문의 ${SUPPORT_EMAIL}` : ''}</AppText>
       </View>
 
       <BottomSheet visible={confirm != null} title={confirm ? CONFIRM_TEXT[confirm].title : ''} onClose={() => setConfirm(null)}>

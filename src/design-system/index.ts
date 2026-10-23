@@ -4,6 +4,7 @@ export * from './components/AppText';
 export * from './components/Brand';
 export * from './components/AppSwitch';
 export * from './components/Buttons';
+export * from './components/Checkbox';
 export * from './components/FilterChip';
 export * from './components/PhotoThumbnail';
 export * from './components/Tag';

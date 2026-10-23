@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
-import { AppText, BottomSheet, Card, DangerButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, fonts, radius, spacing, useColors } from '@/design-system';
+import { AppText, BottomSheet, Card, Checkbox, DangerButton, InlineMessage, PrimaryButton, ScreenScroll, SecondaryButton, fonts, radius, spacing, useColors } from '@/design-system';
 import type { CommunityProfile } from '@/features/community/community-repository';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
 import { SOCIAL_PROVIDERS, type SocialProviderId } from '@/features/community/social-auth';
 import { validateHandle } from '@/features/community/moderation-policy';
+import { COMMUNITY_MIN_AGE } from '@/features/legal/policy-texts';
 import { communityRepository } from '@/features/community/supabase-community-repository';
 import { useCommunitySession } from '@/hooks/use-community-session';
 
@@ -54,6 +55,7 @@ function Account() {
   const [info, setInfo] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [socialProviders, setSocialProviders] = useState<SocialProviderId[]>([]);
+  const [ageConsent, setAgeConsent] = useState(false);
 
   // Buttons appear only for providers switched on in the Supabase dashboard.
   useEffect(() => {
@@ -85,6 +87,13 @@ function Account() {
   if (!session) {
     return (
       <ScreenScroll>
+        <Checkbox
+          checked={ageConsent}
+          label={`만 ${COMMUNITY_MIN_AGE}세 이상이며, 이용약관과 개인정보 처리방침(일본 서버로의 국외 이전 포함)에 동의해요.`}
+          onPress={() => setAgeConsent(!ageConsent)}
+          testID="account-age-consent"
+        />
+        {!ageConsent ? <AppText variant="caption" tone="tertiary">만 {COMMUNITY_MIN_AGE}세 미만은 커뮤니티 계정을 만들 수 없어요. 사진 분석·추천은 로그인 없이 그대로 쓸 수 있어요.</AppText> : null}
         {socialProviders.length ? (
           <View style={{ gap: spacing.xs }}>
             {SOCIAL_PROVIDERS.filter((p) => socialProviders.includes(p.id)).map((p) => (
@@ -93,7 +102,7 @@ function Account() {
                 provider={p.id}
                 label={p.label}
                 loading={busy === p.id}
-                disabled={!!busy && busy !== p.id}
+                disabled={!ageConsent || (!!busy && busy !== p.id)}
                 onPress={wrap(p.id, async () => { await communityRepository.signInWithProvider(p.id); })}
               />
             ))}
@@ -109,10 +118,11 @@ function Account() {
             <SecondaryButton label="코드 다시 받기" onPress={wrap('send', async () => { await communityRepository.sendEmailCode(email); setInfo('코드를 다시 보냈어요.'); })} loading={busy === 'send'} compact />
           </>
         ) : (
-          <PrimaryButton label="인증 코드 받기" onPress={wrap('send', async () => { await communityRepository.sendEmailCode(email); setCodeSent(true); setInfo('메일로 받은 코드를 입력해 주세요.'); })} loading={busy === 'send'} disabled={!/^\S+@\S+\.\S+$/.test(email)} />
+          <PrimaryButton label="인증 코드 받기" onPress={wrap('send', async () => { await communityRepository.sendEmailCode(email); setCodeSent(true); setInfo('메일로 받은 코드를 입력해 주세요.'); })} loading={busy === 'send'} disabled={!ageConsent || !/^\S+@\S+\.\S+$/.test(email)} />
         )}
         {info ? <InlineMessage tone="info" message={info} /> : null}
         {error ? <InlineMessage tone="error" message={error} /> : null}
+        <SecondaryButton compact label="이용약관" onPress={() => router.push('/legal/terms')} />
         <SecondaryButton compact label="개인정보 처리방침" onPress={() => router.push('/legal/privacy')} />
       </ScreenScroll>
     );

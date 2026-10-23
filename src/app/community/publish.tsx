@@ -1,12 +1,11 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { toUserMessage } from '@/domain/errors';
 import type { PhotoAsset } from '@/domain/models';
-import { AppText, BottomBar, Card, FilterChip, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
+import { AppText, BottomBar, Card, Checkbox, FilterChip, InlineMessage, PrimaryButton, Row, ScreenScroll, SecondaryButton, radius, spacing, useColors } from '@/design-system';
 import { CommunityGate } from '@/features/community/components/CommunityGate';
 import { COMMUNITY_LIMITS, POST_CATEGORIES, STYLE_TAGS, type PostCategory, type StyleTag } from '@/features/community/moderation-policy';
 import { publishPhoto } from '@/features/community/post-service';
@@ -18,16 +17,6 @@ const CONSENTS = [
   { id: 'rights', text: '내가 찍었거나 올릴 권리가 있는 사진이며, 사진 속 다른 사람의 동의를 받았어요.' },
   { id: 'rules', text: '노출·혐오·타인 개인정보가 담긴 사진은 올리지 않아요. 위반 시 숨김·계정 제한될 수 있어요.' },
 ] as const;
-
-function Checkbox({ checked, label, onPress }: { checked: boolean; label: string; onPress: () => void }) {
-  const c = useColors();
-  return (
-    <Pressable onPress={onPress} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={label} style={styles.check}>
-      <Ionicons name={checked ? 'checkbox' : 'square-outline'} size={24} color={checked ? c.accent : c.textSecondary} />
-      <AppText variant="secondary" style={{ flex: 1 }}>{label}</AppText>
-    </Pressable>
-  );
-}
 
 function PublishForm({ photoId }: { photoId: string }) {
   const router = useRouter();
@@ -135,5 +124,4 @@ export default function PublishScreen() {
 
 const styles = StyleSheet.create({
   preview: { width: '100%', aspectRatio: 4 / 3, borderRadius: radius.photo, overflow: 'hidden' },
-  check: { flexDirection: 'row', gap: spacing.xs, alignItems: 'flex-start', minHeight: 44, paddingVertical: spacing.xxs },
 });

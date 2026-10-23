@@ -56,6 +56,8 @@ export const COMMUNITY_LIMITS = {
 } as const;
 
 export const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL || '';
+/** Named in the privacy policy as the person responsible for personal data. */
+export const OPERATOR_NAME = process.env.EXPO_PUBLIC_OPERATOR_NAME || '';
 
 const HANDLE_RE = /^[a-z0-9_.]{3,20}$/;
 const RESERVED = ['admin', 'cutpick', 'support', 'official', 'moderator', 'root'];

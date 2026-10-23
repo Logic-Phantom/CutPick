@@ -15,12 +15,12 @@
 | 신고가 서버에 저장 | ✅ 코드 / ❌ 미실행 | `reports` 테이블, 사유 7종, `status` open/reviewing/resolved/rejected, 중복 신고 무시 |
 | 신고 자동 대응 | ✅ 코드 | 서로 다른 신고자 3명 이상 → 자동 `hidden` (트리거) |
 | 차단 | ✅ 코드 | `blocks` + `get_feed`가 양방향 숨김, 차단 목록·해제 화면 |
-| 연락처 공개 | ❌ **미설정** | `EXPO_PUBLIC_SUPPORT_EMAIL` 비어 있음 → 정책 화면에 "미설정" 경고 표시. 출시 전 필수 |
-| 이용약관·가이드라인·처리방침 | ⚠️ 초안 | `src/features/legal/documents.ts` — 법률 검토 필요 |
+| 연락처 공개 | ✅ 로컬 설정 / ⚠️ EAS 미등록 | `.env.local`에 `EXPO_PUBLIC_SUPPORT_EMAIL` 설정됨(설정 화면 하단·정책 문서에 표시). EAS 빌드용 환경 변수 등록과 `EXPO_PUBLIC_OPERATOR_NAME`은 소유자 작업(`docs/RELEASE_CHECKLIST.md`) |
+| 이용약관·가이드라인·처리방침 | ⚠️ 개정 초안(2026-10-23) | `src/features/legal/policy-texts.ts`(국외 이전·소셜 로그인·연령·보호책임자 반영, 웹 페이지 `scripts/build-legal-site.mjs`) — 법률 검토 필요 |
 | 게시물·계정 삭제 시 스토리지 정리 | ✅ 코드 / ❌ 미실행 | 스토리지 먼저 삭제 후 DB 행 삭제, 실패 시 재시도 안내 |
 | 저작권 침해 신고·조치 | ⚠️ | 신고 사유 `copyright`로 접수. 조치 절차는 아래 운영 절차 |
 | 반복 위반자 제한 | ⚠️ 수동 | 운영자가 대시보드에서 게시물 `removed` 처리·`auth.users` 차단. 자동 스트라이크 없음 |
-| 미성년자/연령 | ❌ 미정 | 1.2.1(a) 연령 확인 요구 검토 필요 |
+| 미성년자/연령 | ✅ 코드 (D-052) | 커뮤니티 로그인 전 만 14세 이상 + 약관·처리방침 동의 체크 필수(자기 신고 방식). 스토어 타겟 연령·콘텐츠 등급은 소유자 작업 |
 
 ## 운영 절차 (운영자 콘솔 없음 — Supabase 대시보드 사용)
 1. 매일 `reports where status='open'` 확인 → `reviewing`.

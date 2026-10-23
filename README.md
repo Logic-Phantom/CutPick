@@ -133,6 +133,7 @@ npm run bench
 | docs/COSTS_AND_DISTRIBUTION.md | 무료 한도, 스토어 비용, 빌드 |
 | docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md | 디자인 토큰, 흐름, QA 결과(스크린샷: docs/screenshots) |
 | docs/TESTING.md, ROADMAP.md | 테스트 범위·결과, 다음 단계 |
+| docs/RELEASE_CHECKLIST.md, STORE_LISTING.md | 출시 전 소유자 할 일(순서대로), 스토어 설명·데이터 보안·개인정보 양식 답변 초안 |
 
 ## 마스터 프롬프트 기준 진행 현황 (2026-10-18)
 
@@ -276,7 +277,7 @@ npm test
    - **측정 지표:** 커뮤니티 방문 대비 하트 비율, 추천 결과에서 공유 시작/완료 비율, 7일 내 재방문, 피드가 비어 있거나 반복되는 비율, 신고·숨김 비율, 게시물·계정 삭제 성공률을 확인한다. 초기에는 기준선을 수집하고 불필요한 개인정보 분석은 피한다.
    - **추가하지 않을 기능:** 댓글·DM·팔로워 경쟁·인기 랭킹·복잡한 AI 랭킹·강제 푸시 알림. 실제 사용 데이터와 운영 여력이 확인되기 전까지 보류한다.
 
-5. **출시 준비 (Phase 5)** — 지원 이메일(`EXPO_PUBLIC_SUPPORT_EMAIL`), 처리방침·약관 법률 검토, ~~자체 앱 아이콘·스플래시~~(2026-10-18 CutPick 아이콘 적용 — 원본 제작 경위만 확인), 앱 내 오픈소스 라이선스 화면, 연령 정책(Apple 1.2.1(a)), 상표 조사, `npx license-checker` 등 의존성 감사, Android targetSdk 36 확인, EAS Build 설정
+5. **출시 준비 (Phase 5)** — 2026-10-23 코드 작업 완료(D-052): 오픈소스 라이선스 화면·의존성 감사, 처리방침 개정(국외 이전 등), 만 14세 확인, `eas.json`, 스토어용 정책 웹페이지 생성기, targetSdk 36 확인. **남은 일은 거의 모두 소유자 작업 → `docs/RELEASE_CHECKLIST.md`를 위에서부터 진행**(보호책임자 이름 → GitHub Pages → Google 동의 화면 게시·카카오 비즈 앱 → RLS 테스트 → EAS 빌드 → Play/App Store). 스토어 양식 답변 초안은 `docs/STORE_LISTING.md`.
 
 6. **보류** — 온디바이스 ML(라이선스·성능 게이트 통과 시, 개발 빌드 필요), 색 보정 프리셋, 캐러셀 게시, 수익화
 
@@ -303,6 +304,8 @@ npm test
 | 앱 아이콘·스플래시·파비콘 다시 만들기 | 원본 `assets/brand/icon-source.webp` → `python scripts/build-app-icons.py` |
 | 샘플 체험 사진 | `scripts/sample-photos.json`(목록·가공법) → `python scripts/build-sample-photos.py <원본 폴더>`, 출처 `src/features/photo-import/sample-credits.ts` |
 | 글꼴 파일 | `assets/fonts/`(Pretendard), 워드마크 `@expo-google-fonts/bricolage-grotesque` |
+| 처리방침·약관·가이드라인 문구 | `src/features/legal/policy-texts.ts` → 앱 화면 + `node --no-warnings scripts/build-legal-site.mjs`로 `docs/legal/*.html` |
+| 오픈소스 라이선스 목록(의존성 추가·업데이트 후 재생성) | `npx expo export --platform android --source-maps --output-dir <임시폴더>` → `node scripts/generate-oss-licenses.mjs <임시폴더>/_expo/static/js/android/<entry>.hbc.map` |
 
 ## 작업 내역 (Work Log)
 
@@ -472,4 +475,19 @@ npm test
 - 참고: Expo Go의 떠 있는 개발자 "Tools" 버튼이 내 정보 톱니 위에 겹침 — Expo Go 개발 모드에만 있는 버튼이라 독립 빌드에서는 없음.
 - 프라이버시: 사용자 사진이 보이는 홈("이어서 하기" 커버)·내 정보(프로젝트 그리드)는 캡처하지 않고 텍스트로만 확인. 캡처는 커뮤니티·설정·샘플 상세만(`.device/`, git 무시).
 - 명령: `npx tsc --noEmit` 오류 0. 미확인: 이미지 출처 맨 아래 샘플 항목(단위 테스트로만), 라이트 모드·큰 글자·TalkBack 실기기, iOS.
+- **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-23 — 출시 준비 코드 작업 + 소유자 체크리스트 (D-052)
+사용자 요청: 출시 전에 남은 작업을 수행하고, 소유자가 직접 설정해야 할 부분을 체크리스트로 정리.
+- **오픈소스 라이선스**: `scripts/generate-oss-licenses.mjs` — Android 번들을 소스맵과 함께 export해 실제로 앱에 실리는 패키지 + `package.json` 직접 의존성만 골라 `src/features/legal/oss-licenses.json` 생성(저작권 줄은 패키지별, 라이선스 본문은 중복 제거). 결과 84개: MIT 78·ISC 2·BSD-3 1·0BSD 1·MIT AND Apache-2.0 1·MIT AND OFL-1.1 1 → 허용 목록 밖 없음. lockfile 전체 584개 중 MPL-2.0·Python-2.0·CC-BY-4.0·(BSD-3 OR GPL-2.0)은 빌드 도구라 앱에 포함되지 않음. 설정 → "오픈소스 라이선스" 화면(Pretendard 포함).
+- **처리방침·약관 개정**(`src/features/legal/policy-texts.ts`, 앱과 웹 공용): 카카오·Google 로그인 항목, 이용 목적, 보유·파기, **국외 이전(Supabase 일본 도쿄, 인증 메일 Gmail SMTP 미국)**, 만 14세 미만, 이용자 권리, 안전성 조치, 개인정보 보호책임자(`EXPO_PUBLIC_OPERATOR_NAME` 신규), 권익 침해 구제. 약관에 이용 연령·계정 삭제·책임 조항.
+- **연령 확인**: 커뮤니티 로그인 화면 맨 위 "만 14세 이상 + 약관·처리방침(국외 이전 포함) 동의" 체크 전에는 카카오·Google·이메일 버튼 비활성. 동의 체크박스는 `src/design-system/components/Checkbox.tsx`로 옮겨 게시 화면과 같이 씀.
+- **스토어용 공개 페이지**: `scripts/build-legal-site.mjs` → `docs/legal/`(처리방침·약관·가이드라인·계정 삭제 안내·목차). 보호책임자 이름이 없으면 실행을 거부하므로 이번에는 생성물을 커밋하지 않음(임시 이름으로 렌더링만 확인 후 삭제).
+- **EAS**: `eas.json` — preview(내부 APK)·production(AAB, `appVersionSource: remote` + `autoIncrement`), 프로필별 `environment`. `eas env:create`는 deprecated → 체크리스트에 `env:set` 사용(CLI 도움말로 확인).
+- **의존성**: `npx expo-doctor`가 SDK 58 패치 16개 지적 → `npx expo install --fix`(expo 58.0.17, expo-router 58.0.25 등) → expo-doctor **20/20 통과**.
+- **확인**: Android targetSdk 36(RN 0.88 버전 카탈로그) → Play 2026-08-31 요건 충족. 지원 이메일은 `.env.local`에 이미 있음.
+- **문서**: `docs/RELEASE_CHECKLIST.md`(소유자 할 일 순서대로 — Pages, Google 동의 화면 게시, 카카오 비즈 앱·국외이전 등록, RLS 테스트, EAS 환경 변수·빌드, Play 12명×14일 비공개 테스트, iOS 4.8 Sign in with Apple 결정, 법률·상표·샘플 사진 허락), `docs/STORE_LISTING.md`(설명문, Play 데이터 보안·App Store 개인정보 답변, 콘텐츠 등급, 심사 메모), DECISIONS D-052, UGC_SAFETY·PRIVACY·ROADMAP 상태 갱신.
+- **명령·결과**: `npx jest` 15 suites / **146 tests 통과**(신규 `tests/unit/legal-docs.test.ts` 6개), `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx expo-doctor` 20/20.
+- **웹 미리보기**(기기 아님): 설정 → 오픈소스 라이선스 목록 표시, 커뮤니티 계정 화면에서 체크 전 소셜 버튼 비활성 → 체크 후 활성 확인. 정책 웹페이지 렌더링 확인.
+- **미검증**: EAS 빌드(Expo 계정 필요), 실기기에서 새 화면, 처리방침 법률 검토, iOS 소셜 로그인 심사 대응.
 - **GitHub**: `main`에 커밋·푸시.
