@@ -80,6 +80,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0032f376-9e06-4027-bb0a-2cf1cfee3b2a"
+      }
+    },
+    "owner": "lcm2"
   }
 }
