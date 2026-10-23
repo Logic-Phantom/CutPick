@@ -40,22 +40,63 @@ export function StepHeader({ title, step, total, onBack, onSkip, skipLabel = '�
 }
 
 /** Tappable settings/list row with a leading icon, optional trailing value, and chevron. */
-export function ListRow({ icon, label, value, onPress, role = 'link', testID }: {
+export function ListRow({ icon, label, value, onPress, role = 'link', tone = 'default', testID }: {
   icon: IconName;
   label: string;
   value?: string;
   onPress: () => void;
   role?: 'link' | 'button';
+  tone?: 'default' | 'danger';
   testID?: string;
 }) {
   const c = useColors();
+  const fg = tone === 'danger' ? c.error : c.textPrimary;
   return (
     <Pressable testID={testID} onPress={onPress} accessibilityRole={role} accessibilityLabel={value ? `${label}, ${value}` : label} style={({ pressed }) => [styles.row, pressed && { backgroundColor: c.surfaceSunken }]}>
-      <Ionicons name={icon} size={20} color={c.textSecondary} />
-      <AppText variant="body" style={{ flex: 1 }}>{label}</AppText>
+      <Ionicons name={icon} size={20} color={tone === 'danger' ? c.error : c.textPrimary} />
+      <AppText variant="body" style={{ flex: 1, color: fg }}>{label}</AppText>
       {value ? <AppText variant="secondary" tone="tertiary" numberOfLines={1}>{value}</AppText> : null}
       <Ionicons name="chevron-forward" size={18} color={c.textTertiary} />
     </Pressable>
+  );
+}
+
+/** "1 2 3" flow indicator for the recommendation flow (사진 고르기 → 분석 → 추천 결과). */
+export function StepDots({ step, total = 3, labels }: { step: number; total?: number; labels?: string[] }) {
+  const c = useColors();
+  return (
+    <View style={styles.dots} accessible accessibilityRole="text" accessibilityLabel={`${total}단계 중 ${step}단계${labels?.[step - 1] ? `, ${labels[step - 1]}` : ''}`}>
+      {Array.from({ length: total }, (_, i) => {
+        const n = i + 1;
+        const active = n === step;
+        return (
+          <View key={n} style={styles.dotWrap}>
+            {i > 0 ? <View style={[styles.dotLine, { backgroundColor: n <= step ? c.point : c.border }]} /> : null}
+            <View style={[styles.dot, { backgroundColor: active ? c.point : n < step ? c.pointSoft : c.surfaceSunken }]}>
+              <AppText variant="caption" style={{ color: active ? c.onPoint : n < step ? c.pointText : c.textTertiary, fontWeight: '700' }}>{n}</AppText>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Underlined text tabs (profile sections). Selection = bold text + coral underline + state. */
+export function SegmentTabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string }[]; value: T; onChange: (id: T) => void }) {
+  const c = useColors();
+  return (
+    <View style={[styles.segments, { borderBottomColor: c.border }]} accessibilityRole="tablist">
+      {tabs.map((t) => {
+        const on = t.id === value;
+        return (
+          <Pressable key={t.id} onPress={() => onChange(t.id)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={styles.segment}>
+            <AppText variant="label" style={{ color: on ? c.textPrimary : c.textTertiary, fontWeight: on ? '700' : '500' }}>{t.label}</AppText>
+            <View style={[styles.segmentBar, { backgroundColor: on ? c.point : 'transparent' }]} />
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -70,5 +111,12 @@ const styles = StyleSheet.create({
   side: { width: 88, justifyContent: 'center' },
   center: { flex: 1, alignItems: 'center' },
   track: { height: 3, borderRadius: 2, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: touchTarget + 8, paddingHorizontal: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: touchTarget + 8, paddingHorizontal: spacing.md },
+  dots: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xxs },
+  dotWrap: { flexDirection: 'row', alignItems: 'center' },
+  dot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  dotLine: { width: 10, height: 2, borderRadius: 1, marginHorizontal: 3 },
+  segments: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  segment: { flex: 1, alignItems: 'center', paddingTop: spacing.sm, gap: spacing.xs, minHeight: touchTarget },
+  segmentBar: { height: 2, alignSelf: 'stretch', marginHorizontal: spacing.xs, borderRadius: 1 },
 });

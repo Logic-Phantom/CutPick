@@ -1,9 +1,11 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import {
-  AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, radius, spacing, tapFeedback, useColors,
+  AppText, BottomBar, EmptyState, ErrorState, GhostButton, IconButton, InlineMessage, PhotoThumbnail, PrimaryButton, Row, ScreenScroll, SectionHeader, elevation, radius, spacing, tapFeedback, useColors,
 } from '@/design-system';
 import { SUPABASE_CONFIGURED } from '@/features/community/supabase-client';
 import { needsAnalysis } from '@/features/image-analysis/analysis-runner';
@@ -89,6 +91,22 @@ export default function RecommendationsScreen() {
   const visibleCandidates = showAllCandidates ? candidates : candidates.slice(0, smallCols * 3);
   const list = single ? output.alternatives : selected;
 
+  // Hero: the first (cover / chosen) photo, its reasons and its measured quality values.
+  const heroId = list[0];
+  const hero = heroId ? byId.get(heroId) : undefined;
+  const heroDetail = heroId ? output.details.find((d) => d.photoId === heroId) : undefined;
+  const heroReason = heroDetail ? primaryReason(heroDetail.reasons) : undefined;
+  const heroOther = heroDetail?.reasons.filter((r) => r !== heroReason && r.code !== 'pinned' && r.code !== 'cover').slice(0, 2) ?? [];
+  const m = hero?.qualityMetrics;
+  const metricChips = m
+    ? [
+        { icon: 'aperture-outline' as const, label: '선명도', value: m.sharpnessScore },
+        { icon: 'sunny-outline' as const, label: '노출', value: m.exposureScore },
+        { icon: 'contrast-outline' as const, label: '대비', value: m.contrastScore },
+        { icon: 'color-palette-outline' as const, label: '색감', value: m.colorfulness },
+      ]
+    : [];
+
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScreenScroll withBottomBar>
@@ -99,6 +117,45 @@ export default function RecommendationsScreen() {
             message={`${photos.length}장 중 ${analyzed}장이 최신 분석 상태예요. 분석되지 않았거나 이전 버전으로 분석된 사진은 결과가 부정확할 수 있어요.`}
             action={<GhostButton compact label="분석 계속하기" onPress={() => router.push(`/analysis/${id}`)} />}
           />
+        ) : null}
+
+        {hero ? (
+          <View style={{ gap: spacing.sm }}>
+            <Pressable onPress={() => open(hero.id)} accessibilityRole="button" accessibilityLabel={`베스트샷 ${single ? '선택된 사진' : '첫 장'}. ${heroDetail?.reasons.map((r) => r.text).join('. ') ?? ''}. 탭하면 편집 메뉴`} style={[styles.hero, elevation.raised, { backgroundColor: c.photoPlaceholder, aspectRatio: Math.max(1, Math.min(1.5, hero.width / Math.max(1, hero.height))) }]} testID="rec-hero">
+              {hero.thumbnailUri ? <Image source={{ uri: hero.thumbnailUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={120} /> : null}
+              <View style={[styles.heroBadge, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
+                <Ionicons name="sparkles" size={12} color={c.pointText} />
+                <AppText variant="caption" style={{ color: '#1D1D22', fontWeight: '700' }}>{single ? '베스트샷' : '1번째 · 대표 사진'}</AppText>
+              </View>
+              <View style={styles.heroCount}>
+                <AppText variant="caption" style={{ color: '#FFFFFF' }}>1 / {list.length}</AppText>
+              </View>
+            </Pressable>
+            {heroReason ? (
+              <View style={{ gap: spacing.xxs }}>
+                <View style={[styles.reasonPill, { backgroundColor: c.pointSoft }]}>
+                  <Ionicons name="thumbs-up-outline" size={12} color={c.pointText} />
+                  <AppText variant="caption" style={{ color: c.pointText, fontWeight: '700' }}>추천 이유</AppText>
+                </View>
+                <AppText variant="sectionTitle">{heroReason.text}</AppText>
+                {heroOther.map((r) => <AppText key={r.text} variant="secondary" tone={r.tone === 'caution' ? 'warning' : 'secondary'}>{r.text}</AppText>)}
+              </View>
+            ) : null}
+            {metricChips.length ? (
+              <View style={styles.metrics} accessible accessibilityLabel={`측정값(0~100): ${metricChips.map((x) => `${x.label} ${Math.round(x.value * 100)}`).join(', ')}`}>
+                {metricChips.map((x) => (
+                  <View key={x.label} style={[styles.metric, elevation.card, { backgroundColor: c.surface }]}>
+                    <Ionicons name={x.icon} size={18} color={c.textSecondary} />
+                    <View>
+                      <AppText variant="caption" tone="tertiary">{x.label}</AppText>
+                      <AppText variant="label">{Math.round(x.value * 100)}</AppText>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {metricChips.length ? <AppText variant="caption" tone="tertiary">기기에서 잰 측정값(0~100)이에요. 미적 점수가 아니에요.</AppText> : null}
+          </View>
         ) : null}
 
         <RecommendationControls
@@ -217,7 +274,7 @@ export default function RecommendationsScreen() {
       <BottomBar>
         <IconButton icon="arrow-undo" label="되돌리기" onPress={actions.undo} disabled={!canUndo} testID="rec-undo" />
         <IconButton icon="shuffle" label="다시 추천 (고정·제외는 유지)" onPress={actions.reRecommend} testID="rec-rerun" />
-        <PrimaryButton label="저장·공유로" icon="share-outline" onPress={() => router.push(`/export/${id}`)} disabled={list.length === 0} style={{ flex: 1 }} testID="rec-export" />
+        <PrimaryButton label="저장·공유하기" icon="share-outline" onPress={() => router.push(`/export/${id}`)} disabled={list.length === 0} style={{ flex: 1 }} testID="rec-export" />
       </BottomBar>
 
       <PhotoActionSheet
@@ -251,5 +308,11 @@ export default function RecommendationsScreen() {
 }
 
 const styles = StyleSheet.create({
+  hero: { width: '100%', borderRadius: radius.card, overflow: 'hidden' },
+  heroBadge: { position: 'absolute', left: spacing.sm, top: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.xs + 2, paddingVertical: 4, borderRadius: radius.chip },
+  heroCount: { position: 'absolute', right: spacing.sm, top: spacing.sm, backgroundColor: 'rgba(0,0,0,0.35)', paddingHorizontal: spacing.xs, paddingVertical: 2, borderRadius: radius.chip },
+  reasonPill: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: spacing.xs + 2, paddingVertical: 4, borderRadius: radius.chip },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  metric: { flexGrow: 1, flexBasis: '22%', minWidth: 72, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.button },
   orderBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: radius.button },
 });

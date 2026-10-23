@@ -78,6 +78,7 @@ export default function NewProjectScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScreenScroll withBottomBar>
+        <AppText variant="body" tone="secondary">선택한 사진을 분석해서 SNS에 올리기 좋은 베스트샷을 추천해드려요.</AppText>
         <View style={{ gap: spacing.xs }}>
           <AppText variant="bodyStrong">프로젝트 이름</AppText>
           <TextInput
@@ -144,8 +145,9 @@ export default function NewProjectScreen() {
         {error ? <InlineMessage tone="error" message={error} /> : null}
       </ScreenScroll>
       <BottomBar>
+        <SecondaryButton label="이전" onPress={() => router.back()} style={{ minWidth: 96 }} />
         {picked && count > 0 ? (
-          <PrimaryButton label={`${count}장으로 분석 시작`} icon="scan-outline" onPress={() => create(false)} loading={busy === 'create'} style={{ flex: 1 }} testID="new-create" />
+          <PrimaryButton label={`${count}장으로 추천 받기`} icon="sparkles" onPress={() => create(false)} loading={busy === 'create'} style={{ flex: 1 }} testID="new-create" />
         ) : (
           <PrimaryButton label="사진 선택" icon="images-outline" onPress={onPick} loading={busy === 'pick'} disabled={!!busy && busy !== 'pick'} style={{ flex: 1 }} testID="new-pick" />
         )}

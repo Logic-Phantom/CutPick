@@ -1,7 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
+import type { ComponentProps } from 'react';
+import type { ColorValue } from 'react-native';
 
 import { fonts, useColors } from '@/design-system';
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+const icon = (outline: IconName, filled: IconName) =>
+  function TabIcon({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) {
+    return <Ionicons name={focused ? filled : outline} color={color as string} size={size} />;
+  };
 
 /**
  * Web (dev preview only): the native-tabs web fallback renders a top bar that overlaps content,
@@ -14,13 +23,14 @@ export default function TabsLayoutWeb() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: c.accent,
-        tabBarInactiveTintColor: c.textSecondary,
+        tabBarInactiveTintColor: c.textTertiary,
         tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border },
         tabBarLabelStyle: { fontFamily: fonts.semibold },
       }}>
-      <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: ({ color, size }) => <Ionicons name="images-outline" color={color as string} size={size} /> }} />
-      <Tabs.Screen name="community" options={{ title: '커뮤니티', tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" color={color as string} size={size} /> }} />
-      <Tabs.Screen name="settings" options={{ title: '설정', tabBarIcon: ({ color, size }) => <Ionicons name="settings-outline" color={color as string} size={size} /> }} />
+      <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: icon('home-outline', 'home') }} />
+      <Tabs.Screen name="recommend" options={{ title: '사진 추천', tabBarIcon: icon('image-outline', 'image') }} />
+      <Tabs.Screen name="community" options={{ title: '커뮤니티', tabBarIcon: icon('heart-outline', 'heart') }} />
+      <Tabs.Screen name="me" options={{ title: '내 정보', tabBarIcon: icon('person-outline', 'person') }} />
     </Tabs>
   );
 }

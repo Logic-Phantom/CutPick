@@ -28,6 +28,8 @@ function LinkRow({ icon, label, href }: { icon: IconName; label: string; href: H
 }
 
 const THUMB = 48;
+/** Divider inset that lines up with ListRow labels (padding + icon + gap). */
+const ROW_INSET = spacing.md + 20 + spacing.md;
 const MAX_THUMBS = 5;
 const SUMMARY_MAX = 6;
 
@@ -89,8 +91,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScreenScroll topInset>
-      <AppText variant="screenTitle">설정</AppText>
+    <ScreenScroll>
       {done ? <InlineMessage tone="success" message={done} /> : null}
 
       <View>
@@ -140,13 +141,11 @@ export default function SettingsScreen() {
       </View>
 
       <View>
-        <SectionHeader title="데이터 관리" />
-        <Card>
-          <View style={{ gap: spacing.sm }}>
-            <AppText variant="secondary" tone="secondary">앱이 만든 썸네일·내보내기 파일: {formatBytes(bytes)}</AppText>
-            <DangerButton compact label="모든 프로젝트 삭제" onPress={() => setConfirm('projects')} />
-            <DangerButton compact label="모든 로컬 데이터 삭제" onPress={() => setConfirm('all')} testID="settings-wipe" />
-          </View>
+        <SectionHeader title="데이터 관리" subtitle={`앱이 만든 썸네일·내보내기 파일: ${formatBytes(bytes)}`} />
+        <Card padded={false}>
+          <ListRow icon="folder-open-outline" label="모든 프로젝트 삭제" role="button" tone="danger" onPress={() => setConfirm('projects')} />
+          <Divider inset={ROW_INSET} />
+          <ListRow icon="trash-outline" label="모든 로컬 데이터 삭제" role="button" tone="danger" onPress={() => setConfirm('all')} testID="settings-wipe" />
         </Card>
       </View>
 
@@ -155,9 +154,10 @@ export default function SettingsScreen() {
         <Card padded={false}>
           {configured ? (
             <>
-              <LinkRow icon="person-circle-outline" label={session ? '커뮤니티 계정' : '커뮤니티 로그인'} href="/community/account" />
-              {session ? <LinkRow icon="images-outline" label="내 게시물" href="/community/my-posts" /> : null}
-              {session ? <LinkRow icon="ban-outline" label="차단한 계정" href="/community/blocked-users" /> : null}
+              <LinkRow icon="person-outline" label={session ? '커뮤니티 계정' : '커뮤니티 로그인'} href="/community/account" />
+              {session ? <><Divider inset={ROW_INSET} /><LinkRow icon="images-outline" label="내 게시물" href="/community/my-posts" /></> : null}
+              {session ? <><Divider inset={ROW_INSET} /><LinkRow icon="eye-off-outline" label="차단한 사용자" href="/community/blocked-users" /></> : null}
+              <Divider inset={ROW_INSET} />
             </>
           ) : (
             <View style={{ padding: spacing.md }}>
@@ -169,12 +169,12 @@ export default function SettingsScreen() {
       </View>
 
       <View>
-        <SectionHeader title="정보" />
+        <SectionHeader title="정보 및 고객 지원" />
         <Card padded={false}>
           <LinkRow icon="shield-checkmark-outline" label="개인정보 처리방침" href="/legal/privacy" />
-          <Divider inset={spacing.md + 20 + spacing.sm} />
+          <Divider inset={ROW_INSET} />
           <LinkRow icon="document-text-outline" label="이용약관" href="/legal/terms" />
-          <Divider inset={spacing.md + 20 + spacing.sm} />
+          <Divider inset={ROW_INSET} />
           <LinkRow icon="image-outline" label="이미지 출처" href="/legal/image-credits" />
         </Card>
       </View>

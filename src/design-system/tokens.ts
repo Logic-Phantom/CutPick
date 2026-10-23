@@ -1,8 +1,8 @@
 /**
- * CutPick design tokens — "Photo-first, editorial".
- * Warm-neutral paper and ink so the photos carry the color (the way photo/fashion apps such as
- * VSCO, 29CM or Kream do). Solid ink CTAs, no gradients, no rainbow accents. A single coral
- * "pick" color marks what the user picked (photo checks, progress) and nothing else.
+ * CutPick design tokens — "Soft coral, photo-first" (D-051).
+ * Airy off-white background, white rounded cards with a faint lift, pill chips and pill CTAs in
+ * one warm coral. Photos stay the most colorful thing on screen; coral marks actions, the selected
+ * filter, picked photos and progress. Coral text on light surfaces uses `pointText` (≥ 4.5:1).
  * Rules: docs/DESIGN_SYSTEM.md. Screens must not define their own colors/spacings.
  */
 
@@ -53,21 +53,21 @@ export const launch = {
 } as const;
 
 export const lightColors: ColorTokens = {
-  background: '#FAFAF8',
+  background: '#F7F7F9',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
-  surfaceSunken: '#F1F1EE',
-  textPrimary: '#191919',
-  textSecondary: '#5C5C59',
-  textTertiary: '#878783',
+  surfaceSunken: '#F1F1F4',
+  textPrimary: '#1D1D22',
+  textSecondary: '#5D5D66',
+  textTertiary: '#8A8A93',
   textOnAccent: '#FFFFFF',
-  border: '#E9E9E5',
-  borderStrong: '#D3D3CE',
-  // The accent is ink: solid black CTAs and selected chips (white text 17:1).
-  accent: '#191919',
-  accentPressed: '#000000',
-  accentSoft: '#F1F1EE',
-  selected: '#191919',
+  border: '#ECECF0',
+  borderStrong: '#D8D8DE',
+  // Coral CTA fill (white bold label 3.7:1 — CTA labels are bold; small coral text uses pointText).
+  accent: '#E8502A',
+  accentPressed: '#CF4320',
+  accentSoft: '#FFF1EC',
+  selected: '#E8502A',
   selectedText: '#FFFFFF',
   selectedOverlay: 'rgba(255,255,255,0.12)',
   success: '#1F7A4D',
@@ -78,7 +78,7 @@ export const lightColors: ColorTokens = {
   errorSoft: '#FCE8E6',
   heart: '#F0384F',
   scrim: 'rgba(0,0,0,0.5)',
-  photoPlaceholder: '#ECECE8',
+  photoPlaceholder: '#ECECF0',
   point: '#FF5A36',
   pointText: '#C23A14',
   pointSoft: '#FFEEE8',
@@ -86,22 +86,21 @@ export const lightColors: ColorTokens = {
 };
 
 export const darkColors: ColorTokens = {
-  background: '#111111',
-  surface: '#1B1B1B',
-  surfaceElevated: '#242424',
-  surfaceSunken: '#0A0A0A',
-  textPrimary: '#F4F4F2',
-  textSecondary: '#ABABA7',
-  textTertiary: '#82827E',
-  // Dark-mode CTAs are paper-white with ink text (16:1).
-  textOnAccent: '#111111',
-  border: '#2A2A2A',
-  borderStrong: '#3D3D3B',
-  accent: '#F4F4F2',
-  accentPressed: '#D9D9D5',
-  accentSoft: '#262626',
-  selected: '#F4F4F2',
-  selectedText: '#111111',
+  background: '#111114',
+  surface: '#1C1C20',
+  surfaceElevated: '#25252A',
+  surfaceSunken: '#0B0B0D',
+  textPrimary: '#F4F4F6',
+  textSecondary: '#ABABB3',
+  textTertiary: '#82828A',
+  textOnAccent: '#FFFFFF',
+  border: '#2B2B31',
+  borderStrong: '#3E3E45',
+  accent: '#F0532D',
+  accentPressed: '#D94A27',
+  accentSoft: '#33201A',
+  selected: '#F0532D',
+  selectedText: '#FFFFFF',
   selectedOverlay: 'rgba(0,0,0,0.18)',
   success: '#5CC58F',
   successSoft: '#13291C',
@@ -111,7 +110,7 @@ export const darkColors: ColorTokens = {
   errorSoft: '#3A1715',
   heart: '#FF5C70',
   scrim: 'rgba(0,0,0,0.65)',
-  photoPlaceholder: '#262626',
+  photoPlaceholder: '#2A2A2F',
   point: '#FF6A45',
   pointText: '#FF9573',
   pointSoft: '#33201A',
@@ -130,18 +129,20 @@ export const spacing = {
 
 export const radius = {
   /** Dense photo grids (thumbnails). */
-  photo: 6,
-  /** Large photo cards (taste cards, home cover). */
-  tile: 12,
+  photo: 10,
+  /** Large photo cards (taste cards, home cover, feed cards). */
+  tile: 16,
   chip: 999,
+  /** Text fields, inline messages, small boxes. Buttons themselves are pills (`chip`). */
   button: 14,
-  card: 18,
-  sheet: 22,
+  card: 20,
+  sheet: 24,
 } as const;
 
-/** The only shadow in the app: a faint lift for the one hero card per screen. Lists use borders. */
+/** Soft lifts. `raised` for hero cards and banners, `card` for white cards on the off-white background. */
 export const elevation = {
-  raised: { shadowColor: '#1B1450', shadowOpacity: 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  raised: { shadowColor: '#2A1A40', shadowOpacity: 0.1, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  card: { shadowColor: '#2A1A40', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
 } as const;
 
 /**
@@ -167,7 +168,7 @@ export function fontForWeight(weight: string | number | undefined): string {
 }
 
 export const typography = {
-  screenTitle: { fontSize: 28, lineHeight: 36, fontFamily: fonts.bold, letterSpacing: -0.4 },
+  screenTitle: { fontSize: 26, lineHeight: 34, fontFamily: fonts.bold, letterSpacing: -0.4 },
   /** Question / hero headline inside a screen (onboarding question, home next action). */
   title: { fontSize: 22, lineHeight: 30, fontFamily: fonts.bold, letterSpacing: -0.3 },
   sectionTitle: { fontSize: 18, lineHeight: 25, fontFamily: fonts.bold, letterSpacing: -0.2 },

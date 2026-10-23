@@ -7,6 +7,8 @@ import { AppText } from './AppText';
 
 export interface FilterChipProps {
   label: string;
+  /** Optional leading icon (category pills). */
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
   selected: boolean;
   onPress: () => void;
   disabled?: boolean;
@@ -16,7 +18,7 @@ export interface FilterChipProps {
 }
 
 /** Selection is conveyed by fill + check icon + accessibility state, not color alone. */
-export function FilterChip({ label, selected, onPress, disabled, role = 'checkbox', testID }: FilterChipProps) {
+export function FilterChip({ label, icon, selected, onPress, disabled, role = 'checkbox', testID }: FilterChipProps) {
   const c = useColors();
   return (
     <Pressable
@@ -30,13 +32,13 @@ export function FilterChip({ label, selected, onPress, disabled, role = 'checkbo
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: selected ? c.selected : pressed ? c.surfaceSunken : c.surface,
-          borderColor: selected ? c.selected : c.borderStrong,
+          backgroundColor: selected ? c.selected : pressed ? c.border : c.surfaceSunken,
+          borderColor: selected ? c.selected : c.surfaceSunken,
           opacity: disabled ? 0.45 : 1,
         },
       ]}>
-      {selected ? <Ionicons name="checkmark" size={16} color={c.selectedText} /> : null}
-      <AppText variant="secondary" style={{ color: selected ? c.selectedText : c.textPrimary, fontWeight: '600' }}>
+      {icon ? <Ionicons name={icon} size={15} color={selected ? c.selectedText : c.textSecondary} /> : selected ? <Ionicons name="checkmark" size={16} color={c.selectedText} /> : null}
+      <AppText variant="secondary" style={{ color: selected ? c.selectedText : c.textSecondary, fontWeight: selected ? '700' : '600' }}>
         {label}
       </AppText>
     </Pressable>
@@ -46,7 +48,7 @@ export function FilterChip({ label, selected, onPress, disabled, role = 'checkbo
 const styles = StyleSheet.create({
   chip: {
     minHeight: touchTarget - 4,
-    paddingHorizontal: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.chip,
     borderWidth: 1,

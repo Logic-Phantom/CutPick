@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useColors } from '../theme';
-import { radius, spacing } from '../tokens';
+import { elevation, radius, spacing } from '../tokens';
 import { AppText } from './AppText';
 import { PrimaryButton, SecondaryButton, type IconName } from './Buttons';
 
@@ -21,7 +21,7 @@ export function SectionHeader({ title, subtitle, right }: { title: string; subti
 
 export function Card({ children, padded = true, style }: { children: ReactNode; padded?: boolean; style?: object }) {
   const c = useColors();
-  return <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, padded && { padding: spacing.md }, style]}>{children}</View>;
+  return <View style={[styles.card, elevation.card, { backgroundColor: c.surface, borderColor: c.border }, padded && { padding: spacing.md }, style]}>{children}</View>;
 }
 
 export type MessageTone = 'info' | 'success' | 'warning' | 'error';
@@ -30,7 +30,7 @@ export type MessageTone = 'info' | 'success' | 'warning' | 'error';
 export function InlineMessage({ tone = 'info', title, message, action }: { tone?: MessageTone; title?: string; message: string; action?: ReactNode }) {
   const c = useColors();
   const map = {
-    info: { bg: c.accentSoft, fg: c.accent, icon: 'information-circle' as IconName },
+    info: { bg: c.accentSoft, fg: c.pointText, icon: 'information-circle' as IconName },
     success: { bg: c.successSoft, fg: c.success, icon: 'checkmark-circle' as IconName },
     warning: { bg: c.warningSoft, fg: c.warning, icon: 'warning' as IconName },
     error: { bg: c.errorSoft, fg: c.error, icon: 'alert-circle' as IconName },

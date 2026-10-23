@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -5,19 +6,44 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Sty
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { toUserMessage } from '@/domain/errors';
-import { AppText, EmptyState, ErrorState, FilterChip, GhostButton, Row, SecondaryButton, radius, spacing, useColors } from '@/design-system';
+import { AppText, BrandHeader, ErrorState, FilterChip, GhostButton, InlineMessage, SecondaryButton, elevation, radius, spacing, useColors } from '@/design-system';
 import type { FeedPost } from '@/features/community/community-repository';
-import { CommunityGate } from '@/features/community/components/CommunityGate';
 import { HeartButton } from '@/features/community/components/HeartButton';
-import { COMMUNITY_LIMITS, POST_CATEGORIES, categoryLabel, type PostCategory } from '@/features/community/moderation-policy';
+import { COMMUNITY_LIMITS, categoryLabel, type PostCategory } from '@/features/community/moderation-policy';
 import { communityRepository } from '@/features/community/supabase-community-repository';
+import { PhotoTagPill, ShowcaseCard } from '@/features/showcase/components/ShowcaseCard';
+import { SHOWCASE_FILTERS, showcaseFor } from '@/features/showcase/showcase-photos';
 import { useCommunitySession } from '@/hooks/use-community-session';
 
-function Feed() {
+function PostCard({ post, width, onOpen, onLike }: { post: FeedPost; width: number; onOpen: () => void; onLike: () => void }) {
+  const c = useColors();
+  return (
+    <View style={[styles.card, elevation.card, { width, backgroundColor: c.surface }]}>
+      <Pressable onPress={onOpen} accessibilityRole="button" accessibilityLabel={`${post.authorHandle}의 ${categoryLabel(post.category)} 사진, 공감 ${post.likeCount}개. 탭하면 상세 보기`}>
+        <View style={[styles.photo, { height: width * 0.95, backgroundColor: c.photoPlaceholder }]}>
+          <Image source={{ uri: post.thumbUrl }} style={StyleSheet.absoluteFill} contentFit="cover" transition={120} />
+          <View style={styles.pillSpot}>
+            <PhotoTagPill label={categoryLabel(post.category)} />
+          </View>
+        </View>
+      </Pressable>
+      <View style={styles.cardFoot}>
+        <View style={[styles.avatar, { backgroundColor: c.pointSoft }]}>
+          <AppText variant="caption" style={{ color: c.pointText, fontWeight: '700' }}>{post.authorHandle.slice(0, 1).toUpperCase()}</AppText>
+        </View>
+        <AppText variant="caption" tone="secondary" numberOfLines={1} style={{ flex: 1 }}>{post.authorHandle}</AppText>
+        <HeartButton liked={post.likedByMe} count={post.likeCount} onPress={onLike} />
+      </View>
+    </View>
+  );
+}
+
+export default function CommunityTab() {
   const router = useRouter();
   const c = useColors();
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { session } = useCommunitySession();
+  const { session, configured, loading } = useCommunitySession();
   const [category, setCategory] = useState<PostCategory | null>(null);
   const [posts, setPosts] = useState<FeedPost[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +52,7 @@ function Feed() {
   const [ended, setEnded] = useState(false);
 
   const load = useCallback(async (cat: PostCategory | null) => {
+    if (!configured) return;
     setError(null);
     try {
       const list = await communityRepository.listFeed({ category: cat, limit: COMMUNITY_LIMITS.feedPageSize });
@@ -34,7 +61,7 @@ function Feed() {
     } catch (e) {
       setError(toUserMessage(e));
     }
-  }, []);
+  }, [configured]);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,82 +99,79 @@ function Feed() {
     }
   };
 
-  const cols = width >= 700 ? 3 : 2;
-  const tile = (width - spacing.md * 2 - spacing.xs * (cols - 1)) / cols;
+  const cols = width >= 900 ? 4 : width >= 600 ? 3 : 2;
+  const tile = (width - spacing.md * 2 - spacing.sm * (cols - 1)) / cols;
+  const samples = showcaseFor(category);
+  const feedEmpty = configured && posts != null && posts.length === 0 && !error;
 
-  return (
-    <FlatList
-      data={posts ?? []}
-      keyExtractor={(p) => p.id}
-      numColumns={cols}
-      key={cols}
-      columnWrapperStyle={{ gap: spacing.xs }}
-      contentContainerStyle={{ paddingHorizontal: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(category); setRefreshing(false); }} />}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.4}
-      ListHeaderComponent={
-        <View style={{ gap: spacing.sm, marginBottom: spacing.xs }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.xs }}>
-            <FilterChip label="전체" selected={category == null} onPress={() => setCategory(null)} role="radio" />
-            {POST_CATEGORIES.map((cat) => (
-              <FilterChip key={cat.id} label={cat.label} selected={category === cat.id} onPress={() => setCategory(cat.id)} role="radio" />
-            ))}
-          </ScrollView>
-          {error ? <ErrorState message={error} onRetry={() => load(category)} /> : null}
-        </View>
-      }
-      ListEmptyComponent={
-        posts == null && !error ? (
-          <ActivityIndicator style={{ marginTop: spacing.xl }} />
-        ) : !error ? (
-          <EmptyState title="아직 게시물이 없어요" message="추천 결과에서 사진을 눌러 '커뮤니티에 공유'를 고르거나, 저장·공유 화면에서 공개할 수 있어요. 올리면 바로 여기에 보여요." />
-        ) : undefined
-      }
-      ListFooterComponent={loadingMore ? <ActivityIndicator /> : undefined}
-      renderItem={({ item }) => (
-        <View style={{ width: tile, gap: spacing.xxs }}>
-          <Pressable onPress={() => router.push(`/community/post/${item.id}`)} accessibilityRole="button" accessibilityLabel={`${item.authorHandle}의 ${categoryLabel(item.category)} 사진, 공감 ${item.likeCount}개. 탭하면 상세 보기`}>
-            <View style={[styles.img, { width: tile, height: tile * 1.25, backgroundColor: c.photoPlaceholder }]}>
-              <Image source={{ uri: item.thumbUrl }} style={StyleSheet.absoluteFill} contentFit="cover" transition={120} />
-            </View>
-          </Pressable>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <View style={{ flex: 1 }}>
-              <AppText variant="caption" numberOfLines={1}>@{item.authorHandle}</AppText>
-              <AppText variant="caption" tone="tertiary">{categoryLabel(item.category)}</AppText>
-            </View>
-            <HeartButton liked={item.likedByMe} count={item.likeCount} onPress={() => toggleLike(item)} />
-          </Row>
-        </View>
-      )}
-    />
-  );
-}
-
-export default function CommunityTab() {
-  const router = useRouter();
-  const c = useColors();
-  const insets = useSafeAreaInsets();
-  const { session, configured } = useCommunitySession();
-  return (
-    <View style={{ flex: 1, backgroundColor: c.background, paddingTop: insets.top + spacing.md }}>
-      <View style={{ paddingHorizontal: spacing.md, gap: spacing.xxs, marginBottom: spacing.sm }}>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <AppText variant="screenTitle">커뮤니티</AppText>
-          {configured ? (
-            session ? <SecondaryButton compact label="내 게시물" onPress={() => router.push('/community/my-posts')} /> : <GhostButton compact label="로그인" onPress={() => router.push('/community/account')} />
-          ) : null}
-        </Row>
-        <AppText variant="secondary" tone="secondary">사진에 하트로 공감하는 곳이에요. 댓글·DM·외모 평가·순위는 없어요.</AppText>
+  const header = (
+    <View style={{ gap: spacing.md, marginBottom: spacing.xs }}>
+      <View style={styles.headRow}>
+        <BrandHeader style={{ flex: 1 }} />
+        {configured ? (
+          session ? <SecondaryButton compact label="내 게시물" onPress={() => router.push('/community/my-posts')} /> : <GhostButton compact label="로그인" onPress={() => router.push('/community/account')} />
+        ) : null}
       </View>
-      <CommunityGate>
-        <Feed />
-      </CommunityGate>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.xs }}>
+        <FilterChip label="전체" selected={category == null} onPress={() => setCategory(null)} role="radio" />
+        {SHOWCASE_FILTERS.map((cat) => (
+          <FilterChip key={cat.id} label={cat.label} selected={category === cat.id} onPress={() => setCategory(cat.id)} role="radio" />
+        ))}
+      </ScrollView>
+      <AppText variant="caption" tone="tertiary">사진에 하트로 공감하는 곳이에요. 댓글·DM·외모 평가·순위는 없어요.</AppText>
+      {!configured ? (
+        <InlineMessage tone="info" title="커뮤니티 서버 연결 전이에요" message="지금은 CutPick이 준비한 베스트샷 샘플만 보여요. 사진 선택·분석·추천·저장은 서버 없이 그대로 쓸 수 있어요." />
+      ) : null}
+      {error ? <ErrorState message={error} onRetry={() => load(category)} /> : null}
+      {configured && (loading || (posts == null && !error)) ? <ActivityIndicator style={{ marginTop: spacing.md }} /> : null}
+      {feedEmpty ? <InlineMessage tone="info" message="아직 게시물이 없어요. 추천 결과에서 사진을 눌러 '커뮤니티에 공유'를 고르면 바로 여기에 보여요." /> : null}
+    </View>
+  );
+
+  const footer = (
+    <View style={{ gap: spacing.sm, marginTop: posts?.length ? spacing.lg : 0 }}>
+      {loadingMore ? <ActivityIndicator /> : null}
+      <View style={styles.sectionRow}>
+        <Ionicons name="sparkles" size={18} color={c.point} />
+        <AppText variant="sectionTitle" style={{ flex: 1 }}>CutPick 베스트샷 샘플</AppText>
+        <AppText variant="caption" tone="tertiary">{samples.length}장</AppText>
+      </View>
+      <View style={styles.grid}>
+        {samples.map((p) => (
+          <ShowcaseCard key={p.id} photo={p} width={tile} onPress={() => router.push(`/showcase/${p.id}`)} />
+        ))}
+      </View>
+      <AppText variant="caption" tone="tertiary">샘플은 소유자가 제공한 예시 사진이며 실제 사용자 게시물이 아니에요(작성자·하트 없음).</AppText>
+    </View>
+  );
+
+  return (
+    <View style={{ flex: 1, backgroundColor: c.background }}>
+      <FlatList
+        data={configured ? posts ?? [] : []}
+        keyExtractor={(p) => p.id}
+        numColumns={cols}
+        key={cols}
+        columnWrapperStyle={{ gap: spacing.sm }}
+        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingTop: insets.top + spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }}
+        refreshControl={configured ? <RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(category); setRefreshing(false); }} /> : undefined}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.4}
+        ListHeaderComponent={header}
+        ListFooterComponent={footer}
+        renderItem={({ item }) => <PostCard post={item} width={tile} onOpen={() => router.push(`/community/post/${item.id}`)} onLike={() => toggleLike(item)} />}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  img: { borderRadius: radius.photo, overflow: 'hidden' },
+  headRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  card: { borderRadius: radius.tile },
+  photo: { borderTopLeftRadius: radius.tile, borderTopRightRadius: radius.tile, overflow: 'hidden' },
+  pillSpot: { position: 'absolute', left: spacing.xs, bottom: spacing.xs },
+  cardFoot: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingLeft: spacing.sm, paddingRight: spacing.xxs, paddingVertical: spacing.xxs },
+  avatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

@@ -114,6 +114,8 @@ npm run bench
 ```
 
 ## 구조
+탭 4개(D-051): **홈**(`src/app/(tabs)/index.tsx`, 오늘의 픽·베스트샷 샘플) · **사진 추천**(`recommend.tsx`, 사진 고르기 → 분석 → 추천 결과 흐름의 시작점·프로젝트 목록) · **커뮤니티**(`community.tsx`, 실제 게시물 + 샘플) · **내 정보**(`me.tsx`, 로컬 통계·취향·프로젝트, 톱니 → `src/app/settings.tsx`).
+
 `src/app`(화면) · `src/design-system`(토큰·컴포넌트) · `src/domain`(모델·정책 상수) · `src/features/*`(사진 가져오기, 분석, 추천, 플랫폼, 프리셋, 온보딩, 개인화, 캡션, 내보내기, 프로젝트, 커뮤니티) · `src/infrastructure`(SQLite, 파일, 이미지 파이프라인) · `supabase/` · `tests/` · `docs/`. 자세한 내용은 `docs/ARCHITECTURE.md`.
 
 ## 문서
@@ -127,7 +129,7 @@ npm run bench
 | docs/TREND_RESEARCH.md | 프리셋 검수 절차 |
 | docs/PRIVACY.md, UGC_SAFETY.md | 데이터 흐름, 커뮤니티 안전 |
 | docs/MODEL_AND_LIBRARY_LICENSES.md, THIRD_PARTY_NOTICES.md | 라이선스 |
-| docs/IMAGE_ASSET_ATTRIBUTIONS.md | 취향 설정 예시 사진 16장 + 샘플 체험 사진 18장의 출처·작가·라이선스·수정 내역 |
+| docs/IMAGE_ASSET_ATTRIBUTIONS.md | 취향 설정 예시 사진 16장 + 샘플 체험 사진 18장 + 베스트샷 샘플 20장의 출처·작가·라이선스·수정 내역 |
 | docs/COSTS_AND_DISTRIBUTION.md | 무료 한도, 스토어 비용, 빌드 |
 | docs/DESIGN_SYSTEM.md, UX_FLOWS.md, DESIGN_QA.md | 디자인 토큰, 흐름, QA 결과(스크린샷: docs/screenshots) |
 | docs/TESTING.md, ROADMAP.md | 테스트 범위·결과, 다음 단계 |
@@ -294,7 +296,9 @@ npm test
 | 커뮤니티 백엔드 | `src/features/community/supabase-community-repository.ts`, `supabase/migrations/` |
 | 화면 | `src/app/**` |
 | 디자인 토큰(색·그라데이션·tints·글꼴) | `src/design-system/tokens.ts` (+ `docs/DESIGN_SYSTEM.md`) |
-| 로고·워드마크 | `src/design-system/components/Brand.tsx` |
+| 로고·워드마크·탭 화면 머리(`BrandHeader`) | `src/design-system/components/Brand.tsx` |
+| 탭 구성(홈·사진 추천·커뮤니티·내 정보) | `src/app/(tabs)/_layout.tsx`(네이티브), `_layout.web.tsx`(웹 미리보기) |
+| 베스트샷 샘플(홈·커뮤니티, 오늘의 픽) | `src/features/showcase/showcase-photos.ts` + `assets/showcase/`, 카드·배너 `src/features/showcase/components/`, 상세 `src/app/showcase/[id].tsx` |
 | 런치(로딩) 화면 | `src/features/launch/LaunchOverlay.tsx`, 글꼴 로드·스플래시 처리는 `src/app/_layout.tsx` |
 | 앱 아이콘·스플래시·파비콘 다시 만들기 | 원본 `assets/brand/icon-source.webp` → `python scripts/build-app-icons.py` |
 | 샘플 체험 사진 | `scripts/sample-photos.json`(목록·가공법) → `python scripts/build-sample-photos.py <원본 폴더>`, 출처 `src/features/photo-import/sample-credits.ts` |
@@ -447,3 +451,16 @@ npm test
 - **폰 실테스트(Galaxy Z Flip5 SM-F731N, Expo Go 58.0.4, USB adb, Metro LAN + adb reverse)**: 커뮤니티 계정 화면에 "카카오로 계속하기"·"Google로 계속하기" 버튼 표시 ✅(서버 설정 자동 반영). 카카오 → Chrome 탭에서 **KOE205 "설정하지 않은 동의 항목: account_email"** ❌(비즈 앱 전환 필요, 소유자). 구글 → 로그인 없이 바로 code 발급까지 진행됐으나 리디렉션이 `cutpick:///auth/callback`으로 만들어져 **폰에 설치된 예전 독립 APK가 열림**("Unmatched Route") ❌ → 원인: `Linking.createURL`이 `Constants.executionEnvironment`로 판단하는데 Expo Go 58은 'bare'로 보고(D-026과 같은 문제). **수정**: Expo Go에서는 `isRunningInExpoGo()` + `Constants.expoConfig.hostUri`로 `exp://<host>/--/auth/callback`을 직접 만듦(`expoGoCallbackUrl`, 테스트 추가). 수정 후 재시도에서 구글 동의 화면("mgycpqjzdulzbufupqdu.supabase.co 서비스로 로그인", 소유자 계정 선택됨)까지 확인, 소유자 동의·앱 복귀는 **미확인**(세션 종료). 참고: 구글 동의 화면에 앱 이름 대신 Supabase 도메인이 보임 — 출시 전 Google 브랜딩(앱 도메인·로고) 또는 Supabase 커스텀 도메인 검토.
 - 소유자가 Publishable key 입력 후 API 스모크 테스트(curl, 키 값 비출력): 비로그인 `get_feed` → 200 빈 배열 ✅, `community_settings` 직접 읽기 → 빈 결과(정책 없음으로 차단) ✅, 비로그인 `posts` 쓰기 → 401 RLS 거부 ✅, Auth 설정: email 켜짐·가입 허용·자동 확인 꺼짐 ✅.
 - 남은 일: 앱에서 로그인→게시→하트→신고→삭제 실서버 검증, `supabase/tests/rls_test.sql` 실행.
+
+### 2026-10-23 — 시안 기준 디자인 리프레시(소프트 코랄·4탭) + 베스트샷 샘플 20장 (D-051)
+사용자 요청: README로 구조·동작을 파악한 뒤, 첨부 시안 5장(홈 피드·사진 추천/추천 결과·커뮤니티 그리드·내 정보/설정·샘플 콜라주)대로 스타일과 화면 구조를 바꾸고, 커뮤니티에 쓸 베스트샷 샘플을 콜라주에서 잘라 미리 넣기.
+- **디자인 토큰(D-051, D-040 대체)**: 배경 #F7F7F9, 흰 카드 + 옅은 그림자(`elevation.card`, `Card` 기본), 코랄 알약 CTA(`accent` #E8502A / 다크 #F0532D, 흰 Bold 라벨), 알약 필터 칩(기본 옅은 회색, 선택 코랄 + 체크), radius 카드 20·사진 카드 16·사진 그리드 10, 정보 메시지 글자는 `pointText`. `docs/DESIGN_SYSTEM.md` 갱신.
+- **새 컴포넌트**: `BrandHeader`(코랄 반짝이 + 워드마크 + 태그라인), `StepDots`(1-2-3 흐름 표시), `SegmentTabs`(밑줄 탭), `ListRow tone="danger"`, `FilterChip icon`, `ShowcaseCard`·`PhotoTagPill`·`DailyPickBanner`.
+- **탭 4개**: 홈(카테고리 알약 → 오늘의 픽 배너 5장 가로 넘김 → "내 사진으로 베스트샷 찾기/이어서 하기" → 베스트샷 둘러보기 2열) / 사진 추천(예전 홈 내용: 1-2-3 설명 카드·새 프로젝트·이어서 하기·프로젝트 목록) / 커뮤니티(실제 게시물 카드 + "CutPick 베스트샷 샘플" 섹션, 서버 미설정이어도 샘플 표시) / 내 정보(커버·아바타·통계·나의 사진 취향·내 프로젝트/취향 사진 탭·오늘의 한 컷, 톱니 → 설정). 설정은 `(tabs)/settings.tsx` → `src/app/settings.tsx` 스택 화면으로 이동(경로 `/settings` 동일), 데이터 삭제는 빨간 목록 행.
+- **추천 흐름**: 새 프로젝트·분석·추천 결과 헤더에 1-2-3 단계 표시, 새 프로젝트 하단 "이전" + "N장으로 추천 받기", 추천 결과 맨 위에 대표 사진 히어로 카드(추천 이유 알약 + 대표/보조 이유 + 측정값 선명도·노출·대비·색감 0~100, "미적 점수가 아니에요"). 추천 로직·편집 기능은 변경 없음.
+- **베스트샷 샘플 20장**: 사용자 제공 5×4 콜라주(1536×1024)의 칸 경계를 픽셀 분석으로 찾아 둥근 모서리 7px 안쪽을 자르고 2배 확대(약한 선명화)해 `assets/showcase/showcase-01~20.jpg`(EXIF 없음, 합계 약 0.8MB). 데이터·제목·촬영 팁·카테고리 `src/features/showcase/showcase-photos.ts`, 상세 화면 `/showcase/[id]`, 앱 "이미지 출처"·`docs/IMAGE_ASSET_ATTRIBUTIONS.md`에 소유자 제공으로 기록.
+- **시안과 다르게 한 부분(프로젝트 원칙 때문)**: 샘플에 가짜 작성자·하트 수를 붙이지 않음("CutPick 샘플" 표기, 실제 게시물과 섹션 분리). "지금 인기 있는 사진" → "베스트샷 둘러보기"(인기 데이터 없음). 내 정보의 게시물·하트 받은 수·팔로잉·팔로워 → 로컬 실제 값(프로젝트·고른 사진·취향 카드). 프리미엄 플랜·검색·알림 버튼·하트한/저장한 사진 탭은 기능이 없어 넣지 않음. 코랄 위 흰 글자는 3.7:1이라 굵은 CTA 라벨에만 사용.
+- **명령·결과**: `npx jest` 14 suites / **140 tests 통과**(신규 `tests/unit/showcase-assets.test.ts` 5개: 파일·크기·EXIF 없음·카테고리·출처·오늘의 픽 회전), `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0.
+- **웹 미리보기**(브라우저 패널, 375×812, 기기 아님): 라이트 — 홈(배너·카드·필터), 커뮤니티(서버 연결·게시물 0건 안내 + 샘플 20장), 사진 추천 탭, 새 프로젝트(단계 표시·이전 버튼), 샘플 프로젝트 분석 18/18 → 추천 결과 히어로·측정값, 샘플 상세, 내 정보, 설정 확인. 다크 — 홈 확인. 단계 표시 오른쪽 잘림을 발견해 여백 추가 후 재확인.
+- **미검증**: Android/iOS 실기기에서 새 탭·배너 가로 넘김·그림자 표시, 큰 글자·TalkBack, 320px 폭, 다크 모드의 나머지 화면. 베스트샷 샘플의 원 출처·사용 허락 문서(출시 전 확인 필요, `docs/IMAGE_ASSET_ATTRIBUTIONS.md` "남은 확인 사항"). 문서용 스크린샷은 이번에 새로 저장하지 않음(`docs/screenshots`는 이전 디자인).
+- **GitHub**: `main`에 커밋·푸시.

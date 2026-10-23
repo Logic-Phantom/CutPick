@@ -26,7 +26,7 @@ function ButtonBase({ label, onPress, icon, disabled, loading, style, accessibil
   const primary = kind === 'primary';
   const bg = primary ? c.accent : kind === 'danger' ? c.errorSoft : kind === 'ghost' ? 'transparent' : c.surface;
   const bgPressed = primary ? c.accentPressed : c.surfaceSunken;
-  // Solid ink CTA (paper-white in dark mode); its text color is always ≥ 15:1.
+  // Coral pill CTA with a bold white label (D-051).
   const fg = primary ? c.textOnAccent : kind === 'danger' ? c.error : c.textPrimary;
   return (
     <Pressable
@@ -40,7 +40,7 @@ function ButtonBase({ label, onPress, icon, disabled, loading, style, accessibil
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: pressed ? bgPressed : bg, borderColor: kind === 'secondary' ? c.borderStrong : 'transparent', opacity: inactive ? 0.4 : 1 },
+        { backgroundColor: pressed ? bgPressed : bg, borderColor: kind === 'secondary' ? c.border : 'transparent', opacity: inactive ? 0.4 : 1 },
         style,
       ]}>
       {loading ? (
@@ -48,7 +48,7 @@ function ButtonBase({ label, onPress, icon, disabled, loading, style, accessibil
       ) : (
         <View style={styles.row}>
           {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
-          <AppText variant="bodyStrong" style={{ color: fg }} numberOfLines={2} align="center">
+          <AppText variant="bodyStrong" style={[{ color: fg }, primary && { fontWeight: '700' }]} numberOfLines={2} align="center">
             {label}
           </AppText>
         </View>
@@ -114,8 +114,8 @@ const styles = StyleSheet.create({
     minHeight: touchTarget + 4,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: radius.button,
-    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderRadius: radius.chip,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

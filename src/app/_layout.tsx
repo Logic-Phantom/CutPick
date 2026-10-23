@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { darkColors, fonts, lightColors } from '@/design-system';
+import { StepDots, darkColors, fonts, lightColors } from '@/design-system';
 import { LaunchOverlay } from '@/features/launch/LaunchOverlay';
 import { needsOnboarding } from '@/features/onboarding/preference-schema';
 import { AppStateProvider, useAppState } from '@/hooks/app-state';
@@ -21,6 +21,8 @@ const FONT_FILES = {
   [fonts.bold]: require('@/assets/fonts/Pretendard-Bold.otf'),
   [fonts.brand]: BricolageGrotesque_800ExtraBold,
 };
+
+const FLOW_STEPS = ['사진 고르기', '분석', '추천 결과'];
 
 function OnboardingGate() {
   const { ready, preference } = useAppState();
@@ -74,10 +76,12 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '홈' }} />
             <Stack.Screen name="onboarding/index" options={{ headerShown: false, gestureEnabled: false }} />
             <Stack.Screen name="onboarding/edit" options={{ title: '취향 수정' }} />
-            <Stack.Screen name="project/new" options={{ title: '새 프로젝트' }} />
+            <Stack.Screen name="project/new" options={{ title: '사진 추천', headerRight: () => <StepDots step={1} labels={FLOW_STEPS} /> }} />
             <Stack.Screen name="project/[id]" options={{ title: '프로젝트' }} />
-            <Stack.Screen name="analysis/[id]" options={{ title: '사진 분석' }} />
-            <Stack.Screen name="recommendations/[id]" options={{ title: '추천 결과' }} />
+            <Stack.Screen name="analysis/[id]" options={{ title: '사진 분석', headerRight: () => <StepDots step={2} labels={FLOW_STEPS} /> }} />
+            <Stack.Screen name="recommendations/[id]" options={{ title: '추천 결과', headerRight: () => <StepDots step={3} labels={FLOW_STEPS} /> }} />
+            <Stack.Screen name="settings" options={{ title: '설정' }} />
+            <Stack.Screen name="showcase/[id]" options={{ title: '베스트샷 샘플' }} />
             <Stack.Screen name="export/[id]" options={{ title: '저장·공유' }} />
             <Stack.Screen name="photo/[id]" options={{ title: '사진 상세', presentation: 'modal' }} />
             <Stack.Screen name="auth/callback" options={{ title: '로그인 중', headerBackVisible: false }} />

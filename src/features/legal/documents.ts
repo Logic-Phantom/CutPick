@@ -2,6 +2,7 @@ import { SUPPORT_EMAIL } from '@/features/community/moderation-policy';
 import { CHOICE_CARDS } from '@/features/onboarding/choice-cards';
 import { STYLE_CARDS, type ImageAttribution } from '@/features/onboarding/style-cards';
 import { SAMPLE_CREDITS } from '@/features/photo-import/sample-credits';
+import { SHOWCASE_PHOTOS } from '@/features/showcase/showcase-photos';
 
 /**
  * In-app policy texts (MVP drafts). They must be reviewed by a qualified person before any
@@ -55,7 +56,7 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
   },
   'image-credits': {
     title: '이미지 출처',
-    updatedAt: '2026-10-18',
+    updatedAt: '2026-10-23',
     sections: [
       {
         heading: '취향 설정 예시 사진',
@@ -72,6 +73,11 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
         body: '"샘플 사진으로 체험하기"의 18장도 Wikimedia Commons에서 같은 기준(CC0·퍼블릭 도메인·CC BY)으로 고른 사진이에요. 분석 기능을 보여 주려고 일부는 원본을 조금 어긋나게 자르거나, 흐리게 하거나, 밝기·노출을 올려 가공했어요.',
       },
       ...SAMPLE_CREDITS.map((sample) => ({ heading: `샘플 ${String(sample.slot).padStart(2, '0')} · ${sample.scene}`, body: creditBody(sample.credit) })),
+      {
+        heading: '베스트샷 샘플 (홈·커뮤니티)',
+        body: `홈과 커뮤니티에 "샘플"로 표시되는 사진 ${SHOWCASE_PHOTOS.length}장은 CutPick 프로젝트 소유자가 앱에 쓰도록 제공한 이미지예요. 실제 사용자의 게시물이 아니며 작성자·하트 수가 없어요.`,
+      },
+      { heading: '베스트샷 샘플 출처', body: creditBody(SHOWCASE_PHOTOS[0].credit) },
     ],
   },
 };
