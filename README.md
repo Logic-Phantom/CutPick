@@ -534,3 +534,8 @@ npm test
 - 확인: 원형·둥근 사각 마스크 합성 미리보기로 잘림 없음 확인(처음 결과의 카메라 오른쪽 아래 톱니 모양을 실루엣 다듬기로 수정). `npx jest` **146 tests 통과**, `npx tsc --noEmit`·`npx expo lint` 오류 0.
 - **미검증**: 실기기 런처·스플래시 표시(새 EAS 빌드 필요), 카카오 콘솔 아이콘 재등록(소유자).
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-24 — EAS preview 빌드 (권한 변경 D-054 + 새 아이콘 D-055)
+- `npx.cmd eas-cli@latest build -p android --profile preview --non-interactive --no-wait`(계정 `lcm2`, preview 환경 변수 4개, EAS 보관 키) → **성공**, 버전 0.1.0 / 빌드 1: https://expo.dev/accounts/lcm2/projects/cutpick/builds/5e197ce8-0da0-42bb-b2d0-72669bb2d170
+- **미검증**: 폰 설치 후 사진 앱 저장(READ_MEDIA_* 제거 후), 홈 화면 아이콘·테마 아이콘·스플래시, 공유 시트, 카카오·구글 로그인.
+- **GitHub**: `main`에 커밋·푸시.
