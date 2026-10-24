@@ -522,3 +522,9 @@ npm test
 - 명령·결과: `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx jest` 15 suites / **146 tests 통과**.
 - **미검증**: 권한 변경 후 새 빌드에서 사진 앱 저장(기존 preview 빌드 7026aa6a…는 변경 전). 출시 차단 남은 항목: 베스트샷 샘플 20장 출처·허락 문서, 커뮤니티 두 계정 실테스트·운영자 지정, Play 개인 계정 12명×14일 비공개 테스트.
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-24 — 베스트샷 샘플 20장 출처 = ChatGPT 생성 AI 이미지로 기재
+- 소유자 확인: `assets/showcase/` 20장의 원본 콜라주는 소유자가 ChatGPT로 생성한 이미지. `showcase-photos.ts` 출처(작성자·표기·가공 설명), 샘플 상세 문구("AI로 만든 예시 이미지"), `docs/IMAGE_ASSET_ATTRIBUTIONS.md`(OpenAI 약관상 생성물 권리·상업 이용, 실존 인물 아님 → 초상 동의 불필요), 출시 체크리스트 갱신.
+- 남은 일: 온보딩 인물 카드 2장(D-047) 콜라주의 생성 경로 확인·기재.
+- 명령·결과: `npx jest` **146 tests 통과**, `npx tsc --noEmit`·`npx expo lint` 오류 0. 문구만 바꿔 화면 미리보기는 생략.
+- **GitHub**: `main`에 커밋·푸시.

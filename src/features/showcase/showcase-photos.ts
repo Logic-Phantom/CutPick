@@ -26,11 +26,11 @@ export interface ShowcasePhoto {
 const OWNER_CREDIT: ImageAttribution = {
   sourceName: '프로젝트 소유자 제공',
   sourceUrl: '',
-  author: 'CutPick 프로젝트 소유자 제공',
+  author: 'CutPick 프로젝트 소유자 제공(OpenAI ChatGPT로 생성한 AI 이미지)',
   license: '소유자 제공',
   licenseUrl: '',
-  attribution: '베스트샷 샘플 — CutPick 프로젝트 소유자 제공 이미지(앱 내 사용 허락)',
-  modifications: '소유자가 준 5×4 콜라주 이미지(1536×1024)에서 칸마다 둥근 모서리 7px 안쪽을 잘라 2배로 확대(약한 선명화), 메타데이터 없는 JPEG(품질 86)로 저장. 색 보정·합성 없음',
+  attribution: '베스트샷 샘플 — CutPick 프로젝트 소유자가 ChatGPT로 생성해 제공한 AI 이미지(실제 인물·장소 사진 아님)',
+  modifications: '소유자가 ChatGPT로 생성한 5×4 콜라주 이미지(1536×1024)에서 칸마다 둥근 모서리 7px 안쪽을 잘라 2배로 확대(약한 선명화), 메타데이터 없는 JPEG(품질 86)로 저장. 색 보정·합성 없음',
   checkedAt: '2026-10-23',
 };
 

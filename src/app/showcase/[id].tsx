@@ -44,7 +44,7 @@ export default function ShowcaseDetailScreen() {
         </View>
       </Card>
 
-      <AppText variant="caption" tone="tertiary">CutPick 샘플 · 프로젝트 소유자 제공 이미지(설정 → 이미지 출처). 실제 사용자 게시물이 아니에요.</AppText>
+      <AppText variant="caption" tone="tertiary">CutPick 샘플 · AI로 만든 예시 이미지(설정 → 이미지 출처). 실제 사용자 게시물이 아니에요.</AppText>
     </ScreenScroll>
   );
 }
