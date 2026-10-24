@@ -539,3 +539,11 @@ npm test
 - `npx.cmd eas-cli@latest build -p android --profile preview --non-interactive --no-wait`(계정 `lcm2`, preview 환경 변수 4개, EAS 보관 키) → **성공**, 버전 0.1.0 / 빌드 1: https://expo.dev/accounts/lcm2/projects/cutpick/builds/5e197ce8-0da0-42bb-b2d0-72669bb2d170
 - **미검증**: 폰 설치 후 사진 앱 저장(READ_MEDIA_* 제거 후), 홈 화면 아이콘·테마 아이콘·스플래시, 공유 시트, 카카오·구글 로그인.
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-24 — Play 스토어 등록 자료 준비 (Play Console 앱 만들기는 계정 확인 대기)
+- 소유자 Chrome에서 Play Console 확인: 개발자 계정(개인) 생성됨, **본인 확인·Android 기기 액세스 확인·연락처 전화번호 인증 미완료** → "앱을 만들려면 계정 확인을 완료하세요"로 앱 만들기 불가. 본인 확인(신분증)은 소유자만 가능.
+- 소유자 제공 설명문(앱 이름 "CutPick - 나만의 베스트샷 추천", 짧은·자세한 설명)을 `docs/STORE_LISTING.md`에 반영.
+- 그래픽 이미지 `assets/store/feature-graphic-1024x500.png`: 소유자 홍보 이미지에서 "AI가 찾아주는" 제목을 "사진 속 나만의 베스트샷"으로 교체(소유자 승인).
+- 스크린샷 `assets/store/phone-01~07.png`(1080×1920): 소유자 목업 대신 실제 앱 화면(소유자 승인). 헤드리스 Chrome + CDP로 웹 미리보기를 360×640 @3x 모바일 에뮬레이션해 캡처(취향 선택 → 샘플 프로젝트 분석 → 추천·커뮤니티), 개인 사진 없음.
+- **남은 일**: 소유자 계정 확인 완료 → 앱 만들기(한국어·앱·무료, 선언 동의는 소유자 승인 받음) → 등록정보 입력·업로드 → 앱 콘텐츠 → 비공개 테스트.
+- **GitHub**: `main`에 커밋·푸시.
