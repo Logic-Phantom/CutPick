@@ -1,7 +1,7 @@
 # Builds every app icon / splash / favicon from the single brand source image.
 # Usage: python scripts/build-app-icons.py   (needs Pillow: python -m pip install Pillow)
-# Source: assets/brand/icon-source.webp (rounded-square artwork on a white canvas)
-# Output: assets/images/{icon,android-icon-*,splash-icon,favicon,logo}.png
+# Source: assets/brand/icon-source.webp (rounded-square gradient artwork with a white camera on a white canvas)
+# Output: assets/images/{icon,android-icon-*,splash-icon,favicon,logo}.png + assets/brand/{play-store-icon-512,kakao-icon-256}.png
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -44,7 +44,7 @@ def main() -> None:
     # 1. Shape mask: flood-fill the white canvas from the corners; everything else is the icon.
     probe = src.copy()
     for corner in [(0, 0), (src.width - 1, 0), (0, src.height - 1), (src.width - 1, src.height - 1)]:
-        ImageDraw.floodfill(probe, corner, (255, 0, 255), thresh=70)
+        ImageDraw.floodfill(probe, corner, (255, 0, 255), thresh=40)
     outside = Image.eval(ImageChops.difference(probe, Image.new('RGB', src.size, (255, 0, 255))).convert('L'), lambda v: 255 if v < 8 else 0)
     inside = ImageChops.invert(outside).filter(ImageFilter.MinFilter(5))  # drop the anti-aliased white fringe
     box = inside.getbbox()
@@ -52,53 +52,60 @@ def main() -> None:
     cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
     crop = (cx - side // 2, cy - side // 2, cx - side // 2 + side, cy - side // 2 + side)
     art, shape = src.crop(crop), inside.crop(crop)
+    art = art.resize((1024, 1024), Image.LANCZOS)
+    shape = shape.resize((1024, 1024), Image.LANCZOS).point(lambda v: 255 if v > 127 else 0)
 
-    # 2. Full-bleed square (iOS / store icon): extend the navy background into the cut corners.
-    # The source has a faint light rim along its rounded edge; pull the boundary inwards past it.
-    core = shape.filter(ImageFilter.MinFilter(25))
+    # 2. Full-bleed square (iOS / store icon): extend the gradient into the cut corners.
+    core = shape.filter(ImageFilter.MinFilter(9))
     bg_ext = fill_from_mask(art, core, 40)
-    full = Image.composite(art, bg_ext, core.filter(ImageFilter.GaussianBlur(4)))
-    full.resize((1024, 1024), Image.LANCZOS).save(OUT / 'icon.png')
+    full = Image.composite(art, bg_ext, core.filter(ImageFilter.GaussianBlur(3)))
+    full.save(OUT / 'icon.png')
+    full.resize((512, 512), Image.LANCZOS).save(ROOT / 'assets' / 'brand' / 'play-store-icon-512.png')
+    full.resize((256, 256), Image.LANCZOS).save(ROOT / 'assets' / 'brand' / 'kakao-icon-256.png')  # Kakao console limit 250KB
 
     # 3. Rounded icon with transparent corners (splash, favicon, in-app logo).
     soft = shape.filter(ImageFilter.GaussianBlur(1.2))
     rounded = art.copy()
     rounded.putalpha(soft)
     rounded.resize((512, 512), Image.LANCZOS).save(OUT / 'logo.png')
-    rounded.resize((400, 400), Image.LANCZOS).save(OUT / 'splash-icon.png')
+    rounded.save(OUT / 'splash-icon.png')
     rounded.resize((48, 48), Image.LANCZOS).save(OUT / 'favicon.png')
 
-    # 4. Android adaptive icon: navy background layer + artwork-only foreground layer.
-    lum = full.convert('L')
-    dark = Image.eval(lum, lambda v: 255 if v < 40 else 0)
-    bg_field = fill_from_mask(full, dark, 90)
-    bg_field.resize((1024, 1024), Image.LANCZOS).save(OUT / 'android-icon-background.png')
+    # 4. Android adaptive icon: the white camera + sparkle are the foreground, the gradient is the background.
+    # White-ish, low-saturation pixels are the artwork; flood-filling from the corners closes the lens hole.
+    hsv = full.convert('HSV')
+    h, sat, val = hsv.split()
+    white = ImageChops.multiply(val.point(lambda v: 255 if v > 185 else 0), sat.point(lambda v: 255 if v < 95 else 0))
+    white = white.filter(ImageFilter.MedianFilter(5))
+    probe = Image.merge('RGB', (white, white, white))
+    ImageDraw.floodfill(probe, (0, 0), (255, 0, 0), thresh=10)
+    # Everything the corner flood fill (red) did not reach is the camera silhouette, lens included.
+    silhouette = Image.eval(ImageChops.difference(probe, Image.new('RGB', probe.size, (255, 0, 0))).convert('L'), lambda v: 255 if v > 8 else 0)
+    # Morphological closing smooths the edge where the body's bluish shading falls under the threshold.
+    silhouette = silhouette.filter(ImageFilter.MaxFilter(21)).filter(ImageFilter.MinFilter(21)).filter(ImageFilter.MedianFilter(9))
+    bg_field = fill_from_mask(full, ImageChops.invert(silhouette.filter(ImageFilter.MaxFilter(25))), 60)
+    bg_field.save(OUT / 'android-icon-background.png')
 
-    fp, bp, cp = full.load(), bg_field.load(), shape.filter(ImageFilter.MinFilter(41)).load()
-    fg = Image.new('RGBA', full.size)
-    gp = fg.load()
-    for y in range(full.height):
-        for x in range(full.width):
-            if cp[x, y] < 128:
-                continue
-            p, b = fp[x, y], bp[x, y]
-            diff = max(abs(p[i] - b[i]) for i in range(3))
-            a = min(1.0, max(0.0, (diff - 6) / 46))
-            if a <= 0:
-                continue
-            col = tuple(max(0, min(255, round(b[i] + (p[i] - b[i]) / a))) for i in range(3))
-            gp[x, y] = (*col, round(a * 255))
-    # Keep every bracket corner inside the 66dp safe circle of the 108dp canvas.
-    scale = 0.66
+    fg = full.convert('RGBA')
+    fg.putalpha(silhouette.filter(ImageFilter.GaussianBlur(1.5)))
+    # Fit the artwork inside the 66dp safe circle of the 108dp canvas (radius 0.61 of half-size).
+    a = fg.getchannel('A').load()
+    far = max(((x - 511.5) ** 2 + (y - 511.5) ** 2) ** 0.5 for y in range(0, 1024, 2) for x in range(0, 1024, 2) if a[x, y] > 40)
+    scale = min(1.0, 0.61 * 512 / far)
     size = round(1024 * scale)
     layer = Image.new('RGBA', (1024, 1024))
     layer.paste(fg.resize((size, size), Image.LANCZOS), ((1024 - size) // 2, (1024 - size) // 2))
     layer.save(OUT / 'android-icon-foreground.png')
 
-    mono = Image.new('RGBA', layer.size, (255, 255, 255, 0))
-    mono.putalpha(layer.getchannel('A').point(lambda v: 255 if v > 150 else (0 if v < 60 else round((v - 60) * 2.8))))
+    # Themed (monochrome) icon: camera silhouette with the lens cut out, sparkle kept.
+    inner = ImageChops.subtract(silhouette, white.filter(ImageFilter.MaxFilter(3)))
+    ring = ImageChops.subtract(silhouette, inner)
+    mono_src = Image.new('RGBA', (1024, 1024), (255, 255, 255, 0))
+    mono_src.putalpha(ring.filter(ImageFilter.GaussianBlur(1.2)))
+    mono = Image.new('RGBA', (1024, 1024), (255, 255, 255, 0))
+    mono.paste(mono_src.resize((size, size), Image.LANCZOS), ((1024 - size) // 2, (1024 - size) // 2))
     mono.resize((432, 432), Image.LANCZOS).save(OUT / 'android-icon-monochrome.png')
-    print('wrote icons to', OUT)
+    print('wrote icons to', OUT, 'foreground scale', round(scale, 3))
 
 
 if __name__ == '__main__':

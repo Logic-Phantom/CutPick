@@ -17,7 +17,7 @@
     "android": {
       "package": "app.cutpick.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#0B1024",
+        "backgroundColor": "#8B5CF6",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"

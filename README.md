@@ -528,3 +528,9 @@ npm test
 - 이어서 소유자 확인: 온보딩 인물 카드 2장(거울샷·로우 앵글, D-047) 콜라주도 ChatGPT 생성 → `choice-cards.ts` 출처·`docs/IMAGE_ASSET_ATTRIBUTIONS.md`·체크리스트 같은 방식으로 기재. 앱에 들어간 소유자 제공 이미지 22장 모두 출처 기재 완료.
 - 명령·결과: `npx jest` **146 tests 통과**, `npx tsc --noEmit`·`npx expo lint` 오류 0. 문구만 바꿔 화면 미리보기는 생략.
 - **GitHub**: `main`에 커밋·푸시.
+
+### 2026-10-24 — 앱 아이콘 교체 (D-055)
+- 사용자 제공 새 아이콘(그라데이션 + 흰 카메라·반짝이, 1254×1254)을 `assets/brand/icon-source.webp`로 교체, `scripts/build-app-icons.py`를 새 원본에 맞게 고쳐 재생성: `icon.png`(1024 꽉 찬 정사각, 모서리는 그라데이션 연장), `logo.png`(앱 안 로고)·`splash-icon.png`(1024, 투명 모서리)·`favicon.png`, Android 적응형 전경(카메라·반짝이, 66dp 안전 원 안 0.69배)·배경(카메라를 지운 그라데이션)·테마 아이콘(렌즈를 뚫은 흰 실루엣), `assets/brand/play-store-icon-512.png`(Play 등록용)·`kakao-icon-256.png`(카카오 콘솔용). `adaptiveIcon.backgroundColor` #0B1024 → #8B5CF6(배경 이미지가 우선이라 표시 영향 없음).
+- 확인: 원형·둥근 사각 마스크 합성 미리보기로 잘림 없음 확인(처음 결과의 카메라 오른쪽 아래 톱니 모양을 실루엣 다듬기로 수정). `npx jest` **146 tests 통과**, `npx tsc --noEmit`·`npx expo lint` 오류 0.
+- **미검증**: 실기기 런처·스플래시 표시(새 EAS 빌드 필요), 카카오 콘솔 아이콘 재등록(소유자).
+- **GitHub**: `main`에 커밋·푸시.
