@@ -9,6 +9,7 @@
 - [x] [코드] **연령 정책**: 커뮤니티 로그인 전 "만 14세 이상 + 약관·처리방침(국외 이전 포함) 동의" 체크 없이는 로그인 버튼이 꺼짐. 로컬 기능은 계정 없이 그대로.
 - [x] [코드] 스토어용 **공개 웹페이지 생성기** `scripts/build-legal-site.mjs` → `docs/legal/`(처리방침·약관·가이드라인·계정 삭제 안내). 앱과 같은 문구(`src/features/legal/policy-texts.ts`)를 씀.
 - [x] [코드] Android targetSdk 36 확인(RN 0.88 버전 카탈로그 `targetSdk = "36"`, compileSdk 37) → 2026-08-31 Play 요건 충족.
+- [x] [코드] (2026-10-24, D-054) Play 사진·동영상 권한 정책 대응: `READ_MEDIA_IMAGES`·`READ_MEDIA_VISUAL_USER_SELECTED`·`SYSTEM_ALERT_WINDOW` 등을 `app.json` `blockedPermissions`로 제거(`expo config --type introspect`로 확인). **새 빌드에서 사진 앱 저장 실기기 확인 필요.**
 
 ## B. 소유자가 할 일 — 출시 순서대로
 
@@ -39,7 +40,7 @@ npx eas-cli@latest env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://mgycp
 ```
 같은 방식으로 `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL`, `EXPO_PUBLIC_OPERATOR_NAME`. 확인: `npx eas-cli@latest env:list --environment production`.
 
-- [ ] 내부 테스트 APK: `npx eas-cli@latest build -p android --profile preview` → 폰에 설치(예전 디버그 키 APK는 먼저 삭제) → **사진 앱 저장**, 공유 시트, 커뮤니티 로그인 확인.
+- [ ] 내부 테스트 APK(**D-054 권한 변경 후 다시 빌드**): `npx eas-cli@latest build -p android --profile preview` → 폰에 설치(예전 디버그 키 APK는 먼저 삭제) → **사진 앱 저장**, 공유 시트, 커뮤니티 로그인 확인.
 - [ ] 스토어용: `npx eas-cli@latest build -p android --profile production` (업로드 키는 EAS가 생성·보관하도록 선택).
 
 ### 5. Google Play (US$25 1회)

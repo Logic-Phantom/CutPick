@@ -514,3 +514,11 @@ npm test
 - **운영 적용**: 소유자 승인 후 마이그레이션을 운영 Supabase에 적용, 제약 제거·정책 확인, 적용된 스키마로 RLS 테스트 재실행 13개 통과(롤백).
 - **카카오**: 소유자가 비즈 앱(개인 개발자) 전환 → 동의항목 카카오계정(이메일) = **선택 동의**(목적: 커뮤니티 계정 식별·문의/계정 삭제 시 본인 확인) 저장 확인. KOE205 해결 여부는 폰에서 카카오 로그인으로 확인 필요.
 - **EAS preview 빌드 성공**(빌드 7026aa6a…, Android APK, 버전 0.1.0 / 빌드 1): https://expo.dev/accounts/lcm2/projects/cutpick/builds/7026aa6a-cfe4-47aa-bd72-8b052b1f9f95 — 폰 설치·실기기 확인은 아직.
+
+### 2026-10-24 — Google Play 출시 전 전체 점검 + 사진 권한 정책 수정 (D-054)
+사용자 요청: Play 출시해도 되는지 전체 점검, 설정할 부분 확인, 스토어 등록 과정 설명.
+- 점검: `app.json`·`eas.json`·`package.json`, 최종 Android 권한(`npx expo config --type introspect`), `.env`/소스의 비밀 키(없음), 아이콘(1024px), `docs/RELEASE_CHECKLIST.md`·`docs/STORE_LISTING.md`·`docs/IMAGE_ASSET_ATTRIBUTIONS.md`의 남은 항목.
+- **발견·수정**: `expo-media-library` 플러그인이 `READ_MEDIA_IMAGES`·`READ_MEDIA_VISUAL_USER_SELECTED`를 자동 추가 → Play 사진·동영상 권한 정책(사진 선택기로 충분한 앱은 선언 불가)에 걸림. 앱은 시스템 선택기로 가져오고 저장은 쓰기 전용이라 필요 없음 → `blockedPermissions`에 READ_MEDIA_* 4개 + `SYSTEM_ALERT_WINDOW` 추가. expo-media-library 58 네이티브 코드(Android 11+ `AssetModernFactory` MediaStore 삽입, 쓰기 전용은 요청 권한 없음)로 저장이 계속 동작함을 확인. 최종 권한: INTERNET·VIBRATE·READ/WRITE_EXTERNAL_STORAGE(구형 Android용).
+- 명령·결과: `npx tsc --noEmit` 오류 0, `npx expo lint` 오류 0, `npx jest` 15 suites / **146 tests 통과**.
+- **미검증**: 권한 변경 후 새 빌드에서 사진 앱 저장(기존 preview 빌드 7026aa6a…는 변경 전). 출시 차단 남은 항목: 베스트샷 샘플 20장 출처·허락 문서, 커뮤니티 두 계정 실테스트·운영자 지정, Play 개인 계정 12명×14일 비공개 테스트.
+- **GitHub**: `main`에 커밋·푸시.
