@@ -44,16 +44,16 @@ function commons(file: string, author: string, license: ImageLicense, licenseUrl
   };
 }
 
-/** Images the project owner supplied for the app (D-047): no public source page, the owner confirmed use. */
+/** Images the project owner generated with ChatGPT and supplied for the app (D-047): no public source page. */
 function ownerProvided(description: string): ImageAttribution {
   return {
     sourceName: '프로젝트 소유자 제공',
     sourceUrl: '',
-    author: 'CutPick 프로젝트 소유자 제공',
+    author: 'CutPick 프로젝트 소유자 제공(OpenAI ChatGPT로 생성한 AI 이미지)',
     license: '소유자 제공',
     licenseUrl: '',
-    attribution: `${description} — CutPick 프로젝트 소유자 제공 이미지(앱 내 사용 허락)`,
-    modifications: '소유자가 준 콜라주 이미지(1536×1024)에서 한 칸을 4:5로 잘라 600×750으로 확대(약 1.9배, 약한 선명화), 메타데이터 없는 JPEG(품질 88)로 저장. 색 보정·합성 없음',
+    attribution: `${description} — CutPick 프로젝트 소유자 제공 이미지(ChatGPT로 생성한 AI 이미지, 실제 인물 사진 아님)`,
+    modifications: '소유자가 ChatGPT로 생성한 콜라주 이미지(1536×1024)에서 한 칸을 4:5로 잘라 600×750으로 확대(약 1.9배, 약한 선명화), 메타데이터 없는 JPEG(품질 88)로 저장. 색 보정·합성 없음',
     checkedAt: '2026-10-22',
   };
 }
