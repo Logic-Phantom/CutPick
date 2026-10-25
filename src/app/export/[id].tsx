@@ -32,6 +32,8 @@ export default function ExportScreen() {
   const [photos, setPhotos] = useState<PhotoAsset[]>([]);
   const [set, setSet] = useState<RecommendationSet | null | undefined>(undefined);
   const [files, setFiles] = useState<ExportedFile[] | null>(null);
+  // Files already written to the photo library, so a retry after a partial save does not duplicate them.
+  const [savedUris, setSavedUris] = useState<ReadonlySet<string>>(new Set());
   const [busy, setBusy] = useState<'export' | 'save' | string | null>(null);
   const [progress, setProgress] = useState<[number, number] | null>(null);
   const [msg, setMsg] = useState<Msg>(null);
@@ -92,11 +94,23 @@ export default function ExportScreen() {
   const doSave = async () => {
     const out = files ?? (await doExport());
     if (!out) return;
+    const pending = out.filter((f) => !savedUris.has(f.uri));
+    if (pending.length === 0) {
+      setMsg({ tone: 'info', text: `${out.length}장 모두 이미 사진 앱에 저장했어요.` });
+      return;
+    }
     setBusy('save');
     try {
-      const n = await saveToLibrary(out);
-      successFeedback();
-      setMsg({ tone: n === out.length ? 'success' : 'warning', text: n === out.length ? `${n}장을 순서대로 사진 앱에 저장했어요. 파일 이름에 순번이 붙어 있어요.` : `${out.length}장 중 ${n}장만 저장됐어요. 다시 시도해 주세요.` });
+      const n = await saveToLibrary(pending);
+      const next = new Set([...savedUris, ...pending.slice(0, n).map((f) => f.uri)]);
+      setSavedUris(next);
+      const done = out.filter((f) => next.has(f.uri)).length;
+      if (done === out.length) {
+        successFeedback();
+        setMsg({ tone: 'success', text: `${done}장을 순서대로 사진 앱에 저장했어요. 파일 이름에 순번이 붙어 있어요.` });
+      } else {
+        setMsg({ tone: 'warning', text: `${out.length}장 중 ${done}장만 저장됐어요. 다시 누르면 남은 ${out.length - done}장만 저장해요.` });
+      }
     } catch (e) {
       logError('save-library', e);
       setMsg({ tone: 'error', text: `${toUserMessage(e)} 아래에서 한 장씩 공유할 수도 있어요.` });

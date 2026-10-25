@@ -41,7 +41,7 @@ npx eas-cli@latest env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://mgycp
 ```
 같은 방식으로 `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL`, `EXPO_PUBLIC_OPERATOR_NAME`. 확인: `npx eas-cli@latest env:list --environment production`.
 
-- [ ] 내부 테스트 APK(2026-10-24 D-054·D-055 반영 빌드 성공: https://expo.dev/accounts/lcm2/projects/cutpick/builds/5e197ce8-0da0-42bb-b2d0-72669bb2d170 — 폰 설치·확인 남음): `npx eas-cli@latest build -p android --profile preview` → 폰에 설치(예전 디버그 키 APK는 먼저 삭제) → **사진 앱 저장**, 공유 시트, 커뮤니티 로그인 확인.
+- [ ] 내부 테스트 APK(2026-10-24 D-054·D-055 반영 빌드 성공: https://expo.dev/accounts/lcm2/projects/cutpick/builds/5e197ce8-0da0-42bb-b2d0-72669bb2d170 — 폰에 설치됨, 2026-10-25 콜드 스타트·샘플 분석·추천·**사진 앱 저장(권한 창 없이 6장)·공유 시트** 확인 / 아이콘·스플래시·로그인 확인 남음): `npx eas-cli@latest build -p android --profile preview` → 폰에 설치(예전 디버그 키 APK는 먼저 삭제) → **사진 앱 저장**, 공유 시트, 커뮤니티 로그인 확인.
 - [ ] 스토어용: `npx eas-cli@latest build -p android --profile production` (업로드 키는 EAS가 생성·보관하도록 선택).
 
 ### 5. Google Play (US$25 1회)
