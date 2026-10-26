@@ -223,7 +223,7 @@ npm test
 > 1. **preview APK 실기기 마무리** (2026-10-25 사진 앱 저장·공유 시트까지 확인) — 남은 것: 홈 화면 아이콘·테마 아이콘·스플래시 눈으로 확인(소유자), 다음 빌드에서 부분 저장 재시도 수정 확인.
 > 2. **소셜 로그인** — 같은 APK에서 Google 로그인 → 핸들 만들기, 카카오 로그인(KOE205 해결 확인). 동의 버튼은 소유자가 직접 누른다.
 > 3. **커뮤니티 두 계정 실사용** — 게시 → 즉시 피드 → 하트 → 신고 3건 자동 숨김 → 차단 → 내 게시물 삭제(Storage 파일까지) → 계정 삭제. 결과 `docs/TESTING.md`. 운영 담당자를 못 정하면 `require_review=true` 또는 커뮤니티 없이 출시.
-> 4. **Play Console** — 소유자 본인 확인·기기 액세스·전화번호 인증 → 앱 만들기 → 비공개 테스트(개인 계정: 테스터 12명 × 14일, 현재 Console 안내로 재확인).
+> 4. **Play Console** (2026-10-26: 앱 만들기·등록정보·앱 콘텐츠 선언 10개·내부 테스트 게시 완료 — Work Log 10-26) — 남은 순서: 내부 테스트 설치 확인 → **비공개 테스트**(개인 계정: 테스터 12명 이상 × 14일 연속) → 프로덕션 액세스 신청 → 프로덕션 출시(Google 심사 후 모든 사용자에게 공개).
 > 5. 보류 중 분석 과제: 그레인 선명도 과대평가(재현만 됨, 실사진 기준 세트 필요 — `docs/ANALYSIS_ALGORITHM.md`), 연사 임계값 실사진 재보정, 실사진 30/100/300장 시간·메모리.
 >
 > **폰 테스트 재개 방법(이 PC)**: Terminal에서 `npx.cmd expo start --lan --go --clear` → USB 연결·디버깅 허용 → `adb reverse tcp:8081 tcp:8081` → `adb shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081/--/community/account host.exp.exponent`(Git Bash에서는 `MSYS_NO_PATHCONV=1` 필요). 화면 확인은 `adb shell uiautomator dump`로 텍스트만(개인 사진 화면은 캡처 금지). 계정 비밀번호·동의 버튼은 소유자가 직접 누른다.
@@ -558,3 +558,21 @@ npm test
 - **Android 실기기**(Z Flip5 / Android 17, 10-24 설치된 preview APK — 권한 목록상 D-054 반영 빌드): 콜드 스타트 581 ms·크래시 없음, 샘플 18장 분석 사진당 약 47 ms, 추천 화면 정상. 내보내기 직전 소유자가 폰을 쓰기 시작해 중단했다가 이어서 확인: **사진 앱 저장 ✅**(권한 창 없이 샘플 6장 → `DCIM/cutpick-20261025-instagram-carousel-01~06.jpg`, 사본 EXIF·GPS 없음), **공유 시트 ✅**(이미지 1개, 대상 미선택 후 복귀). 아이콘·스플래시·로그인 미확인. 테스트 사진 6장은 폰 갤러리에 남아 있음.
 - **문서**: README 맨 위 현재 상태·이어서 할 일 갱신(10-18 진행표는 스냅샷으로 표시), `docs/TESTING.md`(오래된 RLS·백엔드 "미실행" 행 정정), `docs/DEVICE_BENCHMARKS.md`, `docs/ANALYSIS_ALGORITHM.md`, `docs/RELEASE_CHECKLIST.md`.
 - **하지 않은 것**: iOS(기기 없음), 커뮤니티 두 계정 실사용(테스트 계정 없음), Play Console(소유자 본인 확인 대기), `expo-doctor`(직전 10-23 20/20, 의존성 변경 없음).
+
+### 2026-10-26 — Google Play Console 등록 + 내부 테스트 게시
+소유자 Chrome(Claude in Chrome)에서 진행. 약관·선언 체크박스(개발자 프로그램 정책·Play 앱 서명·미국 수출법·IARC)와 비밀번호 입력은 소유자가 직접 했다.
+- **앱 만들기**: 개발자 계정 Forest_LIM(개인, ID 6593918937046119180) → 앱 ID 4974541643701759573, 이름 "CutPick - 나만의 베스트샷 추천", 패키지 `app.cutpick.mobile`, 기본 언어 한국어, 앱, 무료.
+- **기본 스토어 등록정보**: `docs/STORE_LISTING.md`의 짧은·자세한 설명 그대로, 아이콘 `assets/brand/play-store-icon-512.png`, 그래픽 이미지 `assets/store/feature-graphic-1024x500.png`, 휴대전화 스크린샷 `phone-01~07.png`(업로드 순서가 섞여 01→07로 다시 정렬).
+- **스토어 설정**: 카테고리 사진, 연락처 이메일 dlacoaud96@gmail.com.
+- **앱 콘텐츠 선언 10개 완료**
+  - 개인정보처리방침 URL `https://logic-phantom.github.io/CutPick/legal/privacy.html`
+  - 광고 없음, 광고 ID 사용 안 함, 정부 앱·금융 기능·건강 기능 없음
+  - 로그인 세부정보: "제한된 부분 있음" + 테스트 계정 없이 안내문(샘플 사진 체험, 커뮤니티는 아무 Google 계정으로 로그인, 신고·차단·계정 삭제 위치, 문의 이메일)
+  - 타겟 연령: **16~17세, 만 18세 이상**. 양식에 14세 칸이 없고, 13~15세를 넣으면 UGC 앱에 청소년 대상 정책이 더 엄격히 적용될 수 있어 제외(14~15세 포함은 소유자 결정 시 변경)
+  - 데이터 보안: 수집 예, 전송 중 암호화 예, 계정 생성 OAuth, 계정 삭제 URL `…/legal/account-deletion.html`. 수집 유형 = 이름·이메일·사용자 ID(계정 관리, ID는 앱 기능도), 사진(앱 기능), 앱 상호작용(앱 기능, 사기 예방·보안). 모두 선택 수집, 임시 처리 아님, 제3자 공유 없음
+  - 콘텐츠 등급(IARC, 카테고리 "다른 모든 앱 유형"): 사용자 콘텐츠 공유 예·차단 예·신고 예, 나머지 아니요 → 한국 3세 이상, PEGI 3, ESRB 전체이용가(상호작용 요소 "사용자 상호작용")
+- **GitHub Pages**: 저장소가 비공개라 Pages가 꺼져 정책 URL 2개가 404였음 → 소유자가 저장소를 **공개로 전환**하고 Pages(main `/docs`)를 다시 켬 → 두 URL 200 확인, Play의 404 경고 사라짐.
+- **EAS 프로덕션 빌드**: `npx eas-cli@latest build -p android --profile production --non-interactive --no-wait` → 성공, versionCode 2 / 0.1.0, EAS 보관 키스토어, production 환경 변수 4개: https://expo.dev/accounts/lcm2/projects/cutpick/builds/8f5d4f43-b908-4cca-8380-d42185b00668 (AAB 87.8MB, 신규 설치 약 27.8MB, 최소 API 24, 타겟 SDK 36). 빌드 시 "Expo Go 개발 흐름" 경고가 있었으나 빌드에는 영향 없음.
+- **내부 테스트 게시**: 테스터 목록 "CutPick 내부 테스터"(dlacoaud96@gmail.com) → 버전 `2 (0.1.0)`, 한국어 출시 노트 → 저장 및 출시 → "내부 테스터에게 제공됨". 참여 링크: https://play.google.com/apps/internaltest/4699829039619602666 (심사 전이라 앱 이름이 `app.cutpick.mobile (unreviewed)`로 보일 수 있음).
+- **미검증**: 내부 테스트 링크로 실기기 설치·실행, 프로덕션 빌드에서 커뮤니티 로그인.
+- **모든 사용자에게 공개하려면**: ① 비공개 테스트 트랙에 같은 AAB로 버전 생성 + 테스터 12명 이상이 옵트인해 **14일 연속** 참여 → ② 대시보드에서 **프로덕션 액세스 신청**(테스트 내용 설문) → ③ 승인 후 프로덕션 트랙 버전 생성 → 국가(대한민국 등) 선택 → 검토용 전송 → Google 심사(보통 수일) 통과 시 Play 스토어 공개.

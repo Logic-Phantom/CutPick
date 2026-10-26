@@ -42,13 +42,16 @@ npx eas-cli@latest env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://mgycp
 같은 방식으로 `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL`, `EXPO_PUBLIC_OPERATOR_NAME`. 확인: `npx eas-cli@latest env:list --environment production`.
 
 - [ ] 내부 테스트 APK(2026-10-24 D-054·D-055 반영 빌드 성공: https://expo.dev/accounts/lcm2/projects/cutpick/builds/5e197ce8-0da0-42bb-b2d0-72669bb2d170 — 폰에 설치됨, 2026-10-25 콜드 스타트·샘플 분석·추천·**사진 앱 저장(권한 창 없이 6장)·공유 시트** 확인 / 아이콘·스플래시·로그인 확인 남음): `npx eas-cli@latest build -p android --profile preview` → 폰에 설치(예전 디버그 키 APK는 먼저 삭제) → **사진 앱 저장**, 공유 시트, 커뮤니티 로그인 확인.
-- [ ] 스토어용: `npx eas-cli@latest build -p android --profile production` (업로드 키는 EAS가 생성·보관하도록 선택).
+- [x] (2026-10-26) 스토어용: `npx eas-cli@latest build -p android --profile production` → versionCode 2 / 0.1.0 AAB, EAS 보관 키스토어: https://expo.dev/accounts/lcm2/projects/cutpick/builds/8f5d4f43-b908-4cca-8380-d42185b00668
 
 ### 5. Google Play (US$25 1회)
-- [ ] Play Console 개발자 계정(개인: 신원 확인. **2023-11 이후 만든 개인 계정은 프로덕션 전에 테스터 12명 이상 × 14일 연속 비공개 테스트 필수**).
-- [ ] 앱 만들기(기본 언어 한국어, 무료) → 스토어 등록정보(`docs/STORE_LISTING.md` 초안), 스크린샷(폰 2장 이상), 512px 아이콘(`assets/brand/play-store-icon-512.png`), 1024×500 그래픽 이미지.
-- [ ] 앱 콘텐츠: 개인정보처리방침 URL, **데이터 보안** 양식(`docs/STORE_LISTING.md`의 답변), **계정 삭제 URL**, 앱 액세스(로그인은 선택 기능 — 심사자는 Google 로그인 사용 안내), 콘텐츠 등급 설문(사용자 간 공유·사용자 생성 콘텐츠 "예"), 타겟 연령(만 14세 미만 제외 권장), 광고 없음.
-- [ ] 비공개 테스트 트랙에 AAB 업로드 → 테스터 12명 14일 → 프로덕션 신청.
+- [x] (2026-10-26) Play Console 개발자 계정(개인, 확인 완료). **2023-11 이후 만든 개인 계정은 프로덕션 전에 테스터 12명 이상 × 14일 연속 비공개 테스트 필수**.
+- [x] (2026-10-26) 앱 만들기(한국어, 앱, 무료) → 스토어 등록정보·스크린샷 7장·512px 아이콘·그래픽 이미지, 스토어 설정(카테고리 사진, 이메일).
+- [x] (2026-10-26) 앱 콘텐츠 선언 10개 전부(처리방침 URL, 데이터 보안, 계정 삭제 URL, 로그인 세부정보, 콘텐츠 등급, 타겟 연령 16세 이상, 광고·광고 ID·정부·금융·건강 없음). 상세 답변은 README Work Log 2026-10-26.
+- [x] (2026-10-26) 내부 테스트 트랙 게시(테스터 = 소유자 1명): https://play.google.com/apps/internaltest/4699829039619602666
+- [ ] 내부 테스트 링크로 폰 설치 → 샘플 분석·저장·공유·커뮤니티 로그인 확인.
+- [ ] 비공개 테스트 트랙에 같은 AAB로 버전 생성 → 테스터 12명 이상 옵트인 → 14일 연속 참여.
+- [ ] 대시보드에서 프로덕션 액세스 신청 → 승인 후 프로덕션 버전 생성·국가 선택·검토 전송 → 심사 통과 시 공개.
 
 ### 6. iOS App Store (US$99/년) — 소셜 로그인 결정 필요
 - [ ] Apple Developer Program 가입.
